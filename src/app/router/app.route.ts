@@ -11,6 +11,7 @@ import {
   ClassesPage,
   LessonsPage,
   SubjectsPage,
+  TeachersPage,
   UnitsPage,
 } from '@/modules/content-crud/pages/academic-content-crud.page'
 import DashboardPage from '@/modules/dashboard/pages/dashboard.page'
@@ -46,7 +47,7 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'subjects', element: createElement(SubjectsPage) },
   { routeKey: 'lessons', element: createElement(LessonsPage) },
   { routeKey: 'units', element: createElement(UnitsPage) },
-  { routeKey: 'teachers', element: createElement(ModuleComingSoonPage) },
+  { routeKey: 'teachers', element: createElement(TeachersPage) },
   { routeKey: 'students', element: createElement(ModuleComingSoonPage) },
   { routeKey: 'reviewQueue', element: createElement(ModuleComingSoonPage) },
   { routeKey: 'settings', element: createElement(ModuleComingSoonPage) },
@@ -63,30 +64,15 @@ export const appRouter = createBrowserRouter([
     children: [
       {
         index: true,
-        element: createElement(Navigate, {
-          to: APP_ROUTES.dashboard.path,
-          replace: true,
-        }),
+        element: createElement(Navigate, { to: APP_ROUTES.dashboard.path, replace: true }),
       },
       {
         path: APP_ROUTES.dashboard.path,
         element: withRouteAccess('dashboard', createElement(DashboardPage)),
       },
-      ...quizyModuleRoutes.map(({ routeKey, element }) => ({
-        path: APP_ROUTES[routeKey].path,
-        element: withRouteAccess(routeKey, element),
-      })),
+      ...quizyModuleRoutes.map(({ routeKey, element }) => ({ path: APP_ROUTES[routeKey].path, element: withRouteAccess(routeKey, element) })),
     ],
   },
-  {
-    path: APP_ROUTES.notFound.path,
-    element: createElement(NotFoundPage),
-  },
-  {
-    path: '*',
-    element: createElement(Navigate, {
-      to: APP_ROUTES.notFound.path,
-      replace: true,
-    }),
-  },
+  { path: APP_ROUTES.notFound.path, element: createElement(NotFoundPage) },
+  { path: '*', element: createElement(Navigate, { to: APP_ROUTES.notFound.path, replace: true }) },
 ])
