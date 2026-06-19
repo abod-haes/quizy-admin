@@ -4,6 +4,7 @@ import { Navigate, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/app/providers/auth.provider'
 import { APP_ROUTES } from '@/app/router/route-object.type'
+import { CountryCodeSelect } from '@/components/ui/country-code-select'
 import type { ApiError } from '@/core/api/api-error.type'
 import { loginAdmin } from '@/modules/auth/services/login.services'
 import { getPermissionsForRoles } from '@/shared/auth/quizy-permissions'
@@ -96,13 +97,14 @@ export default function LoginPage() {
         <CardContent>
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 gap-4">
-              <div className="grid grid-cols-[7rem_1fr] gap-3">
+              <div className="grid grid-cols-[8.25rem_1fr] gap-3">
                 <FormField htmlFor="auth-country-code" label={t('countryCallingCode')}>
-                  <Input
+                  <CountryCodeSelect
                     id="auth-country-code"
                     value={countryCallingCode}
-                    onChange={(event) => setCountryCallingCode(event.target.value)}
                     placeholder={t('countryCallingCodePlaceholder')}
+                    disabled={isSubmitting}
+                    onValueChange={setCountryCallingCode}
                   />
                 </FormField>
 
@@ -111,6 +113,7 @@ export default function LoginPage() {
                     id="auth-phone"
                     inputMode="tel"
                     value={phoneNumber}
+                    disabled={isSubmitting}
                     onChange={(event) => setPhoneNumber(event.target.value)}
                     placeholder={t('phoneNumberPlaceholder')}
                   />
@@ -122,6 +125,7 @@ export default function LoginPage() {
                   id="auth-password"
                   type="password"
                   value={password}
+                  disabled={isSubmitting}
                   onChange={(event) => setPassword(event.target.value)}
                   placeholder={t('passwordPlaceholder')}
                 />
