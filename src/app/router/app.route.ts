@@ -18,6 +18,7 @@ import {
   TeachersPage,
   UnitsPage,
 } from '@/modules/content-crud/pages/academic-content-crud.page'
+import CourseContentPage from '@/modules/courses/pages/course-content.page'
 import CourseSessionsPage from '@/modules/courses/pages/course-sessions.page'
 import DashboardPage from '@/modules/dashboard/pages/dashboard.page'
 import { NotFoundPage } from '@/modules/not-found/pages/not-found.page'
@@ -57,6 +58,7 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'students', element: createElement(StudentsPage) },
   { routeKey: 'courses', element: createElement(CoursesPage) },
   { routeKey: 'courseSessions', element: createElement(CourseSessionsPage) },
+  { routeKey: 'courseContent', element: createElement(CourseContentPage) },
 ]
 
 export const appRouter = createBrowserRouter([
