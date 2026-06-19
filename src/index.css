@@ -118,6 +118,12 @@
   .quizy-quizzes-scroll-page [data-slot='card-header'] { flex-shrink: 0; padding-block: 1rem; }
   .quizy-quizzes-scroll-page [data-slot='card-content'] { min-height: 0; flex: 1 1 0%; overflow: hidden; }
   .quizy-quizzes-scroll-page table { min-width: 920px; }
+
+  .app-shell-frame main { overflow: hidden; }
+  .app-shell-frame main > div { min-height: 0; }
+  .app-shell-frame [data-slot='card-header'] { padding-block: 1rem; }
+  .app-shell-frame [data-slot='card-content'] { min-height: 0; }
+  .app-shell-frame textarea { min-height: 6rem; }
 }
 
 @layer base {
