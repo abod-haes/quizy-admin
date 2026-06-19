@@ -4,8 +4,25 @@ import { httpClient } from '@/core/api/http.services'
 
 export type RequestOptions = Omit<AxiosRequestConfig, 'url' | 'method' | 'data'>
 
+const emptyPagedResponse = {
+  items: [],
+  totalCount: 0,
+  pageNumber: 1,
+  pageSize: 0,
+}
+
+function isUnsupportedResourcesList(url: string, options?: RequestOptions) {
+  return url === '/api/Resources' && Boolean(options?.params)
+}
+
 export const api = {
   async get<TResponse>(url: string, options?: RequestOptions): Promise<TResponse> {
+    // Backend currently supports Resources upload/delete, but not listing.
+    // Do not call GET /api/Resources because it returns 405 Method Not Allowed.
+    if (isUnsupportedResourcesList(url, options)) {
+      return emptyPagedResponse as TResponse
+    }
+
     const response = await httpClient.get<TResponse>(url, options)
     return response.data
   },
