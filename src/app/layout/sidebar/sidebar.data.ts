@@ -1,6 +1,7 @@
 import {
   BookOpenCheck,
   BookText,
+  CalendarDays,
   FileQuestion,
   FolderKanban,
   Gauge,
@@ -26,7 +27,15 @@ export const primarySidebarItems: SidebarItem[] = [
       { id: 'quizBuilder', labelKey: 'sidebar.items.quizBuilder', to: APP_ROUTES.quizBuilder.path, icon: UploadCloud, end: true },
       { id: 'quizzes', labelKey: 'sidebar.items.quizzes', to: APP_ROUTES.quizzes.path, icon: FileQuestion, end: true },
       { id: 'questions', labelKey: 'sidebar.items.questions', to: APP_ROUTES.questions.path, icon: LibraryBig, end: true },
-      { id: 'reviewQueue', labelKey: 'sidebar.items.reviewQueue', to: APP_ROUTES.reviewQueue.path, icon: LibraryBig, end: true },
+    ],
+  },
+  {
+    id: 'courseManagement',
+    labelKey: 'sidebar.groups.courseManagement',
+    icon: CalendarDays,
+    children: [
+      { id: 'courses', labelKey: 'sidebar.items.courses', to: APP_ROUTES.courses.path, icon: CalendarDays, end: true },
+      { id: 'courseSessions', labelKey: 'sidebar.items.courseSessions', to: APP_ROUTES.courseSessions.path, icon: BookOpenCheck, end: true },
     ],
   },
   {
