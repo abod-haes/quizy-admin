@@ -2,6 +2,7 @@
   "closeNavigation": "إغلاق التنقل",
   "groups": {
     "quizManagement": "إدارة الاختبارات",
+    "courseManagement": "إدارة الكورسات",
     "contentManagement": "المحتوى التعليمي",
     "peopleManagement": "المستخدمون"
   },
@@ -10,13 +11,14 @@
     "quizBuilder": "بناء الاختبارات",
     "quizzes": "الاختبارات",
     "questions": "بنك الأسئلة",
+    "courses": "الكورسات",
+    "courseSessions": "الجلسات",
     "classes": "الصفوف",
     "subjects": "المواد",
     "lessons": "الدروس",
     "units": "الوحدات",
     "teachers": "المدرسون",
     "students": "الطلاب",
-    "reviewQueue": "المراجعة",
     "settings": "الإعدادات"
   },
   "user": {
