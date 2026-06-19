@@ -1,0 +1,80 @@
+{
+  "status": {
+    "connected": "API connected"
+  },
+  "modules": {
+    "classes": {
+      "title": "Classes",
+      "description": "Manage class records and connect them with subjects."
+    },
+    "subjects": {
+      "title": "Subjects",
+      "description": "Manage subjects and assign them to the right classes."
+    },
+    "units": {
+      "title": "Units",
+      "description": "Manage subject units before linking lessons and quizzes."
+    },
+    "lessons": {
+      "title": "Lessons",
+      "description": "Manage lessons and their order inside units."
+    }
+  },
+  "fields": {
+    "id": "ID",
+    "name": "Name",
+    "description": "Description",
+    "classes": "Classes",
+    "subjects": "Subjects",
+    "subject": "Subject",
+    "unit": "Unit",
+    "order": "Order",
+    "actions": "Actions"
+  },
+  "actions": {
+    "create": "Create",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "table": {
+    "title": "Data",
+    "description": "Total items: {{count}}",
+    "page": "Page {{page}} of {{totalPages}}"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "summary": "{{page}} / {{totalPages}}"
+  },
+  "form": {
+    "createTitle": "Create {{entity}}",
+    "editTitle": "Edit {{entity}}",
+    "description": "Fill the required fields, then save your changes.",
+    "selectPlaceholder": "Select a value"
+  },
+  "states": {
+    "empty": {
+      "title": "No data yet",
+      "description": "Create the first item or check the API connection."
+    },
+    "error": {
+      "title": "Could not load data"
+    }
+  },
+  "messages": {
+    "created": "Created successfully.",
+    "updated": "Updated successfully.",
+    "deleted": "Deleted successfully.",
+    "deleteConfirm": "Delete {{name}}?"
+  },
+  "validation": {
+    "required": "This field is required.",
+    "nonNegativeInt": "The number must be zero or greater.",
+    "uuid": "The selected value is invalid."
+  },
+  "errors": {
+    "generic": "Unexpected error occurred."
+  }
+}
