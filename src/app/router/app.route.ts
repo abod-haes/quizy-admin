@@ -21,7 +21,7 @@ import CourseContentPage from '@/modules/courses/pages/course-content.page'
 import CourseSessionsPage from '@/modules/courses/pages/course-sessions.page'
 import DashboardPage from '@/modules/dashboard/pages/dashboard.page'
 import { NotFoundPage } from '@/modules/not-found/pages/not-found.page'
-import QuizBuilderPage from '@/modules/quiz-builder/pages/quiz-builder.page'
+import QuizBuilderPage from '@/modules/quiz-builder/pages/quiz-builder-v2.page'
 import QuizzesPage from '@/modules/quizzes/pages/quizzes.page'
 
 function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof createElement>) {
