@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 import { arrayOfUuid, nonNegativeInt, optionalString, requiredString, uuidField } from '@/shared/validation/primitives'
-import type { AcademicContentItem, ContentCrudConfig, ContentFormValues } from '@/modules/content-crud/content-crud.types'
+import type { AcademicContentItem, ContentCrudConfig, ContentFormValues, ContentRelationOption } from '@/modules/content-crud/content-crud.types'
 
 const toStringValue = (value: unknown) => (typeof value === 'string' ? value : '')
 const toNumberValue = (value: unknown) => (typeof value === 'number' ? value : 0)
@@ -33,35 +33,51 @@ function subjectClassIds(item: AcademicContentItem): string[] {
   return []
 }
 
+function relationNames(ids: string[], options: ContentRelationOption[]): string {
+  const names = ids
+    .map((id) => options.find((option) => option.id === id)?.name)
+    .filter((name): name is string => Boolean(name && name.trim()))
+
+  return names.length > 0 ? names.join('، ') : '-'
+}
+
 export const academicContentConfigs: Record<ContentCrudConfig['key'], ContentCrudConfig> = {
   classes: {
     key: 'classes', titleKey: 'modules.classes.title', descriptionKey: 'modules.classes.description', endpoints: API_ENDPOINTS.classes,
-    columns: [{ key: 'name', labelKey: 'fields.name' }, { key: 'subjects', labelKey: 'fields.subjects', render: (item) => String(Array.isArray(item.subjects) ? item.subjects.length : '-') }, { key: 'id', labelKey: 'fields.id' }],
+    columns: [{ key: 'name', labelKey: 'fields.name' }, { key: 'subjects', labelKey: 'fields.subjects', render: (item) => String(Array.isArray(item.subjects) ? item.subjects.length : '-') }],
     fields: [{ name: 'name', labelKey: 'fields.name', type: 'text', required: true }], emptyValues: { name: '' }, getInitialValues: (item) => ({ name: toStringValue(item.name) }), validate: (values) => toValidationResult(classSchema.safeParse(values)), toPayload: (values) => ({ name: values.name }),
   },
   subjects: {
     key: 'subjects', titleKey: 'modules.subjects.title', descriptionKey: 'modules.subjects.description', endpoints: API_ENDPOINTS.subjects, relations: [{ key: 'classes', endpoint: API_ENDPOINTS.classes.brief }],
-    columns: [{ key: 'name', labelKey: 'fields.name' }, { key: 'classIds', labelKey: 'fields.classes', render: (item, context) => { const ids = subjectClassIds(item); const options = context.relations.classes ?? []; return ids.map((id) => options.find((option) => option.id === id)?.name ?? id).join('، ') || '-' } }, { key: 'id', labelKey: 'fields.id' }],
+    columns: [{ key: 'name', labelKey: 'fields.name' }, { key: 'classIds', labelKey: 'fields.classes', render: (item, context) => relationNames(subjectClassIds(item), context.relations.classes ?? []) }],
     fields: [{ name: 'name', labelKey: 'fields.name', type: 'text', required: true }, { name: 'classIds', labelKey: 'fields.classes', type: 'multi-select', relationKey: 'classes' }], emptyValues: { name: '', classIds: [] }, getInitialValues: (item) => ({ name: toStringValue(item.name), classIds: subjectClassIds(item) }), validate: (values) => toValidationResult(subjectSchema.safeParse(values)), toPayload: (values) => ({ name: values.name, classIds: toStringArray(values.classIds) }),
   },
   units: {
     key: 'units', titleKey: 'modules.units.title', descriptionKey: 'modules.units.description', endpoints: API_ENDPOINTS.units, relations: [{ key: 'subjects', endpoint: API_ENDPOINTS.subjects.brief }],
-    columns: [{ key: 'name', labelKey: 'fields.name' }, { key: 'description', labelKey: 'fields.description' }, { key: 'subjectId', labelKey: 'fields.subject', relationKey: 'subjects' }, { key: 'id', labelKey: 'fields.id' }],
+    columns: [{ key: 'name', labelKey: 'fields.name' }, { key: 'description', labelKey: 'fields.description' }, { key: 'subjectId', labelKey: 'fields.subject', relationKey: 'subjects' }],
     fields: [{ name: 'name', labelKey: 'fields.name', type: 'text', required: true }, { name: 'desc', labelKey: 'fields.description', type: 'textarea' }, { name: 'subjectId', labelKey: 'fields.subject', type: 'select', relationKey: 'subjects', required: true }], emptyValues: { name: '', desc: '', subjectId: '' }, getInitialValues: (item) => ({ name: toStringValue(item.name), desc: toStringValue(item.desc ?? item.description), subjectId: toStringValue(item.subjectId ?? item.subject?.id) }), validate: (values) => toValidationResult(unitSchema.safeParse(values)), toPayload: (values) => ({ name: values.name, desc: values.desc, subjectId: values.subjectId }),
   },
   lessons: {
     key: 'lessons', titleKey: 'modules.lessons.title', descriptionKey: 'modules.lessons.description', endpoints: API_ENDPOINTS.lessons, relations: [{ key: 'units', endpoint: API_ENDPOINTS.units.brief }],
-    columns: [{ key: 'name', labelKey: 'fields.name' }, { key: 'description', labelKey: 'fields.description' }, { key: 'unitId', labelKey: 'fields.unit', relationKey: 'units' }, { key: 'order', labelKey: 'fields.order' }, { key: 'id', labelKey: 'fields.id' }],
+    columns: [{ key: 'name', labelKey: 'fields.name' }, { key: 'description', labelKey: 'fields.description' }, { key: 'unitId', labelKey: 'fields.unit', relationKey: 'units' }, { key: 'order', labelKey: 'fields.order' }],
     fields: [{ name: 'name', labelKey: 'fields.name', type: 'text', required: true }, { name: 'desc', labelKey: 'fields.description', type: 'textarea' }, { name: 'unitId', labelKey: 'fields.unit', type: 'select', relationKey: 'units', required: true }, { name: 'order', labelKey: 'fields.order', type: 'number' }], emptyValues: { name: '', desc: '', unitId: '', order: 0 }, getInitialValues: (item) => ({ name: toStringValue(item.name), desc: toStringValue(item.desc ?? item.description), unitId: toStringValue(item.unitId ?? item.unit?.id), order: toNumberValue(item.order) }), validate: (values) => toValidationResult(lessonSchema.safeParse(values)), toPayload: (values) => ({ name: values.name, desc: values.desc, unitId: values.unitId, order: Number(values.order ?? 0) }),
   },
   teachers: {
     key: 'teachers', titleKey: 'modules.teachers.title', descriptionKey: 'modules.teachers.description', endpoints: API_ENDPOINTS.teachers,
-    columns: [{ key: 'firstName', labelKey: 'fields.firstName' }, { key: 'lastName', labelKey: 'fields.lastName' }, { key: 'phoneNumber', labelKey: 'fields.phoneNumber' }, { key: 'description', labelKey: 'fields.description' }, { key: 'id', labelKey: 'fields.id' }],
+    columns: [{ key: 'firstName', labelKey: 'fields.firstName' }, { key: 'lastName', labelKey: 'fields.lastName' }, { key: 'phoneNumber', labelKey: 'fields.phoneNumber' }, { key: 'description', labelKey: 'fields.description' }],
     fields: [{ name: 'firstName', labelKey: 'fields.firstName', type: 'text', required: true }, { name: 'lastName', labelKey: 'fields.lastName', type: 'text' }, { name: 'phoneNumber', labelKey: 'fields.phoneNumber', type: 'text' }, { name: 'countryCallingCode', labelKey: 'fields.countryCallingCode', type: 'text' }, { name: 'description', labelKey: 'fields.description', type: 'textarea' }], emptyValues: { firstName: '', lastName: '', phoneNumber: '', countryCallingCode: '+963', description: '' }, getInitialValues: (item) => ({ firstName: toStringValue(item.firstName), lastName: toStringValue(item.lastName), phoneNumber: toStringValue(item.phoneNumber), countryCallingCode: toStringValue(item.countryCallingCode), description: toStringValue(item.description) }), validate: (values) => toValidationResult(teacherSchema.safeParse(values)), toPayload: (values) => ({ firstName: values.firstName, lastName: values.lastName, phoneNumber: values.phoneNumber, countryCallingCode: values.countryCallingCode, description: values.description }),
   },
   students: {
     key: 'students', titleKey: 'modules.students.title', descriptionKey: 'modules.students.description', endpoints: API_ENDPOINTS.students,
-    columns: [{ key: 'firstName', labelKey: 'fields.firstName' }, { key: 'lastName', labelKey: 'fields.lastName' }, { key: 'phoneNumber', labelKey: 'fields.phoneNumber' }, { key: 'id', labelKey: 'fields.id' }],
+    columns: [{ key: 'firstName', labelKey: 'fields.firstName' }, { key: 'lastName', labelKey: 'fields.lastName' }, { key: 'phoneNumber', labelKey: 'fields.phoneNumber' }],
     fields: [{ name: 'firstName', labelKey: 'fields.firstName', type: 'text', required: true }, { name: 'lastName', labelKey: 'fields.lastName', type: 'text' }, { name: 'phoneNumber', labelKey: 'fields.phoneNumber', type: 'text' }, { name: 'countryCallingCode', labelKey: 'fields.countryCallingCode', type: 'text' }], emptyValues: { firstName: '', lastName: '', phoneNumber: '', countryCallingCode: '+963' }, getInitialValues: (item) => ({ firstName: toStringValue(item.firstName), lastName: toStringValue(item.lastName), phoneNumber: toStringValue(item.phoneNumber), countryCallingCode: toStringValue(item.countryCallingCode) }), validate: (values) => toValidationResult(studentSchema.safeParse(values)), toPayload: (values) => ({ firstName: values.firstName, lastName: values.lastName, phoneNumber: values.phoneNumber, countryCallingCode: values.countryCallingCode }),
   },
+  quizzes: { key: 'quizzes', titleKey: 'modules.quizzes.title', descriptionKey: 'modules.quizzes.description', endpoints: API_ENDPOINTS.quizes, columns: [{ key: 'title', labelKey: 'fields.title' }, { key: 'isFree', labelKey: 'fields.isFree' }, { key: 'timeExpiration', labelKey: 'fields.timeExpiration' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
+  questions: { key: 'questions', titleKey: 'modules.questions.title', descriptionKey: 'modules.questions.description', endpoints: API_ENDPOINTS.qestions, columns: [{ key: 'title', labelKey: 'fields.title' }, { key: 'hint', labelKey: 'fields.hint' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
+  courses: { key: 'courses', titleKey: 'modules.courses.title', descriptionKey: 'modules.courses.description', endpoints: API_ENDPOINTS.courses, columns: [{ key: 'title', labelKey: 'fields.title' }, { key: 'teacherId', labelKey: 'fields.teacher', relationKey: 'teachers' }, { key: 'isFree', labelKey: 'fields.isFree' }, { key: 'price', labelKey: 'fields.price' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
+  ads: { key: 'ads', titleKey: 'modules.ads.title', descriptionKey: 'modules.ads.description', endpoints: API_ENDPOINTS.ads, columns: [{ key: 'title', labelKey: 'fields.title' }, { key: 'description', labelKey: 'fields.description' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
+  pointsOfSale: { key: 'pointsOfSale', titleKey: 'modules.pointsOfSale.title', descriptionKey: 'modules.pointsOfSale.description', endpoints: API_ENDPOINTS.pointsOfSale, columns: [{ key: 'name', labelKey: 'fields.name' }, { key: 'code', labelKey: 'fields.code' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
+  qrCodes: { key: 'qrCodes', titleKey: 'modules.qrCodes.title', descriptionKey: 'modules.qrCodes.description', endpoints: API_ENDPOINTS.qrCodes, columns: [{ key: 'code', labelKey: 'fields.code' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
+  notifications: { key: 'notifications', titleKey: 'modules.notifications.title', descriptionKey: 'modules.notifications.description', endpoints: API_ENDPOINTS.notifications, columns: [{ key: 'title', labelKey: 'fields.title' }, { key: 'body', labelKey: 'fields.body' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
+  pageContents: { key: 'pageContents', titleKey: 'modules.pageContents.title', descriptionKey: 'modules.pageContents.description', endpoints: API_ENDPOINTS.pageContents, columns: [{ key: 'key', labelKey: 'fields.key' }, { key: 'title', labelKey: 'fields.title' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
 }
