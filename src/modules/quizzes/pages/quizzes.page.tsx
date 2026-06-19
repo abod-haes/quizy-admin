@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Edit3, FileQuestion, Plus, RefreshCcw, Search, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Edit3, FileQuestion, Plus, RefreshCcw, Search, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { api } from '@/shared/api/api-client'
 import type { PagedResponse } from '@/shared/api/api.types'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
-import { Badge, Button, Card, CardContent, CustomSelect, Input, Skeleton, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui'
+import { Button, Card, CardContent, CustomSelect, Input, Skeleton, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui'
 
 type QuizRow = {
   id: string
@@ -106,27 +106,37 @@ export default function QuizzesPage() {
   const totalCount = quizzesQuery.data?.totalCount ?? 0
   const pageSize = quizzesQuery.data?.pageSize ?? PAGE_SIZE
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
-  const startItem = totalCount === 0 ? 0 : (page - 1) * pageSize + 1
-  const endItem = Math.min(page * pageSize, totalCount)
+  const hasActiveFilters = Boolean(search.trim()) || teacherId !== ALL_VALUE
 
   const goToPage = (nextPage: number) => setPage(Math.min(totalPages, Math.max(1, nextPage)))
+  const updateSearch = (value: string) => {
+    setPage(1)
+    setSearch(value)
+  }
+  const updateTeacherFilter = (value: string) => {
+    setPage(1)
+    setTeacherId(value)
+  }
+  const clearFilters = () => {
+    setPage(1)
+    setSearch('')
+    setTeacherId(ALL_VALUE)
+  }
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
       <div className="flex shrink-0 flex-col gap-3 rounded-3xl border border-primary/10 bg-card/90 p-4 shadow-sm xl:flex-row xl:items-center xl:justify-between">
-        <div className="min-w-0 space-y-1">
+        <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <FileQuestion className="size-5 text-primary" />
             <h1 className="text-2xl font-bold tracking-tight text-foreground">الاختبارات</h1>
-            <Badge variant="outline" className="rounded-full px-3">{totalCount} اختبار</Badge>
           </div>
-          <p className="line-clamp-1 text-sm text-muted-foreground">إدارة الاختبارات، تعديل المحتوى، ومتابعة عدد الأسئلة والمدرس المرتبط.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" size="sm" variant="outline" onClick={() => quizzesQuery.refetch()} disabled={quizzesQuery.isFetching}>
+          <Button type="button" variant="outline" className="h-11 px-5 text-sm font-semibold" onClick={() => quizzesQuery.refetch()} disabled={quizzesQuery.isFetching}>
             <RefreshCcw className="size-4" /> تحديث
           </Button>
-          <Button type="button" size="sm" onClick={() => navigate('/quiz-builder')}>
+          <Button type="button" className="h-11 px-5 text-sm font-semibold" onClick={() => navigate('/quiz-builder')}>
             <Plus className="size-4" /> إضافة اختبار
           </Button>
         </div>
@@ -134,16 +144,21 @@ export default function QuizzesPage() {
 
       <Card className="flex min-h-0 flex-1 flex-col rounded-3xl shadow-sm">
         <CardContent className="flex min-h-0 flex-1 flex-col gap-3 p-4">
-          <div className="grid shrink-0 gap-2 md:grid-cols-[minmax(0,1fr)_16rem]">
+          <div className="grid shrink-0 gap-2 lg:grid-cols-[minmax(0,1fr)_16rem_auto]">
             <label className="relative block">
               <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input className="h-10 ps-10" value={search} placeholder="ابحث باسم الاختبار أو المدرس" onChange={(event) => setSearch(event.target.value)} />
+              <Input className="h-11 ps-10" value={search} placeholder="ابحث باسم الاختبار أو المدرس" onChange={(event) => updateSearch(event.target.value)} />
             </label>
-            <CustomSelect value={teacherId} variant="filter" options={teacherOptions} onValueChange={(value) => setTeacherId(String(value))} placeholder="كل المدرسين" />
+            <CustomSelect value={teacherId} variant="filter" options={teacherOptions} onValueChange={(value) => updateTeacherFilter(String(value))} placeholder="كل المدرسين" />
+            {hasActiveFilters ? (
+              <Button type="button" variant="outline" className="h-11 px-4 text-sm font-semibold" onClick={clearFilters}>
+                <X className="size-4" /> مسح الفلاتر
+              </Button>
+            ) : null}
           </div>
 
           <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-border bg-background/70">
-            <div className="h-[calc(100svh-18rem)] min-h-[26rem] overflow-auto">
+            <div className="h-full min-h-0 overflow-auto">
               <Table className="min-w-[920px]">
                 <TableHeader className="sticky top-0 z-10 bg-card/95 backdrop-blur">
                   <TableRow>
@@ -178,8 +193,7 @@ export default function QuizzesPage() {
             </div>
           </div>
 
-          <div className="flex shrink-0 flex-col gap-2 border-t border-border/70 pt-3 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-xs text-muted-foreground">عرض {startItem} - {endItem} من {totalCount}</p>
+          <div className="flex shrink-0 justify-end border-t border-border/70 pt-3">
             <div className="flex flex-wrap items-center gap-1.5">
               <Button type="button" size="icon-sm" variant="outline" disabled={page <= 1 || quizzesQuery.isFetching} onClick={() => goToPage(1)}><ChevronsRight className="size-4" /></Button>
               <Button type="button" size="icon-sm" variant="outline" disabled={page <= 1 || quizzesQuery.isFetching} onClick={() => goToPage(page - 1)}><ChevronRight className="size-4" /></Button>
