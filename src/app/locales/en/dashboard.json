@@ -1,0 +1,80 @@
+{
+  "hero": {
+    "badge": "Quizy workflow",
+    "title": "One dashboard for quiz operations from file to publish",
+    "description": "Manage the Quizy flow: upload PDFs, review extracted lessons, map lesson IDs and entity IDs, validate questions, and prepare the final quiz payload.",
+    "primaryAction": "Start quiz builder",
+    "secondaryAction": "Open review queue"
+  },
+  "quality": {
+    "title": "Content quality guardrails",
+    "description": "Keep the team aligned with Quizy publishing rules.",
+    "items": [
+      "Do not guess unclear text or correct answers.",
+      "Every question needs lesson IDs and files when required.",
+      "Math content stays in MathLm with LaTeX only."
+    ]
+  },
+  "metrics": {
+    "quizzes": { "label": "Ready quizzes", "hint": "publishable" },
+    "questions": { "label": "Structured questions", "hint": "math ready" },
+    "teachers": { "label": "Teachers", "hint": "mapped" },
+    "pendingReviews": { "label": "Pending reviews", "hint": "needs action" }
+  },
+  "workflows": {
+    "title": "Core workspaces",
+    "description": "The useful Quizy pages replacing the old CMS screens.",
+    "items": {
+      "pdfToJson": { "title": "PDF to JSON", "description": "Upload exams and prepare API-ready quiz data." },
+      "quizLibrary": { "title": "Quiz library", "description": "Manage quizzes, questions, answers, status, and reviews." },
+      "lessonMap": { "title": "Lessons and units", "description": "Connect units, lessons, lesson IDs, and entity IDs." }
+    }
+  },
+  "timeline": {
+    "title": "Publishing path",
+    "description": "The proposed workflow for a dynamic Quizy admin.",
+    "items": {
+      "extractLessons": { "title": "Extract lessons", "description": "Generate the initial lesson draft from the file.", "status": "phase 1" },
+      "confirmMappings": { "title": "Confirm mappings", "description": "Set teacher, lessons, entities, and publishing options.", "status": "review" },
+      "publishQuiz": { "title": "Publish quiz", "description": "Send the completed quiz body after validation.", "status": "ready" }
+    }
+  },
+  "dynamic": {
+    "title": "Recommended dynamic upgrades",
+    "description": "Priority items after the UI cleanup and rebrand.",
+    "items": {
+      "apiContracts": { "label": "API contracts", "description": "Define final endpoints for quizzes, lessons, units, teachers, entities, and files." },
+      "entityBuilder": { "label": "Config builder", "description": "Generate forms and tables from one field configuration." },
+      "reviewRules": { "label": "Review queue", "description": "Handle questions that need an answer, image, or clarification." },
+      "analytics": { "label": "Learning analytics", "description": "Track conversion quality and lesson activity." }
+    }
+  },
+  "module": {
+    "status": "Ready for API wiring",
+    "pages": {
+      "quizBuilder": { "title": "Quiz Builder", "description": "Next step: connect PDF upload, lesson extraction, and quiz JSON generation." },
+      "quizzes": { "title": "Quizzes", "description": "Manage published quizzes, drafts, and review status." },
+      "lessons": { "title": "Lessons", "description": "Manage lesson IDs and their unit relationships." },
+      "units": { "title": "Units", "description": "Manage unit mapping and lesson distribution." },
+      "teachers": { "title": "Teachers", "description": "Manage teacher IDs and assignment ownership." },
+      "students": { "title": "Students", "description": "Future space for usage and results once student APIs exist." },
+      "reviewQueue": { "title": "Review Queue", "description": "Resolve questions that need a correct answer, file, or clarification." },
+      "settings": { "title": "Settings", "description": "Configure identity, API URL, team roles, and conversion rules." }
+    },
+    "checklist": {
+      "contract": { "title": "Contract", "description": "Confirm each request and response before final CRUD generation." },
+      "crud": { "title": "CRUD", "description": "Build each module from one table and form config." },
+      "permissions": { "title": "Permissions", "description": "Add roles for admins, reviewers, and content operators." },
+      "integration": { "title": "Integration", "description": "Replace placeholder content with React Query data." }
+    },
+    "next": {
+      "title": "Before full CRUD",
+      "description": "These backend decisions are needed first.",
+      "items": [
+        "Confirm final endpoint names and payloads.",
+        "Define role and permission rules.",
+        "Decide whether PDF conversion runs in the admin or in a separate service."
+      ]
+    }
+  }
+}
