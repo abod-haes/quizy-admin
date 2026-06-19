@@ -20,7 +20,6 @@ const moduleTranslationKeys: Record<string, string> = {
   students: 'students',
   courses: 'courses',
   resources: 'resources',
-  settings: 'settings',
 }
 
 const moduleTitleFallbacks: Record<string, string> = {
@@ -36,11 +35,13 @@ export function AppShellLayout() {
 
   const isRtl = i18n.dir() === 'rtl'
   const directionClass = isRtl ? 'app-dir-rtl' : 'app-dir-ltr'
+  const pathSegments = location.pathname.split('/').filter(Boolean)
+  const firstSegment = pathSegments[0] ?? 'dashboard'
+  const secondSegment = pathSegments[1]
+  const shouldLockPageScroll = firstSegment === 'quizzes'
+
   const pageTitle = useMemo(() => {
     const brandName = t('layout.brand.name')
-    const pathSegments = location.pathname.split('/').filter(Boolean)
-    const firstSegment = pathSegments[0] ?? 'dashboard'
-    const secondSegment = pathSegments[1]
 
     if (firstSegment === 'login') return brandName + ' - ' + t('layout.meta.login')
     if (firstSegment === 'not-found') return brandName + ' - ' + t('layout.meta.notFound')
@@ -50,7 +51,7 @@ export function AppShellLayout() {
     if (!moduleKey) return brandName
 
     return brandName + ' - ' + t('layout.meta.' + moduleKey + '.plural', { defaultValue: moduleTitleFallbacks[moduleKey] ?? brandName })
-  }, [location.pathname, t])
+  }, [firstSegment, secondSegment, t])
 
   useEffect(() => {
     if (typeof document === 'undefined') return
@@ -67,7 +68,7 @@ export function AppShellLayout() {
         <section className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
           <AppShellHeader onOpenMobileMenu={() => setMobileOpen(true)} />
 
-          <main className="flex min-h-0 w-full flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+          <main className={cn('flex min-h-0 w-full flex-1 p-4 sm:p-6 lg:p-8', shouldLockPageScroll ? 'overflow-hidden' : 'overflow-auto')}>
             <Outlet />
           </main>
         </section>
