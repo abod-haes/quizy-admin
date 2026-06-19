@@ -12,8 +12,64 @@ export const APP_ROUTES = {
     key: 'root',
     path: '/',
     protected: true,
-    breadcrumbKeys: [PERMISSIONS.employees.view],
+    breadcrumbKeys: [],
   },
+  dashboard: {
+    key: 'dashboard',
+    path: '/dashboard',
+    protected: true,
+    breadcrumbKeys: [],
+  },
+  quizBuilder: {
+    key: 'quizBuilder',
+    path: '/quiz-builder',
+    protected: true,
+    breadcrumbKeys: [],
+  },
+  quizzes: {
+    key: 'quizzes',
+    path: '/quizzes',
+    protected: true,
+    breadcrumbKeys: [],
+  },
+  lessons: {
+    key: 'lessons',
+    path: '/lessons',
+    protected: true,
+    breadcrumbKeys: [],
+  },
+  units: {
+    key: 'units',
+    path: '/units',
+    protected: true,
+    breadcrumbKeys: [],
+  },
+  teachers: {
+    key: 'teachers',
+    path: '/teachers',
+    protected: true,
+    breadcrumbKeys: [],
+  },
+  students: {
+    key: 'students',
+    path: '/students',
+    protected: true,
+    breadcrumbKeys: [],
+  },
+  reviewQueue: {
+    key: 'reviewQueue',
+    path: '/review-queue',
+    protected: true,
+    breadcrumbKeys: [],
+  },
+  settings: {
+    key: 'settings',
+    path: '/settings',
+    protected: true,
+    breadcrumbKeys: [],
+  },
+
+  /** Legacy generated CMS routes kept only so old generated modules keep compiling while they are being retired. */
   projects: {
     key: 'projects',
     path: '/projects',
@@ -42,7 +98,7 @@ export const APP_ROUTES = {
     permissions: [PERMISSIONS.projects.view],
     breadcrumbKeys: [],
   },
-    pages: {
+  pages: {
     key: 'pages',
     path: '/pages',
     protected: true,
@@ -66,7 +122,6 @@ export const APP_ROUTES = {
     protected: true,
     breadcrumbKeys: [],
   },
-
   faqs: {
     key: 'faqs',
     path: '/faqs',
@@ -91,8 +146,7 @@ export const APP_ROUTES = {
     protected: true,
     breadcrumbKeys: [],
   },
-
-notFound: {
+  notFound: {
     key: 'notFound',
     path: '/not-found',
     protected: true,
