@@ -7,6 +7,7 @@ import type { AcademicContentItem, ContentCrudConfig, ContentFormValues, Content
 const toStringValue = (value: unknown) => (typeof value === 'string' ? value : '')
 const toNumberValue = (value: unknown) => (typeof value === 'number' ? value : 0)
 const toStringArray = (value: unknown): string[] => (Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [])
+const toBooleanValue = (value: unknown) => value === true
 
 function toValidationResult<T extends Record<string, unknown>>(
   result: z.SafeParseReturnType<unknown, T>
@@ -26,6 +27,15 @@ const unitSchema = z.object({ name: requiredString('validation.required'), desc:
 const lessonSchema = z.object({ name: requiredString('validation.required'), desc: optionalString(), unitId: uuidField('validation.required'), order: nonNegativeInt('validation.nonNegativeInt') })
 const teacherSchema = z.object({ firstName: requiredString('validation.required'), lastName: optionalString(), phoneNumber: optionalString(), countryCallingCode: optionalString(), description: optionalString() })
 const studentSchema = z.object({ firstName: requiredString('validation.required'), lastName: optionalString(), phoneNumber: optionalString(), countryCallingCode: optionalString() })
+const courseSchema = z.object({
+  subjectId: uuidField('validation.required'),
+  teacherId: uuidField('validation.required'),
+  title: requiredString('validation.required'),
+  description: optionalString(),
+  isFree: z.boolean().optional().default(false),
+  price: z.coerce.number().min(0, 'validation.nonNegativeInt').optional().default(0),
+  currency: optionalString(),
+})
 
 function subjectClassIds(item: AcademicContentItem): string[] {
   if (Array.isArray(item.classIds)) return toStringArray(item.classIds)
@@ -86,7 +96,15 @@ export const academicContentConfigs: Record<ContentCrudConfig['key'], ContentCru
   },
   quizzes: { key: 'quizzes', titleKey: 'modules.quizzes.title', descriptionKey: 'modules.quizzes.description', endpoints: API_ENDPOINTS.quizzes, columns: [{ key: 'title', labelKey: 'fields.title' }, { key: 'isFree', labelKey: 'fields.isFree' }, { key: 'timeExpiration', labelKey: 'fields.timeExpiration' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
   questions: { key: 'questions', titleKey: 'modules.questions.title', descriptionKey: 'modules.questions.description', endpoints: API_ENDPOINTS.questions, columns: [{ key: 'title', labelKey: 'fields.title' }, { key: 'hint', labelKey: 'fields.hint' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
-  courses: { key: 'courses', titleKey: 'modules.courses.title', descriptionKey: 'modules.courses.description', endpoints: API_ENDPOINTS.courses, columns: [{ key: 'title', labelKey: 'fields.title' }, { key: 'isFree', labelKey: 'fields.isFree' }, { key: 'price', labelKey: 'fields.price' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
+  courses: {
+    key: 'courses', titleKey: 'modules.courses.title', descriptionKey: 'modules.courses.description', endpoints: API_ENDPOINTS.courses, updateMethod: 'patch', relations: [{ key: 'subjects', endpoint: API_ENDPOINTS.subjects.brief }, { key: 'teachers', endpoint: API_ENDPOINTS.teachers.brief }],
+    columns: [{ key: 'title', labelKey: 'fields.title' }, { key: 'subjectId', labelKey: 'fields.subject', render: (item, context) => relationName(item.subjectId ?? item.subject?.id, context.relations.subjects ?? []) }, { key: 'teacherId', labelKey: 'fields.teacher', render: (item, context) => relationName(item.teacherId ?? item.teacher?.id, context.relations.teachers ?? []) }, { key: 'isFree', labelKey: 'fields.isFree' }, { key: 'price', labelKey: 'fields.price' }, { key: 'currency', labelKey: 'fields.currency' }],
+    fields: [{ name: 'subjectId', labelKey: 'fields.subject', type: 'select', relationKey: 'subjects', required: true }, { name: 'teacherId', labelKey: 'fields.teacher', type: 'select', relationKey: 'teachers', required: true }, { name: 'title', labelKey: 'fields.title', type: 'text', required: true }, { name: 'description', labelKey: 'fields.description', type: 'textarea' }, { name: 'isFree', labelKey: 'fields.isFree', type: 'checkbox' }, { name: 'price', labelKey: 'fields.price', type: 'number' }, { name: 'currency', labelKey: 'fields.currency', type: 'text' }],
+    emptyValues: { subjectId: '', teacherId: '', title: '', description: '', isFree: true, price: 0, currency: 'SYP' },
+    getInitialValues: (item) => ({ subjectId: toStringValue(item.subjectId ?? item.subject?.id), teacherId: toStringValue(item.teacherId ?? item.teacher?.id), title: toStringValue(item.title), description: toStringValue(item.description), isFree: toBooleanValue(item.isFree), price: toNumberValue(item.price), currency: toStringValue(item.currency) || 'SYP' }),
+    validate: (values) => toValidationResult(courseSchema.safeParse(values)),
+    toPayload: (values) => ({ subjectId: values.subjectId, teacherId: values.teacherId, title: values.title, description: values.description, isFree: values.isFree === true, price: Number(values.price ?? 0), currency: values.currency }),
+  },
   resources: { key: 'resources', titleKey: 'modules.resources.title', descriptionKey: 'modules.resources.description', endpoints: resourceEndpoints, columns: [{ key: 'name', labelKey: 'fields.name' }, { key: 'url', labelKey: 'fields.url' }, { key: 'isImage', labelKey: 'fields.isImage' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
   ads: { key: 'ads', titleKey: 'modules.ads.title', descriptionKey: 'modules.ads.description', endpoints: API_ENDPOINTS.ads, columns: [{ key: 'title', labelKey: 'fields.title' }, { key: 'description', labelKey: 'fields.description' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
   pointsOfSale: { key: 'pointsOfSale', titleKey: 'modules.pointsOfSale.title', descriptionKey: 'modules.pointsOfSale.description', endpoints: API_ENDPOINTS.pointsOfSale, columns: [{ key: 'name', labelKey: 'fields.name' }, { key: 'code', labelKey: 'fields.code' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
