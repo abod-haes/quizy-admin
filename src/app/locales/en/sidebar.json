@@ -1,12 +1,19 @@
 {
   "closeNavigation": "Close navigation",
   "items": {
-    "pages": "Pages",
-    "faqs": "Faqs"
+    "dashboard": "Dashboard",
+    "quizBuilder": "Quiz Builder",
+    "quizzes": "Quizzes",
+    "lessons": "Lessons",
+    "units": "Units",
+    "teachers": "Teachers",
+    "students": "Students",
+    "reviewQueue": "Review Queue",
+    "settings": "Settings"
   },
   "user": {
-    "guestName": "System User",
-    "guestRole": "User",
+    "guestName": "Quizy Admin",
+    "guestRole": "Content team",
     "menuAriaLabel": "Open user menu",
     "profile": "Profile",
     "logout": "Logout",
