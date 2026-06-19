@@ -18,7 +18,7 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   if (isAuthenticated) {
-    return <Navigate replace to={APP_ROUTES.home.path} />
+    return <Navigate replace to={APP_ROUTES.dashboard.path} />
   }
 
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
@@ -37,7 +37,7 @@ export default function LoginPage() {
       const result = await loginAdmin({
         email: normalizedEmail,
         password: normalizedPassword,
-        device_name: 'dashboard-web',
+        device_name: 'quizy-admin-web',
       })
 
       login(result.token, [], [], {
@@ -49,7 +49,7 @@ export default function LoginPage() {
         profilePhotoUrl: null,
         isActive: result.user.is_active,
       })
-      navigate(APP_ROUTES.home.path, { replace: true })
+      navigate(APP_ROUTES.dashboard.path, { replace: true })
     } catch (error) {
       const apiError = error as ApiError
       if (apiError?.status === 422) {
@@ -64,12 +64,15 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-4 sm:p-8">
-      <Card className="w-full max-w-md rounded-md border border-border bg-card">
-        <CardHeader className="space-y-1">
-          <CardTitle className="font-[var(--font-sans)] text-2xl font-semibold">
+      <Card className="w-full max-w-md rounded-[2rem] border border-border bg-card shadow-sm">
+        <CardHeader className="space-y-2 text-center">
+          <div className="mx-auto flex size-14 items-center justify-center rounded-3xl bg-primary text-primary-foreground shadow-sm shadow-primary/20">
+            Q
+          </div>
+          <CardTitle className="font-[var(--font-sans)] text-2xl font-bold">
             {t('title')}
           </CardTitle>
-          <p className="text-sm text-muted-foreground">{t('description')}</p>
+          <p className="text-sm leading-6 text-muted-foreground">{t('description')}</p>
         </CardHeader>
 
         <CardContent>
@@ -96,7 +99,7 @@ export default function LoginPage() {
               </FormField>
             </div>
             {errorMessage ? (
-              <p className="rounded-md border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <p className="rounded-2xl border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {errorMessage}
               </p>
             ) : null}
@@ -115,4 +118,3 @@ export default function LoginPage() {
     </main>
   )
 }
-
