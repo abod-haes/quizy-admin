@@ -10,6 +10,7 @@ import { academicContentConfigs } from '@/modules/content-crud/content-crud.conf
 import type {
   AcademicContentItem,
   ContentCrudConfig,
+  ContentFieldConfig,
   ContentFormValue,
   ContentFormValues,
   ContentRelationOption,
@@ -148,6 +149,7 @@ function itemMatchesSearch(item: AcademicContentItem, search: string): boolean {
     item.description,
     item.currency,
     item.url,
+    item.teacherName,
   ]
 
   return values.some((value) => typeof value === 'string' && value.toLowerCase().includes(normalized))
@@ -172,6 +174,12 @@ function getPaginationItems(page: number, totalPages: number): Array<number | 'e
 
   items.push(totalPages)
   return items
+}
+
+function getFieldGridClass(field: ContentFieldConfig): string {
+  if (field.type === 'textarea' || field.type === 'json') return 'sm:col-span-2 xl:col-span-3'
+  if (field.type === 'checkbox') return 'sm:col-span-1'
+  return 'sm:col-span-1'
 }
 
 async function fetchRelations(config: ContentCrudConfig): Promise<Record<string, ContentRelationOption[]>> {
@@ -243,6 +251,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
   const startItem = totalCount === 0 ? 0 : (page - 1) * pageSize + 1
   const endItem = Math.min(page * pageSize, totalCount)
   const hasActiveFilters = filters.search.trim() || Object.values(filters.relations).some(Boolean)
+  const tableScrollClass = config.key === 'quizzes' ? 'max-h-[calc(100svh-27rem)]' : 'max-h-[min(62vh,46rem)]'
 
   const saveMutation = useMutation({
     mutationFn: async (values: ContentFormValues) => {
@@ -320,7 +329,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
   }
 
   return (
-    <section className="flex min-h-0 w-full flex-col gap-6 overflow-hidden">
+    <section className="flex h-full min-h-0 w-full flex-col gap-6 overflow-hidden">
       <div className="rounded-[2rem] border border-primary/10 bg-card p-6 shadow-sm sm:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl space-y-3">
@@ -338,7 +347,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
       </div>
 
       <Card className="flex min-h-0 flex-1 flex-col rounded-3xl shadow-sm">
-        <CardHeader className="shrink-0 gap-4">
+        <CardHeader className="shrink-0 space-y-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle>{t('table.title')}</CardTitle>
@@ -347,7 +356,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
             <Badge variant="outline" className="w-fit rounded-full px-3">{t('table.page', { page, totalPages })}</Badge>
           </div>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <label className="relative block">
+            <label className="relative block md:col-span-2 xl:col-span-1">
               <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 className="ps-10"
@@ -400,7 +409,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
             </div>
           ) : (
             <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-border bg-background/70">
-              <div className="max-h-[min(62vh,46rem)] overflow-auto">
+              <div className={`${tableScrollClass} overflow-auto`}>
                 <Table className="min-w-[760px]">
                   <TableHeader className="sticky top-0 z-10 bg-card/95 backdrop-blur">
                     <TableRow>
@@ -468,12 +477,12 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
       </Card>
 
       <Dialog open={formState.open} onOpenChange={(open) => setFormState((current) => ({ ...current, open }))}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="flex max-h-[88svh] max-w-4xl flex-col overflow-hidden">
+          <DialogHeader className="shrink-0">
             <DialogTitle>{t(formState.mode === 'edit' ? 'form.editTitle' : 'form.createTitle', { entity: t(config.titleKey) })}</DialogTitle>
             <DialogDescription>{t('form.description')}</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-2">
+          <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto py-2 pe-1 sm:grid-cols-2 xl:grid-cols-3">
             {config.fields.map((field) => {
               const fieldError = formState.errors[field.name]
               const fieldId = `${config.key}-${field.name}`
@@ -482,7 +491,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
               const value = formState.values[field.name]
 
               return (
-                <div key={field.name} className="space-y-2">
+                <div key={field.name} className={`space-y-2 ${getFieldGridClass(field)}`}>
                   <Label htmlFor={fieldId}>{t(field.labelKey)}</Label>
                   {field.type === 'textarea' || field.type === 'json' ? (
                     <Textarea id={fieldId} value={getFieldTextValue(value)} placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined} onChange={(event) => updateField(field.name, event.target.value)} />
@@ -504,7 +513,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
               )
             })}
           </div>
-          <DialogFooter>
+          <DialogFooter className="shrink-0 border-t border-border/70 pt-4">
             <Button type="button" variant="outline" onClick={() => setFormState((current) => ({ ...current, open: false }))}>{t('actions.cancel')}</Button>
             <Button type="button" disabled={saveMutation.isPending} onClick={handleSubmit}>{saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('actions.save')}</Button>
           </DialogFooter>
