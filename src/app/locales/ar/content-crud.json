@@ -1,80 +1,26 @@
 {
-  "status": {
-    "connected": "مرتبط بالـ API"
-  },
+  "status": { "connected": "مرتبط بالـ API" },
   "modules": {
-    "classes": {
-      "title": "الصفوف",
-      "description": "إدارة الصفوف وربطها بالمواد من واجهة واحدة."
-    },
-    "subjects": {
-      "title": "المواد",
-      "description": "إدارة المواد وربطها بالصفوف المناسبة."
-    },
-    "units": {
-      "title": "الوحدات",
-      "description": "إدارة وحدات المواد وتجهيزها لربط الدروس والاختبارات."
-    },
-    "lessons": {
-      "title": "الدروس",
-      "description": "إدارة الدروس وترتيبها داخل الوحدات."
-    }
+    "classes": { "title": "الصفوف", "description": "إدارة الصفوف وربطها بالمواد من واجهة واحدة." },
+    "subjects": { "title": "المواد", "description": "إدارة المواد وربطها بالصفوف المناسبة." },
+    "units": { "title": "الوحدات", "description": "إدارة وحدات المواد وتجهيزها لربط الدروس والاختبارات." },
+    "lessons": { "title": "الدروس", "description": "إدارة الدروس وترتيبها داخل الوحدات." },
+    "teachers": { "title": "المدرسون", "description": "إدارة بيانات المدرسين وحساباتهم التعليمية." },
+    "students": { "title": "الطلاب", "description": "إدارة حسابات الطلاب ومعلومات التواصل." },
+    "quizzes": { "title": "الاختبارات", "description": "إدارة الاختبارات وربطها بالمدرسين والمحتوى." },
+    "questions": { "title": "الأسئلة", "description": "إدارة بنك الأسئلة والإجابات والتلميحات." },
+    "courses": { "title": "الكورسات", "description": "إدارة الكورسات والجلسات والأسعار." },
+    "resources": { "title": "الملفات", "description": "رفع وإدارة ملفات وصور المنصة." }
   },
   "fields": {
-    "id": "المعرّف",
-    "name": "الاسم",
-    "description": "الوصف",
-    "classes": "الصفوف",
-    "subjects": "المواد",
-    "subject": "المادة",
-    "unit": "الوحدة",
-    "order": "الترتيب",
-    "actions": "الإجراءات"
+    "id": "المعرّف", "name": "الاسم", "title": "العنوان", "description": "الوصف", "content": "المحتوى", "classes": "الصفوف", "subjects": "المواد", "subject": "المادة", "unit": "الوحدة", "teacher": "المدرس", "lessons": "الدروس", "order": "الترتيب", "firstName": "الاسم الأول", "lastName": "الكنية", "phoneNumber": "رقم الهاتف", "countryCallingCode": "رمز الدولة", "timeExpiration": "مدة الاختبار", "isFree": "مجاني", "entityIdsCsv": "معرّفات الجهات", "questionsJson": "الأسئلة بصيغة JSON", "answersJson": "الإجابات بصيغة JSON", "fileIdsCsv": "معرّفات الملفات", "hint": "تلميح", "price": "السعر", "currency": "العملة", "actions": "الإجراءات"
   },
-  "actions": {
-    "create": "إضافة",
-    "refresh": "تحديث",
-    "retry": "إعادة المحاولة",
-    "cancel": "إلغاء",
-    "save": "حفظ"
-  },
-  "table": {
-    "title": "البيانات",
-    "description": "إجمالي العناصر: {{count}}",
-    "page": "صفحة {{page}} من {{totalPages}}"
-  },
-  "pagination": {
-    "previous": "السابق",
-    "next": "التالي",
-    "summary": "{{page}} / {{totalPages}}"
-  },
-  "form": {
-    "createTitle": "إضافة {{entity}}",
-    "editTitle": "تعديل {{entity}}",
-    "description": "املأ الحقول المطلوبة ثم احفظ التغييرات.",
-    "selectPlaceholder": "اختر قيمة"
-  },
-  "states": {
-    "empty": {
-      "title": "لا توجد بيانات بعد",
-      "description": "ابدأ بإضافة أول عنصر أو تحقق من اتصال الـ API."
-    },
-    "error": {
-      "title": "تعذر تحميل البيانات"
-    }
-  },
-  "messages": {
-    "created": "تمت الإضافة بنجاح.",
-    "updated": "تم التعديل بنجاح.",
-    "deleted": "تم الحذف بنجاح.",
-    "deleteConfirm": "هل تريد حذف {{name}}؟"
-  },
-  "validation": {
-    "required": "هذا الحقل مطلوب.",
-    "nonNegativeInt": "يجب أن يكون الرقم صفرًا أو أكبر.",
-    "uuid": "القيمة المختارة غير صحيحة."
-  },
-  "errors": {
-    "generic": "حدث خطأ غير متوقع."
-  }
+  "actions": { "create": "إضافة", "refresh": "تحديث", "retry": "إعادة المحاولة", "cancel": "إلغاء", "save": "حفظ", "upload": "رفع" },
+  "table": { "title": "البيانات", "description": "إجمالي العناصر: {{count}}", "page": "صفحة {{page}} من {{totalPages}}" },
+  "pagination": { "previous": "السابق", "next": "التالي", "summary": "{{page}} / {{totalPages}}" },
+  "form": { "createTitle": "إضافة {{entity}}", "editTitle": "تعديل {{entity}}", "description": "املأ الحقول المطلوبة ثم احفظ التغييرات.", "selectPlaceholder": "اختر قيمة" },
+  "states": { "empty": { "title": "لا توجد بيانات بعد", "description": "ابدأ بإضافة أول عنصر أو تحقق من اتصال الـ API." }, "error": { "title": "تعذر تحميل البيانات" } },
+  "messages": { "created": "تمت الإضافة بنجاح.", "updated": "تم التعديل بنجاح.", "deleted": "تم الحذف بنجاح.", "uploaded": "تم رفع الملف بنجاح.", "deleteConfirm": "هل تريد حذف {{name}}؟" },
+  "validation": { "required": "هذا الحقل مطلوب.", "fileRequired": "اختر ملفًا أولًا.", "nonNegativeInt": "يجب أن يكون الرقم صفرًا أو أكبر.", "uuid": "القيمة المختارة غير صحيحة." },
+  "errors": { "generic": "حدث خطأ غير متوقع." }
 }
