@@ -1,49 +1,49 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
 :root {
   --font-sans: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif;
-  --background: #f7f8fa;
-  --foreground: #1f2933;
+  --background: #f7f4ff;
+  --foreground: #20152f;
   --card: #ffffff;
-  --card-foreground: #1f2933;
+  --card-foreground: #20152f;
   --popover: #ffffff;
-  --popover-foreground: #1f2933;
-  --primary: #285d52;
-  --primary-foreground: #f8fafc;
-  --secondary: #eef1f4;
-  --secondary-foreground: #27313d;
-  --muted: #eef1f4;
-  --muted-foreground: #687482;
-  --accent: #eef1f4;
-  --accent-foreground: #27313d;
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: #dde3ea;
-  --input: #d7dee7;
-  --ring: #285d52;
-  --radius: 0.375rem;
+  --popover-foreground: #20152f;
+  --primary: #863bff;
+  --primary-foreground: #ffffff;
+  --secondary: #efe7ff;
+  --secondary-foreground: #312043;
+  --muted: #eee8f8;
+  --muted-foreground: #766889;
+  --accent: #f0e8ff;
+  --accent-foreground: #2e1a46;
+  --destructive: #dc2626;
+  --border: #e2d8f4;
+  --input: #d8cbed;
+  --ring: #863bff;
+  --radius: 1rem;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: #3b82f6;
-  --primary-foreground: #f8fafc;
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 7%);
-  --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.556 0 0);
+  --background: #10091a;
+  --foreground: #fbf8ff;
+  --card: #171021;
+  --card-foreground: #fbf8ff;
+  --popover: #171021;
+  --popover-foreground: #fbf8ff;
+  --primary: #a876ff;
+  --primary-foreground: #160827;
+  --secondary: #251737;
+  --secondary-foreground: #fbf8ff;
+  --muted: #261a36;
+  --muted-foreground: #bdadd1;
+  --accent: #2c1c42;
+  --accent-foreground: #fbf8ff;
+  --destructive: #f87171;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.14);
+  --ring: #a876ff;
 }
 
 @theme inline {
@@ -66,10 +66,10 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 6px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
 @layer components {
@@ -88,7 +88,11 @@
     flex-direction: row;
   }
 
- 
+  .quizy-card {
+    border: 1px solid var(--border);
+    background: var(--card);
+    box-shadow: 0 18px 60px rgba(58, 24, 92, 0.08);
+  }
 
   .app-shell-root.app-dir-rtl .app-shell-mobile-menu {
     margin-left: 0;
@@ -113,7 +117,6 @@ button {
   cursor: pointer;
 }
 
-/* Custom thin scrollbar for all scrollable elements */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--muted-foreground) var(--muted);
