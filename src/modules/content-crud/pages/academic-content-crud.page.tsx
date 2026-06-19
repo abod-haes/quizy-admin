@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, DatabaseZap, Loader2, Pencil, Plus, RefreshCcw, Search, SlidersHorizontal, Trash2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -17,11 +18,9 @@ import type {
 } from '@/modules/content-crud/content-crud.types'
 import { CountryCodeSelect } from '@/components/ui/country-code-select'
 import {
-  Badge,
   Button,
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
   CustomMultiSelect,
@@ -182,6 +181,23 @@ function getFieldGridClass(field: ContentFieldConfig): string {
   return 'sm:col-span-1'
 }
 
+function readInitialPage(searchParams: URLSearchParams): number {
+  const page = Number(searchParams.get('page') ?? 1)
+  return Number.isFinite(page) && page > 0 ? page : 1
+}
+
+function readInitialFilters(searchParams: URLSearchParams): FilterState {
+  const relations: Record<string, string> = {}
+  searchParams.forEach((value, key) => {
+    if (key.startsWith('filter_') && value) relations[key.replace('filter_', '')] = value
+  })
+
+  return {
+    search: searchParams.get('search') ?? '',
+    relations,
+  }
+}
+
 async function fetchRelations(config: ContentCrudConfig): Promise<Record<string, ContentRelationOption[]>> {
   const entries = await Promise.all(
     (config.relations ?? []).map(async (relation) => {
@@ -198,8 +214,9 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
   const { t, i18n } = useTranslation('content-crud')
   const queryClient = useQueryClient()
   const isRtl = i18n.dir() === 'rtl'
-  const [page, setPage] = useState(1)
-  const [filters, setFilters] = useState<FilterState>({ search: '', relations: {} })
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [page, setPage] = useState(() => readInitialPage(searchParams))
+  const [filters, setFilters] = useState<FilterState>(() => readInitialFilters(searchParams))
   const [formState, setFormState] = useState<FormState>({
     open: false,
     mode: 'create',
@@ -212,6 +229,16 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
     () => config.fields.filter((field) => field.relationKey && (field.type === 'select' || field.type === 'multi-select')),
     [config.fields]
   )
+
+  useEffect(() => {
+    const nextParams = new URLSearchParams()
+    if (page > 1) nextParams.set('page', String(page))
+    if (filters.search.trim()) nextParams.set('search', filters.search.trim())
+    Object.entries(filters.relations).forEach(([key, value]) => {
+      if (value) nextParams.set(`filter_${key}`, value)
+    })
+    setSearchParams(nextParams, { replace: true })
+  }, [filters, page, setSearchParams])
 
   const listQueryKey = useMemo(
     () => ['content-crud', config.key, 'list', page, DEFAULT_PAGE_SIZE],
@@ -248,10 +275,8 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
   const pageSize = listQuery.data?.pageSize ?? DEFAULT_PAGE_SIZE
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
   const paginationItems = getPaginationItems(page, totalPages)
-  const startItem = totalCount === 0 ? 0 : (page - 1) * pageSize + 1
-  const endItem = Math.min(page * pageSize, totalCount)
   const hasActiveFilters = filters.search.trim() || Object.values(filters.relations).some(Boolean)
-  const tableScrollClass = config.key === 'quizzes' ? 'max-h-[calc(100svh-27rem)]' : 'max-h-[min(62vh,46rem)]'
+  const tableScrollClass = config.key === 'quizzes' ? 'h-full max-h-full' : 'max-h-[min(62vh,46rem)]'
 
   const saveMutation = useMutation({
     mutationFn: async (values: ContentFormValues) => {
@@ -298,6 +323,11 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
     setFormState((current) => ({ ...current, values: { ...current.values, [fieldName]: value }, errors: { ...current.errors, [fieldName]: '' } }))
   }
 
+  const updateSearch = (value: string) => {
+    setPage(1)
+    setFilters((current) => ({ ...current, search: value }))
+  }
+
   const updateRelationFilter = (fieldName: string, value: string) => {
     setPage(1)
     setFilters((current) => ({ ...current, relations: { ...current.relations, [fieldName]: value === ALL_FILTER_VALUE ? '' : value } }))
@@ -329,68 +359,59 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
   }
 
   return (
-    <section className="flex h-full min-h-0 w-full flex-col gap-6 overflow-hidden">
-      <div className="rounded-[2rem] border border-primary/10 bg-card p-6 shadow-sm sm:p-8">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="max-w-3xl space-y-3">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">{t(config.titleKey)}</h1>
-            <p className="text-base leading-7 text-muted-foreground">{t(config.descriptionKey)}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={() => listQuery.refetch()} disabled={listQuery.isFetching}>
-              <RefreshCcw className="size-4" />{t('actions.refresh')}
-            </Button>
-            {config.fields.length > 0 ? <Button type="button" onClick={openCreateForm}><Plus className="size-4" />{t('actions.create')}</Button> : null}
-          </div>
+    <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
+      <div className="flex shrink-0 flex-col gap-3 rounded-3xl border border-primary/10 bg-card/95 p-4 shadow-sm xl:flex-row xl:items-center xl:justify-between">
+        <div className="min-w-0 space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t(config.titleKey)}</h1>
+          <p className="line-clamp-1 text-sm leading-6 text-muted-foreground">{t(config.descriptionKey)}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" size="sm" variant="outline" onClick={() => listQuery.refetch()} disabled={listQuery.isFetching}>
+            <RefreshCcw className="size-4" />{t('actions.refresh')}
+          </Button>
+          {config.fields.length > 0 ? <Button type="button" size="sm" onClick={openCreateForm}><Plus className="size-4" />{t('actions.create')}</Button> : null}
         </div>
       </div>
 
-      <Card className="flex min-h-0 flex-1 flex-col rounded-3xl shadow-sm">
-        <CardHeader className="shrink-0 space-y-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <CardTitle>{t('table.title')}</CardTitle>
-              <CardDescription>{t('table.description', { count: totalCount })}</CardDescription>
-            </div>
-            <Badge variant="outline" className="w-fit rounded-full px-3">{t('table.page', { page, totalPages })}</Badge>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <label className="relative block md:col-span-2 xl:col-span-1">
-              <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="ps-10"
-                value={filters.search}
-                placeholder={t('filters.searchPlaceholder')}
-                onChange={(event) => {
-                  setPage(1)
-                  setFilters((current) => ({ ...current, search: event.target.value }))
-                }}
-              />
-            </label>
-            {relationFields.map((field) => {
-              const options = field.relationKey ? relations[field.relationKey] ?? [] : []
-              const selected = filters.relations[field.name] || ALL_FILTER_VALUE
-              return (
-                <CustomSelect
-                  key={field.name}
-                  value={selected}
-                  variant="filter"
-                  icon={<SlidersHorizontal />}
-                  placeholder={t('filters.all', { field: t(field.labelKey) })}
-                  options={[{ value: ALL_FILTER_VALUE, label: t('filters.all', { field: t(field.labelKey) }) }, ...options.map((option) => ({ value: option.id, label: option.name }))]}
-                  onValueChange={(value) => updateRelationFilter(field.name, value)}
+      <Card className={`flex min-h-0 flex-1 flex-col rounded-3xl shadow-sm ${config.key === 'quizzes' ? 'quizy-quizzes-table-card' : ''}`}>
+        <CardHeader className="shrink-0 space-y-3 py-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <CardTitle className="text-base font-semibold">{t('table.title')}</CardTitle>
+            <div className="grid flex-1 gap-2 md:grid-cols-2 xl:grid-cols-4 lg:max-w-5xl">
+              <label className="relative block md:col-span-2 xl:col-span-1">
+                <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="h-10 ps-10"
+                  value={filters.search}
+                  placeholder={t('filters.searchPlaceholder')}
+                  onChange={(event) => updateSearch(event.target.value)}
                 />
-              )
-            })}
-            {hasActiveFilters ? (
-              <Button type="button" variant="outline" onClick={clearFilters}>
-                <X className="size-4" />{t('filters.clear')}
-              </Button>
-            ) : null}
+              </label>
+              {relationFields.map((field) => {
+                const options = field.relationKey ? relations[field.relationKey] ?? [] : []
+                const selected = filters.relations[field.name] || ALL_FILTER_VALUE
+                return (
+                  <CustomSelect
+                    key={field.name}
+                    value={selected}
+                    variant="filter"
+                    icon={<SlidersHorizontal />}
+                    placeholder={t('filters.all', { field: t(field.labelKey) })}
+                    options={[{ value: ALL_FILTER_VALUE, label: t('filters.all', { field: t(field.labelKey) }) }, ...options.map((option) => ({ value: option.id, label: option.name }))]}
+                    onValueChange={(value) => updateRelationFilter(field.name, value)}
+                  />
+                )
+              })}
+              {hasActiveFilters ? (
+                <Button type="button" size="sm" variant="outline" onClick={clearFilters}>
+                  <X className="size-4" />{t('filters.clear')}
+                </Button>
+              ) : null}
+            </div>
           </div>
         </CardHeader>
 
-        <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden pt-0">
           {listQuery.isLoading ? (
             <div className="space-y-3">{[0, 1, 2, 3].map((index) => <Skeleton key={index} className="h-14 w-full rounded-2xl" />)}</div>
           ) : listQuery.isError ? (
@@ -408,8 +429,8 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
             </div>
           ) : (
             <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-border bg-background/70">
-              <div className={`${tableScrollClass} overflow-auto`}>
-                <Table className="min-w-[760px]">
+              <div className={`${tableScrollClass} min-h-0 overflow-auto`}>
+                <Table className={config.key === 'quizzes' ? 'min-w-[920px]' : 'min-w-[760px]'}>
                   <TableHeader className="sticky top-0 z-10 bg-card/95 backdrop-blur">
                     <TableRow>
                       {config.columns.map((column) => <TableHead key={column.key}>{t(column.labelKey)}</TableHead>)}
@@ -438,10 +459,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
             </div>
           )}
 
-          <div className="mt-4 flex shrink-0 flex-col gap-3 border-t border-border/70 pt-4 lg:flex-row lg:items-center lg:justify-between">
-            <p className="text-sm text-muted-foreground">
-              {t('pagination.range', { start: startItem, end: endItem, total: totalCount })}
-            </p>
+          <div className="mt-3 flex shrink-0 justify-end border-t border-border/70 pt-3">
             <div className="flex flex-wrap items-center gap-1.5">
               <Button type="button" size="icon-sm" variant="outline" disabled={page <= 1 || listQuery.isFetching} onClick={() => goToPage(1)} aria-label={t('pagination.first')}>
                 {isRtl ? <ChevronsRight className="size-4" /> : <ChevronsLeft className="size-4" />}
