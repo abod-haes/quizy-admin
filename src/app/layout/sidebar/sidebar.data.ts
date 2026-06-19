@@ -35,6 +35,7 @@ export const primarySidebarItems: SidebarItem[] = [
     children: [
       { id: 'courses', labelKey: 'sidebar.items.courses', to: APP_ROUTES.courses.path, icon: CalendarDays, end: true },
       { id: 'courseSessions', labelKey: 'sidebar.items.courseSessions', to: APP_ROUTES.courseSessions.path, icon: BookOpenCheck, end: true },
+      { id: 'courseContent', labelKey: 'sidebar.items.courseContent', to: APP_ROUTES.courseContent.path, icon: UploadCloud, end: true },
     ],
   },
   {
