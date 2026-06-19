@@ -5,10 +5,12 @@ import arCommon from '@/app/locales/ar/common.json'
 import arLayout from '@/app/locales/ar/layout.json'
 import arLogin from '@/app/locales/ar/login.json'
 import arNotFound from '@/app/locales/ar/not-found.json'
+import arSidebar from '@/app/locales/ar/sidebar.json'
 import enCommon from '@/app/locales/en/common.json'
 import enLayout from '@/app/locales/en/layout.json'
 import enLogin from '@/app/locales/en/login.json'
 import enNotFound from '@/app/locales/en/not-found.json'
+import enSidebar from '@/app/locales/en/sidebar.json'
 
 type AppLanguage = 'ar' | 'en'
 
@@ -116,8 +118,10 @@ const resources = {
       layout: enLayout,
       common: enCommon,
       notFound: enNotFound,
+      sidebar: enSidebar,
     },
     login: enLogin,
+    sidebar: enSidebar,
     ...enFeatureNamespaces,
   },
   ar: {
@@ -125,8 +129,10 @@ const resources = {
       layout: arLayout,
       common: arCommon,
       notFound: arNotFound,
+      sidebar: arSidebar,
     },
     login: arLogin,
+    sidebar: arSidebar,
     ...arFeatureNamespaces,
   },
 }
