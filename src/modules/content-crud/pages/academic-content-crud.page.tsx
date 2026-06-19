@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { DatabaseZap, Loader2, Pencil, Plus, RefreshCcw, Trash2 } from 'lucide-react'
+import { DatabaseZap, Loader2, Pencil, Plus, RefreshCcw, Search, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -56,6 +56,11 @@ type FormState = {
   errors: Record<string, string>
 }
 
+type FilterState = {
+  search: string
+  relations: Record<string, string>
+}
+
 function getApiErrorMessage(error: unknown): string {
   if (error && typeof error === 'object' && 'message' in error) {
     const message = (error as { message?: unknown }).message
@@ -91,7 +96,7 @@ function renderCellValue(
   const rawValue = valueFromItem(item, key)
 
   if (relationKey && typeof rawValue === 'string') {
-    return relations[relationKey]?.find((option) => option.id === rawValue)?.name ?? rawValue
+    return relations[relationKey]?.find((option) => option.id === rawValue)?.name ?? '-'
   }
 
   if (typeof rawValue === 'boolean') return rawValue ? '✓' : '—'
@@ -103,6 +108,51 @@ function renderCellValue(
   }
 
   return '-'
+}
+
+function getRelationFieldValue(item: AcademicContentItem, fieldName: string): string | string[] {
+  const directValue = item[fieldName as keyof AcademicContentItem]
+  if (typeof directValue === 'string') return directValue
+  if (Array.isArray(directValue)) return directValue.filter((value): value is string => typeof value === 'string')
+
+  const objectKey = fieldName.endsWith('Id') ? fieldName.slice(0, -2) : fieldName
+  const relationObject = item[objectKey as keyof AcademicContentItem]
+  if (relationObject && typeof relationObject === 'object' && !Array.isArray(relationObject) && 'id' in relationObject) {
+    const id = (relationObject as { id?: unknown }).id
+    return typeof id === 'string' ? id : ''
+  }
+
+  return ''
+}
+
+function itemMatchesSearch(item: AcademicContentItem, search: string): boolean {
+  const normalized = search.trim().toLowerCase()
+  if (!normalized) return true
+
+  const values = [
+    item.name,
+    item.title,
+    item.key,
+    item.code,
+    item.body,
+    item.content,
+    item.firstName,
+    item.lastName,
+    item.phoneNumber,
+    item.countryCallingCode,
+    item.desc,
+    item.description,
+    item.currency,
+    item.url,
+  ]
+
+  return values.some((value) => typeof value === 'string' && value.toLowerCase().includes(normalized))
+}
+
+function itemMatchesRelationFilter(item: AcademicContentItem, fieldName: string, selectedId: string): boolean {
+  if (!selectedId) return true
+  const value = getRelationFieldValue(item, fieldName)
+  return Array.isArray(value) ? value.includes(selectedId) : value === selectedId
 }
 
 async function fetchRelations(config: ContentCrudConfig): Promise<Record<string, ContentRelationOption[]>> {
@@ -121,6 +171,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
   const { t } = useTranslation('content-crud')
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
+  const [filters, setFilters] = useState<FilterState>({ search: '', relations: {} })
   const [formState, setFormState] = useState<FormState>({
     open: false,
     mode: 'create',
@@ -128,6 +179,11 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
     values: config.emptyValues,
     errors: {},
   })
+
+  const relationFields = useMemo(
+    () => config.fields.filter((field) => field.relationKey && (field.type === 'select' || field.type === 'multi-select')),
+    [config.fields]
+  )
 
   const listQueryKey = useMemo(
     () => ['content-crud', config.key, 'list', page, DEFAULT_PAGE_SIZE],
@@ -149,7 +205,16 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
   })
 
   const relations = relationQuery.data ?? {}
-  const items = listQuery.data?.items ?? []
+  const items = useMemo(() => {
+    const sourceItems = listQuery.data?.items ?? []
+    return sourceItems.filter((item) => {
+      if (!itemMatchesSearch(item, filters.search)) return false
+      return relationFields.every((field) => {
+        const selectedId = filters.relations[field.name] ?? ''
+        return itemMatchesRelationFilter(item, field.name, selectedId)
+      })
+    })
+  }, [filters, listQuery.data?.items, relationFields])
   const totalCount = listQuery.data?.totalCount ?? 0
   const pageSize = listQuery.data?.pageSize ?? DEFAULT_PAGE_SIZE
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
@@ -199,6 +264,11 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
     setFormState((current) => ({ ...current, values: { ...current.values, [fieldName]: value }, errors: { ...current.errors, [fieldName]: '' } }))
   }
 
+  const updateRelationFilter = (fieldName: string, value: string) => {
+    setPage(1)
+    setFilters((current) => ({ ...current, relations: { ...current.relations, [fieldName]: value } }))
+  }
+
   const handleSubmit = () => {
     const validation = config.validate(formState.values)
     if (!validation.success) {
@@ -210,7 +280,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
   }
 
   const handleDelete = (item: AcademicContentItem) => {
-    const confirmed = window.confirm(t('messages.deleteConfirm', { name: item.name || item.title || item.id }))
+    const confirmed = window.confirm(t('messages.deleteConfirm', { name: item.name || item.title || t('messages.item') }))
     if (!confirmed) return
     deleteMutation.mutate(item)
   }
@@ -226,18 +296,38 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={() => listQuery.refetch()} disabled={listQuery.isFetching}><RefreshCcw className="size-4" />{t('actions.refresh')}</Button>
-            <Button type="button" onClick={openCreateForm}><Plus className="size-4" />{t('actions.create')}</Button>
+            {config.fields.length > 0 ? <Button type="button" onClick={openCreateForm}><Plus className="size-4" />{t('actions.create')}</Button> : null}
           </div>
         </div>
       </div>
 
       <Card className="rounded-3xl shadow-sm">
-        <CardHeader className="gap-2"><div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><CardTitle>{t('table.title')}</CardTitle><CardDescription>{t('table.description', { count: totalCount })}</CardDescription></div><Badge variant="outline" className="w-fit rounded-full px-3">{t('table.page', { page, totalPages })}</Badge></div></CardHeader>
+        <CardHeader className="gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div><CardTitle>{t('table.title')}</CardTitle><CardDescription>{t('table.description', { count: totalCount })}</CardDescription></div>
+            <Badge variant="outline" className="w-fit rounded-full px-3">{t('table.page', { page, totalPages })}</Badge>
+          </div>
+          <div className="grid gap-3 pt-3 md:grid-cols-2 xl:grid-cols-4">
+            <label className="relative block">
+              <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input className="ps-10" value={filters.search} placeholder={t('filters.searchPlaceholder')} onChange={(event) => { setPage(1); setFilters((current) => ({ ...current, search: event.target.value })) }} />
+            </label>
+            {relationFields.map((field) => {
+              const options = field.relationKey ? relations[field.relationKey] ?? [] : []
+              return (
+                <select key={field.name} value={filters.relations[field.name] ?? ''} className="quizy-select-field" onChange={(event) => updateRelationFilter(field.name, event.target.value)}>
+                  <option value="">{t('filters.all', { field: t(field.labelKey) })}</option>
+                  {options.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}
+                </select>
+              )
+            })}
+          </div>
+        </CardHeader>
         <CardContent>
           {listQuery.isLoading ? <div className="space-y-3">{[0, 1, 2, 3].map((index) => <Skeleton key={index} className="h-14 w-full rounded-2xl" />)}</div>
           : listQuery.isError ? <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-destructive/30 bg-destructive/5 p-10 text-center"><DatabaseZap className="mb-3 size-10 text-destructive" /><h2 className="text-lg font-semibold text-foreground">{t('states.error.title')}</h2><p className="mt-1 text-sm text-muted-foreground">{t(getApiErrorMessage(listQuery.error))}</p><Button type="button" variant="outline" className="mt-4" onClick={() => listQuery.refetch()}>{t('actions.retry')}</Button></div>
           : items.length === 0 ? <div className="rounded-3xl border border-dashed border-border bg-muted/30 p-10 text-center"><DatabaseZap className="mx-auto mb-3 size-10 text-muted-foreground" /><h2 className="text-lg font-semibold text-foreground">{t('states.empty.title')}</h2><p className="mt-1 text-sm text-muted-foreground">{t('states.empty.description')}</p></div>
-          : <div className="overflow-hidden rounded-2xl border border-border"><Table><TableHeader><TableRow>{config.columns.map((column) => <TableHead key={column.key}>{t(column.labelKey)}</TableHead>)}<TableHead className="w-32 text-center">{t('fields.actions')}</TableHead></TableRow></TableHeader><TableBody>{items.map((item) => <TableRow key={item.id}>{config.columns.map((column) => <TableCell key={column.key} className="max-w-[18rem] truncate">{column.render ? column.render(item, { relations }) : renderCellValue(item, column.key, column.relationKey, relations)}</TableCell>)}<TableCell><div className="flex justify-center gap-2"><Button type="button" size="icon-sm" variant="outline" onClick={() => openEditForm(item)}><Pencil className="size-4" /></Button><Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => handleDelete(item)}><Trash2 className="size-4" /></Button></div></TableCell></TableRow>)}</TableBody></Table></div>}
+          : <div className="overflow-hidden rounded-2xl border border-border"><Table><TableHeader><TableRow>{config.columns.map((column) => <TableHead key={column.key}>{t(column.labelKey)}</TableHead>)}<TableHead className="w-32 text-center">{t('fields.actions')}</TableHead></TableRow></TableHeader><TableBody>{items.map((item) => <TableRow key={item.id}>{config.columns.map((column) => <TableCell key={column.key} className="max-w-[18rem] truncate">{column.render ? column.render(item, { relations }) : renderCellValue(item, column.key, column.relationKey, relations)}</TableCell>)}<TableCell><div className="flex justify-center gap-2">{config.fields.length > 0 ? <Button type="button" size="icon-sm" variant="outline" onClick={() => openEditForm(item)}><Pencil className="size-4" /></Button> : null}<Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => handleDelete(item)}><Trash2 className="size-4" /></Button></div></TableCell></TableRow>)}</TableBody></Table></div>}
           <div className="mt-4 flex items-center justify-between gap-3"><Button type="button" variant="outline" disabled={page <= 1 || listQuery.isFetching} onClick={() => setPage((current) => Math.max(1, current - 1))}>{t('pagination.previous')}</Button><p className="text-sm text-muted-foreground">{t('pagination.summary', { page, totalPages })}</p><Button type="button" variant="outline" disabled={page >= totalPages || listQuery.isFetching} onClick={() => setPage((current) => current + 1)}>{t('pagination.next')}</Button></div>
         </CardContent>
       </Card>
@@ -266,3 +356,9 @@ export function StudentsPage() { return <AcademicContentCrudPage configKey="stud
 export function QuizzesPage() { return <AcademicContentCrudPage configKey="quizzes" /> }
 export function QuestionsPage() { return <AcademicContentCrudPage configKey="questions" /> }
 export function CoursesPage() { return <AcademicContentCrudPage configKey="courses" /> }
+export function ResourcesPage() { return <AcademicContentCrudPage configKey="resources" /> }
+export function AdsPage() { return <AcademicContentCrudPage configKey="ads" /> }
+export function PointsOfSalePage() { return <AcademicContentCrudPage configKey="pointsOfSale" /> }
+export function QrCodesPage() { return <AcademicContentCrudPage configKey="qrCodes" /> }
+export function NotificationsPage() { return <AcademicContentCrudPage configKey="notifications" /> }
+export function PageContentsPage() { return <AcademicContentCrudPage configKey="pageContents" /> }
