@@ -19,6 +19,7 @@ export type AcademicContentItem = {
   unitId?: UUID | null
   classIds?: UUID[] | null
   classes?: ContentRelationOption[] | null
+  subjects?: ContentRelationOption[] | null
   subject?: ContentRelationOption | null
   unit?: ContentRelationOption | null
   image?: ResourceLink | null
