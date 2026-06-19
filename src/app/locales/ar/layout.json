@@ -1,7 +1,7 @@
 {
   "brand": {
-    "name": "أموريا",
-    "subtitle": "لوحة الإدارة"
+    "name": "Quizy",
+    "subtitle": "لوحة التحكم التعليمية"
   },
   "meta": {
     "login": "تسجيل الدخول",
@@ -9,58 +9,38 @@
     "add": "إضافة",
     "edit": "تعديل",
     "view": "عرض",
-    "home": {
-      "plural": "الرئيسية",
-      "singular": "الرئيسية"
+    "dashboard": {
+      "plural": "لوحة التحكم",
+      "singular": "لوحة التحكم"
     },
-    "aboutUs": {
-      "plural": "من نحن",
-      "singular": "من نحن"
+    "quizzes": {
+      "plural": "الاختبارات",
+      "singular": "اختبار"
     },
-    "pages": {
-      "plural": "الصفحات",
-      "singular": "صفحة"
+    "questions": {
+      "plural": "الأسئلة",
+      "singular": "سؤال"
     },
-    "projects": {
-      "plural": "المشاريع",
-      "singular": "مشروع"
+    "teachers": {
+      "plural": "المعلمون",
+      "singular": "معلم"
     },
-    "pageSections": {
-      "plural": "أقسام الصفحات",
-      "singular": "قسم صفحة"
+    "students": {
+      "plural": "الطلاب",
+      "singular": "طالب"
     },
-    "sectionItems": {
-      "plural": "عناصر الأقسام",
-      "singular": "عنصر قسم"
+    "units": {
+      "plural": "الوحدات",
+      "singular": "وحدة"
     },
-    "boardMembers": {
-      "plural": "أعضاء مجلس الإدارة",
-      "singular": "عضو مجلس"
-    },
-    "galleryItems": {
-      "plural": "عناصر المعرض",
-      "singular": "عنصر معرض"
-    },
-    "faqs": {
-      "plural": "الأسئلة الشائعة",
-      "singular": "سؤال شائع"
-    },
-    "footerLinks": {
-      "plural": "روابط التذييل",
-      "singular": "رابط تذييل"
-    },
-    "contactInfos": {
-      "plural": "معلومات التواصل",
-      "singular": "معلومة تواصل"
-    },
-    "contactMessages": {
-      "plural": "رسائل التواصل",
-      "singular": "رسالة تواصل"
+    "lessons": {
+      "plural": "الدروس",
+      "singular": "درس"
     }
   },
   "header": {
     "searchInput": "بحث",
-    "searchPlaceholder": "ابحث بواسطة الضيف أو الحجز...",
+    "searchPlaceholder": "ابحث عن اختبار أو سؤال أو معلم...",
     "searchLoading": "جارٍ البحث...",
     "searchNoResults": "لا توجد نتائج",
     "searchError": "حدث خطأ أثناء البحث",
