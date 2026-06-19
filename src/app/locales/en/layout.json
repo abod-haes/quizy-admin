@@ -1,7 +1,7 @@
 {
   "brand": {
-    "name": "Amoria",
-    "subtitle": "Admin Panel"
+    "name": "Quizy",
+    "subtitle": "Quiz Ops"
   },
   "meta": {
     "login": "Login",
@@ -9,58 +9,48 @@
     "add": "Add",
     "edit": "Edit",
     "view": "View",
-    "home": {
-      "plural": "Home",
-      "singular": "Home"
+    "dashboard": {
+      "plural": "Dashboard",
+      "singular": "Dashboard"
     },
-    "aboutUs": {
-      "plural": "About Us",
-      "singular": "About Us"
+    "quizBuilder": {
+      "plural": "Quiz Builder",
+      "singular": "Quiz Builder"
     },
-    "pages": {
-      "plural": "Pages",
-      "singular": "Page"
+    "quizzes": {
+      "plural": "Quizzes",
+      "singular": "Quiz"
     },
-    "projects": {
-      "plural": "Projects",
-      "singular": "Project"
+    "lessons": {
+      "plural": "Lessons",
+      "singular": "Lesson"
     },
-    "pageSections": {
-      "plural": "Page Sections",
-      "singular": "Page Section"
+    "units": {
+      "plural": "Units",
+      "singular": "Unit"
     },
-    "sectionItems": {
-      "plural": "Section Items",
-      "singular": "Section Item"
+    "teachers": {
+      "plural": "Teachers",
+      "singular": "Teacher"
     },
-    "boardMembers": {
-      "plural": "Board Members",
-      "singular": "Board Member"
+    "students": {
+      "plural": "Students",
+      "singular": "Student"
     },
-    "galleryItems": {
-      "plural": "Gallery Items",
-      "singular": "Gallery Item"
+    "reviewQueue": {
+      "plural": "Review Queue",
+      "singular": "Review"
     },
-    "faqs": {
-      "plural": "FAQs",
-      "singular": "FAQ"
-    },
-    "footerLinks": {
-      "plural": "Footer Links",
-      "singular": "Footer Link"
-    },
-    "contactInfos": {
-      "plural": "Contact Info",
-      "singular": "Contact Info"
-    },
-    "contactMessages": {
-      "plural": "Contact Messages",
-      "singular": "Contact Message"
+    "settings": {
+      "plural": "Settings",
+      "singular": "Setting"
     }
   },
   "header": {
+    "eyebrow": "Quizy Admin",
+    "title": "Turn quiz files into structured learning content ready to publish.",
     "searchInput": "Search",
-    "searchPlaceholder": "Search by guest or reservation...",
+    "searchPlaceholder": "Search quizzes, lessons, or teachers...",
     "searchLoading": "Searching...",
     "searchNoResults": "No results found",
     "searchError": "Something went wrong while searching",
