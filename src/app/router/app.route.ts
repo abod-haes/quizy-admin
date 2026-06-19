@@ -22,7 +22,6 @@ import CourseSessionsPage from '@/modules/courses/pages/course-sessions.page'
 import DashboardPage from '@/modules/dashboard/pages/dashboard.page'
 import { NotFoundPage } from '@/modules/not-found/pages/not-found.page'
 import QuizBuilderPage from '@/modules/quiz-builder/pages/quiz-builder.page'
-import SettingsPage from '@/modules/settings/pages/settings.page'
 
 function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof createElement>) {
   const route = APP_ROUTES[routeKey]
@@ -58,7 +57,6 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'students', element: createElement(StudentsPage) },
   { routeKey: 'courses', element: createElement(CoursesPage) },
   { routeKey: 'courseSessions', element: createElement(CourseSessionsPage) },
-  { routeKey: 'settings', element: createElement(SettingsPage) },
 ]
 
 export const appRouter = createBrowserRouter([
