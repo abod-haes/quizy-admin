@@ -7,6 +7,18 @@ import { AppSidebar } from '@/app/layout/sidebar/app-sidebar.component'
 import { MobileSidebarDrawer } from '@/app/layout/sidebar/mobile-sidebar-drawer.component'
 import { cn } from '@/lib/utils'
 
+const moduleTranslationKeys: Record<string, string> = {
+  dashboard: 'dashboard',
+  'quiz-builder': 'quizBuilder',
+  quizzes: 'quizzes',
+  lessons: 'lessons',
+  units: 'units',
+  teachers: 'teachers',
+  students: 'students',
+  'review-queue': 'reviewQueue',
+  settings: 'settings',
+}
+
 export function AppShellLayout() {
   const [mobileOpen, setMobileOpen] = useState<boolean>(false)
   const { i18n, t } = useTranslation()
@@ -16,87 +28,15 @@ export function AppShellLayout() {
   const directionClass = isRtl ? 'app-dir-rtl' : 'app-dir-ltr'
   const pageTitle = useMemo(() => {
     const brandName = t('layout.brand.name')
-    const segments = location.pathname.split('/').filter(Boolean)
-    const firstSegment = segments[0] ?? ''
-    const actionSegment = segments[1] ?? ''
+    const firstSegment = location.pathname.split('/').filter(Boolean)[0] ?? 'dashboard'
 
-    const moduleMap: Record<string, { plural: string; singular: string }> = {
-      home: {
-        plural: t('layout.meta.home.plural'),
-        singular: t('layout.meta.home.singular'),
-      },
-      'about-us': {
-        plural: t('layout.meta.aboutUs.plural'),
-        singular: t('layout.meta.aboutUs.singular'),
-      },
-      pages: {
-        plural: t('layout.meta.pages.plural'),
-        singular: t('layout.meta.pages.singular'),
-      },
-      projects: {
-        plural: t('layout.meta.projects.plural'),
-        singular: t('layout.meta.projects.singular'),
-      },
-      'page-sections': {
-        plural: t('layout.meta.pageSections.plural'),
-        singular: t('layout.meta.pageSections.singular'),
-      },
-      'section-items': {
-        plural: t('layout.meta.sectionItems.plural'),
-        singular: t('layout.meta.sectionItems.singular'),
-      },
-      'board-members': {
-        plural: t('layout.meta.boardMembers.plural'),
-        singular: t('layout.meta.boardMembers.singular'),
-      },
-      'gallery-items': {
-        plural: t('layout.meta.galleryItems.plural'),
-        singular: t('layout.meta.galleryItems.singular'),
-      },
-      faqs: {
-        plural: t('layout.meta.faqs.plural'),
-        singular: t('layout.meta.faqs.singular'),
-      },
-      'footer-links': {
-        plural: t('layout.meta.footerLinks.plural'),
-        singular: t('layout.meta.footerLinks.singular'),
-      },
-      'contact-infos': {
-        plural: t('layout.meta.contactInfos.plural'),
-        singular: t('layout.meta.contactInfos.singular'),
-      },
-      'contact-messages': {
-        plural: t('layout.meta.contactMessages.plural'),
-        singular: t('layout.meta.contactMessages.singular'),
-      },
-    }
+    if (firstSegment === 'login') return brandName + ' - ' + t('layout.meta.login')
+    if (firstSegment === 'not-found') return brandName + ' - ' + t('layout.meta.notFound')
 
-    if (firstSegment === 'login') {
-      return `${brandName} - ${t('layout.meta.login')}`
-    }
+    const moduleKey = moduleTranslationKeys[firstSegment]
+    if (!moduleKey) return brandName
 
-    if (firstSegment === 'not-found') {
-      return `${brandName} - ${t('layout.meta.notFound')}`
-    }
-
-    const moduleTitle = moduleMap[firstSegment]
-    if (!moduleTitle) {
-      return brandName
-    }
-
-    if (actionSegment === 'add') {
-      return `${brandName} - ${t('layout.meta.add')} ${moduleTitle.singular}`
-    }
-
-    if (actionSegment === 'edit') {
-      return `${brandName} - ${t('layout.meta.edit')} ${moduleTitle.singular}`
-    }
-
-    if (actionSegment === 'view') {
-      return `${brandName} - ${t('layout.meta.view')} ${moduleTitle.singular}`
-    }
-
-    return `${brandName} - ${moduleTitle.plural}`
+    return brandName + ' - ' + t('layout.meta.' + moduleKey + '.plural')
   }, [location.pathname, t])
 
   useEffect(() => {
@@ -114,7 +54,7 @@ export function AppShellLayout() {
         <section className="relative flex min-h-[70vh] flex-1 flex-col overflow-hidden bg-background">
           <AppShellHeader onOpenMobileMenu={() => setMobileOpen(true)} />
 
-          <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 flex w-full">
+          <main className="flex w-full flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
             <Outlet />
           </main>
         </section>
