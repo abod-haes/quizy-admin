@@ -7,6 +7,7 @@ export const APP_ROUTES = {
   dashboard: { key: 'dashboard', path: '/dashboard', protected: true, breadcrumbKeys: [] },
   quizBuilder: { key: 'quizBuilder', path: '/quiz-builder', protected: true, breadcrumbKeys: [] },
   quizzes: { key: 'quizzes', path: '/quizzes', protected: true, breadcrumbKeys: [] },
+  questions: { key: 'questions', path: '/questions', protected: true, breadcrumbKeys: [] },
   classes: { key: 'classes', path: '/classes', protected: true, breadcrumbKeys: [] },
   subjects: { key: 'subjects', path: '/subjects', protected: true, breadcrumbKeys: [] },
   lessons: { key: 'lessons', path: '/lessons', protected: true, breadcrumbKeys: [] },
