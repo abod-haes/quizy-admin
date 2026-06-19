@@ -11,10 +11,11 @@ const moduleTranslationKeys: Record<string, string> = {
   dashboard: 'dashboard',
   'quiz-builder': 'quizBuilder',
   quizzes: 'quizzes',
+  questions: 'questions',
   classes: 'classes',
   subjects: 'subjects',
-  lessons: 'lessons',
   units: 'units',
+  lessons: 'lessons',
   teachers: 'teachers',
   students: 'students',
   'review-queue': 'reviewQueue',
@@ -53,10 +54,10 @@ export function AppShellLayout() {
           <AppSidebar className="h-screen rounded-none border-y-0 border-s-0 shadow-none" />
         </div>
 
-        <section className="relative flex min-h-[70vh] flex-1 flex-col overflow-hidden bg-background">
+        <section className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
           <AppShellHeader onOpenMobileMenu={() => setMobileOpen(true)} />
 
-          <main className="flex w-full flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+          <main className="flex min-h-0 w-full flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
             <Outlet />
           </main>
         </section>
