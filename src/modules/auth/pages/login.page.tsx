@@ -12,7 +12,8 @@ export default function LoginPage() {
   const { t } = useTranslation('login')
   const navigate = useNavigate()
   const { isAuthenticated, login } = useAuth()
-  const [email, setEmail] = useState('')
+  const [countryCallingCode, setCountryCallingCode] = useState('+963')
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [password, setPassword] = useState('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -24,9 +25,11 @@ export default function LoginPage() {
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault()
 
-    const normalizedEmail = email.trim()
+    const normalizedPhoneNumber = phoneNumber.trim()
+    const normalizedCountryCallingCode = countryCallingCode.trim()
     const normalizedPassword = password.trim()
-    if (!normalizedEmail || !normalizedPassword) {
+
+    if (!normalizedPhoneNumber || !normalizedCountryCallingCode || !normalizedPassword) {
       return
     }
 
@@ -35,27 +38,40 @@ export default function LoginPage() {
 
     try {
       const result = await loginAdmin({
-        email: normalizedEmail,
+        phoneNumber: normalizedPhoneNumber,
+        countryCallingCode: normalizedCountryCallingCode,
         password: normalizedPassword,
-        device_name: 'quizy-admin-web',
       })
 
-      login(result.token, [], [], {
-        id: result.user.id,
-        name: result.user.name,
-        email: result.user.email,
-        role: null,
+      if (!result.token || !result.isAuthenticated) {
+        setErrorMessage(result.message || t('invalidCredentials'))
+        return
+      }
+
+      const displayName = [result.firstName, result.lastName].filter(Boolean).join(' ').trim()
+      const role = result.role === 'Teacher' || result.role === 'Student' || result.role === 'SuperAdmin'
+        ? result.role
+        : 'SuperAdmin'
+
+      login(result.token, [role], [], {
+        id: result.userId,
+        name: displayName || result.phoneNumber || t('unknownUser'),
+        email: '',
+        firstName: result.firstName ?? null,
+        lastName: result.lastName ?? null,
+        phoneNumber: result.phoneNumber ?? normalizedPhoneNumber,
+        countryCallingCode: result.countryCallingCode ?? normalizedCountryCallingCode,
+        role,
         profilePhotoPath: null,
         profilePhotoUrl: null,
-        isActive: result.user.is_active,
       })
       navigate(APP_ROUTES.dashboard.path, { replace: true })
     } catch (error) {
       const apiError = error as ApiError
-      if (apiError?.status === 422) {
+      if (apiError?.status === 401 || apiError?.status === 422 || apiError?.status === 400) {
         setErrorMessage(t('invalidCredentials'))
       } else {
-        setErrorMessage(t('unexpectedError'))
+        setErrorMessage(apiError?.message || t('unexpectedError'))
       }
     } finally {
       setIsSubmitting(false)
@@ -78,15 +94,26 @@ export default function LoginPage() {
         <CardContent>
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 gap-4">
-              <FormField htmlFor="auth-email" label={t('email')}>
-                <Input
-                  id="auth-email"
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder={t('emailPlaceholder')}
-                />
-              </FormField>
+              <div className="grid grid-cols-[7rem_1fr] gap-3">
+                <FormField htmlFor="auth-country-code" label={t('countryCallingCode')}>
+                  <Input
+                    id="auth-country-code"
+                    value={countryCallingCode}
+                    onChange={(event) => setCountryCallingCode(event.target.value)}
+                    placeholder={t('countryCallingCodePlaceholder')}
+                  />
+                </FormField>
+
+                <FormField htmlFor="auth-phone" label={t('phoneNumber')}>
+                  <Input
+                    id="auth-phone"
+                    inputMode="tel"
+                    value={phoneNumber}
+                    onChange={(event) => setPhoneNumber(event.target.value)}
+                    placeholder={t('phoneNumberPlaceholder')}
+                  />
+                </FormField>
+              </div>
 
               <FormField htmlFor="auth-password" label={t('password')}>
                 <Input
@@ -107,7 +134,9 @@ export default function LoginPage() {
             <div className="flex justify-end">
               <Button
                 type="submit"
-                disabled={!email.trim() || !password.trim() || isSubmitting}
+                disabled={
+                  !countryCallingCode.trim() || !phoneNumber.trim() || !password.trim() || isSubmitting
+                }
               >
                 {isSubmitting ? t('submitting') : t('submit')}
               </Button>
