@@ -9,42 +9,17 @@
     "add": "إضافة",
     "edit": "تعديل",
     "view": "عرض",
-    "dashboard": {
-      "plural": "لوحة التحكم",
-      "singular": "لوحة التحكم"
-    },
-    "quizBuilder": {
-      "plural": "بناء الاختبارات",
-      "singular": "باني اختبار"
-    },
-    "quizzes": {
-      "plural": "الاختبارات",
-      "singular": "اختبار"
-    },
-    "lessons": {
-      "plural": "الدروس",
-      "singular": "درس"
-    },
-    "units": {
-      "plural": "الوحدات",
-      "singular": "وحدة"
-    },
-    "teachers": {
-      "plural": "المدرسون",
-      "singular": "مدرس"
-    },
-    "students": {
-      "plural": "الطلاب",
-      "singular": "طالب"
-    },
-    "reviewQueue": {
-      "plural": "طابور المراجعة",
-      "singular": "مراجعة"
-    },
-    "settings": {
-      "plural": "الإعدادات",
-      "singular": "إعداد"
-    }
+    "dashboard": { "plural": "لوحة التحكم", "singular": "لوحة التحكم" },
+    "quizBuilder": { "plural": "بناء الاختبارات", "singular": "باني اختبار" },
+    "quizzes": { "plural": "الاختبارات", "singular": "اختبار" },
+    "classes": { "plural": "الصفوف", "singular": "صف" },
+    "subjects": { "plural": "المواد", "singular": "مادة" },
+    "lessons": { "plural": "الدروس", "singular": "درس" },
+    "units": { "plural": "الوحدات", "singular": "وحدة" },
+    "teachers": { "plural": "المدرسون", "singular": "مدرس" },
+    "students": { "plural": "الطلاب", "singular": "طالب" },
+    "reviewQueue": { "plural": "طابور المراجعة", "singular": "مراجعة" },
+    "settings": { "plural": "الإعدادات", "singular": "إعداد" }
   },
   "header": {
     "eyebrow": "Quizy Admin",
