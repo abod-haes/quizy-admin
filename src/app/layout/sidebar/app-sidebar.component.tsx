@@ -41,21 +41,9 @@ export function AppSidebar({ onNavigate, className, ...props }: AppSidebarProps)
     >
       <SidebarBrand />
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <nav className="space-y-1.5 pt-3">
+      <div className="min-h-0 flex-1 overflow-y-auto pe-1">
+        <nav className="space-y-2 pt-3">
           {allowedPrimaryItems.map((item) => (
-            <SidebarNavItem
-              key={isSidebarGroupItem(item) ? `${item.id}:${location.pathname}` : item.id}
-              item={item}
-              onNavigate={onNavigate}
-            />
-          ))}
-        </nav>
-  
-        <Separator className="my-4 bg-border" />
-  
-        <nav className="space-y-1.5">
-          {allowedSecondaryItems.map((item) => (
             <SidebarNavItem
               key={isSidebarGroupItem(item) ? `${item.id}:${location.pathname}` : item.id}
               item={item}
@@ -65,7 +53,19 @@ export function AppSidebar({ onNavigate, className, ...props }: AppSidebarProps)
         </nav>
       </div>
 
-      <div className="mt-auto pt-4">
+      <div className="mt-4 shrink-0 rounded-2xl border border-border/70 bg-background/70 p-2 shadow-sm backdrop-blur">
+        <nav className="space-y-1">
+          {allowedSecondaryItems.map((item) => (
+            <SidebarNavItem
+              key={isSidebarGroupItem(item) ? `${item.id}:${location.pathname}` : item.id}
+              item={item}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </nav>
+
+        <Separator className="my-3 bg-border/70" />
+
         <SidebarUserCard />
       </div>
     </aside>
