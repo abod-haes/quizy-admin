@@ -1,12 +1,11 @@
-import { ChevronUp, KeyRound, LogOut } from 'lucide-react'
+import { ChevronUp, LogOut, Settings } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { useAuth } from '@/app/providers/auth.provider'
 import { APP_ROUTES } from '@/app/router/route-object.type'
-import { forgotPasswordAdmin, logoutAdmin } from '@/modules/auth/services/auth.services'
+import { logoutAdmin } from '@/modules/auth/services/auth.services'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   DropdownMenu,
@@ -34,7 +33,6 @@ export function SidebarUserCard() {
   const navigate = useNavigate()
   const { logout, user } = useAuth()
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false)
-  const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false)
 
   const displayName = user?.name?.trim() || t('sidebar.user.guestName', { defaultValue: 'System User' })
   const displayRole = user?.role?.trim() || t('sidebar.user.guestRole', { defaultValue: 'User' })
@@ -51,31 +49,16 @@ export function SidebarUserCard() {
     }
   }
 
-  const handleForgotPassword = async () => {
-    const email = user?.email?.trim()
-    if (!email) {
-      toast.error(t('sidebar.user.forgotPasswordErrors.missingEmail', { defaultValue: 'No email is associated with this account.' }))
-      return
-    }
-
-    await forgotPasswordAdmin({ email })
-    toast.success(
-      t('sidebar.user.forgotPasswordSuccess', {
-        defaultValue: 'Password reset link has been sent to your email.',
-      })
-    )
-  }
-
   return (
-    <div className="border-t border-border bg-card px-3 pt-3">
+    <div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="sidebar-user-row flex w-full items-center gap-3 rounded-md px-2 py-2 text-start transition-colors hover:bg-muted/65 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/20"
+            className="sidebar-user-row flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-start transition-colors hover:bg-muted/65 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/20"
             aria-label={t('sidebar.user.menuAriaLabel', { defaultValue: 'Open user menu' })}
           >
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted text-[0.72rem] font-bold text-foreground">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/12 text-[0.72rem] font-bold text-primary">
               {userInitials}
             </div>
 
@@ -94,14 +77,11 @@ export function SidebarUserCard() {
 
         <DropdownMenuContent align="end" side="top" className="min-w-48">
           <DropdownMenuItem
-            onSelect={(event) => {
-              event.preventDefault()
-              setIsForgotPasswordDialogOpen(true)
-            }}
+            onSelect={() => navigate(APP_ROUTES.settings.path)}
             className="cursor-pointer"
           >
-            <KeyRound className="size-4" />
-            {t('sidebar.user.forgotPassword', { defaultValue: 'Forgot password' })}
+            <Settings className="size-4" />
+            {t('sidebar.items.settings', { defaultValue: 'Settings' })}
           </DropdownMenuItem>
           <DropdownMenuItem
             variant="destructive"
@@ -116,20 +96,6 @@ export function SidebarUserCard() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-
-      <ConfirmDialog
-        type="info"
-        open={isForgotPasswordDialogOpen}
-        onOpenChange={setIsForgotPasswordDialogOpen}
-        title={t('sidebar.user.forgotPasswordConfirm.title', { defaultValue: 'Send reset password link?' })}
-        description={t('sidebar.user.forgotPasswordConfirm.description', {
-          defaultValue: 'A reset password link will be sent to your account email.',
-        })}
-        confirmLabel={t('sidebar.user.forgotPasswordConfirm.confirm', { defaultValue: 'Send link' })}
-        confirmingLabel={t('sidebar.user.forgotPasswordConfirm.confirming', { defaultValue: 'Sending...' })}
-        cancelLabel={t('sidebar.user.forgotPasswordConfirm.cancel', { defaultValue: 'Cancel' })}
-        onConfirm={handleForgotPassword}
-      />
 
       <ConfirmDialog
         type="destructive"
