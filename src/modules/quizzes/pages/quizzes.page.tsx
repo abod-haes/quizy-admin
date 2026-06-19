@@ -39,7 +39,8 @@ function quizTitle(quiz: QuizRow) {
 
 function quizTeacher(quiz: QuizRow, teachers: TeacherOption[]) {
   if (quiz.teacherName?.trim()) return quiz.teacherName
-  return teachers.find((teacher) => teacher.id === quiz.teacherId)?.name || teachers.find((teacher) => teacher.id === quiz.teacherId && teacherLabel(teacher)) ? teacherLabel(teachers.find((teacher) => teacher.id === quiz.teacherId) as TeacherOption) : '-'
+  const teacher = teachers.find((item) => item.id === quiz.teacherId)
+  return teacher ? teacherLabel(teacher) : '-'
 }
 
 function questionsCount(quiz: QuizRow) {
@@ -136,12 +137,7 @@ export default function QuizzesPage() {
           <div className="grid shrink-0 gap-2 md:grid-cols-[minmax(0,1fr)_16rem]">
             <label className="relative block">
               <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="h-10 ps-10"
-                value={search}
-                placeholder="ابحث باسم الاختبار أو المدرس"
-                onChange={(event) => setSearch(event.target.value)}
-              />
+              <Input className="h-10 ps-10" value={search} placeholder="ابحث باسم الاختبار أو المدرس" onChange={(event) => setSearch(event.target.value)} />
             </label>
             <CustomSelect value={teacherId} variant="filter" options={teacherOptions} onValueChange={(value) => setTeacherId(String(value))} placeholder="كل المدرسين" />
           </div>
@@ -160,9 +156,7 @@ export default function QuizzesPage() {
                 </TableHeader>
                 <TableBody>
                   {quizzesQuery.isLoading ? (
-                    [0, 1, 2, 3, 4].map((index) => (
-                      <TableRow key={index}><TableCell colSpan={5}><Skeleton className="h-10 w-full rounded-xl" /></TableCell></TableRow>
-                    ))
+                    [0, 1, 2, 3, 4].map((index) => <TableRow key={index}><TableCell colSpan={5}><Skeleton className="h-10 w-full rounded-xl" /></TableCell></TableRow>)
                   ) : rows.length === 0 ? (
                     <TableRow><TableCell colSpan={5} className="h-32 text-center text-muted-foreground">لا توجد اختبارات مطابقة</TableCell></TableRow>
                   ) : rows.map((quiz) => (
@@ -173,14 +167,8 @@ export default function QuizzesPage() {
                       <TableCell>{quiz.isFree ? 'مجاني' : 'مدفوع'}</TableCell>
                       <TableCell>
                         <div className="flex justify-center gap-2">
-                          <Button type="button" size="icon-sm" variant="outline" onClick={() => navigate(`/quiz-builder?quizId=${encodeURIComponent(quiz.id)}`)}>
-                            <Edit3 className="size-4" />
-                          </Button>
-                          <Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => {
-                            if (window.confirm('هل تريد حذف هذا الاختبار؟')) deleteMutation.mutate(quiz.id)
-                          }}>
-                            <Trash2 className="size-4" />
-                          </Button>
+                          <Button type="button" size="icon-sm" variant="outline" onClick={() => navigate(`/quiz-builder?quizId=${encodeURIComponent(quiz.id)}`)}><Edit3 className="size-4" /></Button>
+                          <Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => { if (window.confirm('هل تريد حذف هذا الاختبار؟')) deleteMutation.mutate(quiz.id) }}><Trash2 className="size-4" /></Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -195,9 +183,7 @@ export default function QuizzesPage() {
             <div className="flex flex-wrap items-center gap-1.5">
               <Button type="button" size="icon-sm" variant="outline" disabled={page <= 1 || quizzesQuery.isFetching} onClick={() => goToPage(1)}><ChevronsRight className="size-4" /></Button>
               <Button type="button" size="icon-sm" variant="outline" disabled={page <= 1 || quizzesQuery.isFetching} onClick={() => goToPage(page - 1)}><ChevronRight className="size-4" /></Button>
-              {paginationItems(page, totalPages).map((item) => typeof item === 'number' ? (
-                <Button key={item} type="button" size="sm" variant={item === page ? 'default' : 'outline'} className="min-w-9 px-3" disabled={quizzesQuery.isFetching} onClick={() => goToPage(item)}>{item}</Button>
-              ) : <span key={item} className="px-2 text-sm text-muted-foreground">…</span>)}
+              {paginationItems(page, totalPages).map((item) => typeof item === 'number' ? <Button key={item} type="button" size="sm" variant={item === page ? 'default' : 'outline'} className="min-w-9 px-3" disabled={quizzesQuery.isFetching} onClick={() => goToPage(item)}>{item}</Button> : <span key={item} className="px-2 text-sm text-muted-foreground">…</span>)}
               <Button type="button" size="icon-sm" variant="outline" disabled={page >= totalPages || quizzesQuery.isFetching} onClick={() => goToPage(page + 1)}><ChevronLeft className="size-4" /></Button>
               <Button type="button" size="icon-sm" variant="outline" disabled={page >= totalPages || quizzesQuery.isFetching} onClick={() => goToPage(totalPages)}><ChevronsLeft className="size-4" /></Button>
             </div>
