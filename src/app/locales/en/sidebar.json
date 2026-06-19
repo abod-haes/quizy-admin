@@ -1,18 +1,17 @@
 {
   "closeNavigation": "Close navigation",
   "items": {
-    "pages": "Pages",
-    "faqs": "Faqs"
+    "dashboard": "Dashboard"
   },
   "user": {
     "guestName": "System User",
-    "guestRole": "User",
+    "guestRole": "Quizy Admin",
     "menuAriaLabel": "Open user menu",
     "profile": "Profile",
     "logout": "Logout",
     "logoutConfirm": {
       "title": "Confirm logout",
-      "description": "Are you sure you want to log out from your account?",
+      "description": "Confirm signing out from this account.",
       "confirm": "Logout",
       "confirming": "Logging out...",
       "cancel": "Cancel"
