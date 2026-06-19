@@ -4,6 +4,7 @@
     "dashboard": "لوحة التحكم",
     "quizBuilder": "بناء الاختبارات",
     "quizzes": "الاختبارات",
+    "questions": "بنك الأسئلة",
     "classes": "الصفوف",
     "subjects": "المواد",
     "lessons": "الدروس",
@@ -12,19 +13,5 @@
     "students": "الطلاب",
     "reviewQueue": "المراجعة",
     "settings": "الإعدادات"
-  },
-  "user": {
-    "guestName": "مدير Quizy",
-    "guestRole": "فريق المحتوى",
-    "menuAriaLabel": "فتح قائمة المستخدم",
-    "profile": "الملف الشخصي",
-    "logout": "تسجيل الخروج",
-    "logoutConfirm": {
-      "title": "تأكيد تسجيل الخروج",
-      "description": "هل أنت متأكد أنك تريد تسجيل الخروج من حسابك؟",
-      "confirm": "تسجيل الخروج",
-      "confirming": "جارٍ تسجيل الخروج...",
-      "cancel": "إلغاء"
-    }
   }
 }
