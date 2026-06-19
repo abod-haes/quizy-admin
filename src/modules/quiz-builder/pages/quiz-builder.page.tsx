@@ -168,7 +168,7 @@ const validateQuizBodies = (bodies: QuizPayload[]): ValidationResult => {
   const errors: string[] = []
 
   if (bodies.length === 0) {
-    errors.push('أدخل اختبار واحد على الأقل.')
+    errors.push('أدخل اختبارًا واحدًا على الأقل.')
   }
 
   bodies.forEach((quiz, quizIndex) => {
@@ -176,9 +176,9 @@ const validateQuizBodies = (bodies: QuizPayload[]): ValidationResult => {
 
     if (!quiz.teacherId) errors.push(`${quizLabel}: اختر المدرس.`)
     if (!Number.isFinite(quiz.timeExpiration) || quiz.timeExpiration < 0) {
-      errors.push(`${quizLabel}: وقت الاختبار يجب أن يكون 0 أو أكبر.`)
+      errors.push(`${quizLabel}: مدة الاختبار يجب أن تكون 0 أو أكبر.`)
     }
-    if (!Array.isArray(quiz.entityIds)) errors.push(`${quizLabel}: entityIds يجب أن تكون Array.`)
+    if (!Array.isArray(quiz.entityIds)) errors.push(`${quizLabel}: الجهات يجب أن تكون قائمة.`)
     if (!Array.isArray(quiz.questions) || quiz.questions.length === 0) {
       errors.push(`${quizLabel}: أضف سؤالًا واحدًا على الأقل.`)
       return
@@ -267,9 +267,6 @@ export default function QuizBuilderPage() {
   const lessonOptions = useMemo(() => toSelectOptions(lessonsQuery.data), [lessonsQuery.data])
   const entityOptions = useMemo(() => toSelectOptions(entitiesQuery.data), [entitiesQuery.data])
   const resourceOptions = useMemo(() => toSelectOptions(resourcesQuery.data), [resourcesQuery.data])
-
-  const formValidation = useMemo(() => validateQuizBodies([quizDraft]), [quizDraft])
-  const formPreview = useMemo(() => JSON.stringify(quizDraft, null, 2), [quizDraft])
 
   const saveMutation = useMutation({
     mutationFn: async (bodies: QuizPayload[]) => {
@@ -389,16 +386,16 @@ export default function QuizBuilderPage() {
   }
 
   return (
-    <section className="flex min-h-0 w-full flex-col gap-6 overflow-hidden">
-      <div className="rounded-[2rem] border border-primary/10 bg-card p-6 shadow-sm sm:p-8">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+    <section className="flex min-h-0 w-full flex-col gap-5 overflow-hidden">
+      <div className="rounded-[2rem] border border-primary/10 bg-card/95 p-5 shadow-sm sm:p-7">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
           <div className="max-w-3xl space-y-3">
             <Badge variant="outline" color="primary" className="rounded-full px-3">
-              Quiz Builder
+              بناء الاختبارات
             </Badge>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">إضافة اختبار</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">إضافة اختبار جديد</h1>
             <p className="text-base leading-7 text-muted-foreground">
-              أنشئ اختبارًا من فورم منظم أو الصق JSON جاهز. الواجهة تعرض أسماء المدرسين والدروس والملفات، وترسل الـ IDs للـ API داخليًا فقط.
+              أنشئ اختبارًا بخطوات واضحة: اختر المدرس والصفوف، أضف الأسئلة والخيارات، ثم احفظه مباشرة. ويمكنك أيضًا لصق JSON جاهز وتنسيقه قبل الإرسال.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -413,7 +410,7 @@ export default function QuizBuilderPage() {
                 setValidation(null)
               }}
             >
-              <FileQuestion className="size-4" /> فورم
+              <FileQuestion className="size-4" /> فورم منظم
             </Button>
             <Button
               type="button"
@@ -423,7 +420,7 @@ export default function QuizBuilderPage() {
                 setValidation(null)
               }}
             >
-              <Braces className="size-4" /> JSON
+              <Braces className="size-4" /> إدخال JSON
             </Button>
           </div>
         </div>
@@ -456,197 +453,183 @@ export default function QuizBuilderPage() {
       ) : null}
 
       {mode === 'form' ? (
-        <div className="grid min-h-0 gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
-          <div className="min-h-0 space-y-6 overflow-y-auto pe-1">
-            <Card className="rounded-3xl shadow-sm">
-              <CardHeader>
-                <CardTitle>بيانات الاختبار</CardTitle>
-                <CardDescription>كل الحقول المرتبطة تستخدم select وتبعت ID فقط للـ API.</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>المدرس</Label>
-                  <CustomSelect
-                    value={quizDraft.teacherId || undefined}
-                    placeholder="اختر المدرس"
-                    options={teacherOptions}
-                    onValueChange={(value) => updateQuizField('teacherId', String(value))}
-                    disabled={teachersQuery.isLoading}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>وقت الاختبار بالدقائق</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={quizDraft.timeExpiration}
-                    onChange={(event) => updateQuizField('timeExpiration', Number(event.target.value || 0))}
-                  />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label>الجهات / الصفوف المرتبطة</Label>
-                  <CustomMultiSelect
-                    value={quizDraft.entityIds}
-                    placeholder="اختر الجهات"
-                    options={entityOptions}
-                    onValueChange={(value) => updateQuizField('entityIds', value.map(String))}
-                    disabled={entitiesQuery.isLoading}
-                  />
-                </div>
-                <label className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-muted/30 p-4 md:col-span-2">
-                  <span>
-                    <span className="block text-sm font-semibold text-foreground">اختبار مجاني</span>
-                    <span className="text-xs text-muted-foreground">القيمة سترسل كـ isFree.</span>
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={quizDraft.isFree}
-                    onChange={(event) => updateQuizField('isFree', event.target.checked)}
-                    className="size-5 accent-primary"
-                  />
-                </label>
-              </CardContent>
-            </Card>
-
-            {quizDraft.questions.map((question, questionIndex) => (
-              <Card key={questionIndex} className="rounded-3xl shadow-sm">
-                <CardHeader className="gap-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <Layers3 className="size-5 text-primary" /> السؤال {questionIndex + 1}
-                      </CardTitle>
-                      <CardDescription>اربط السؤال بالدروس والملفات بدون عرض IDs.</CardDescription>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => removeQuestion(questionIndex)}
-                      disabled={quizDraft.questions.length === 1}
-                    >
-                      <Trash2 className="size-4" /> حذف السؤال
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>نص السؤال</Label>
-                    <Textarea
-                      value={question.title}
-                      rows={3}
-                      placeholder="اكتب السؤال هنا، ويمكن استخدام <MathLm> للرياضيات"
-                      onChange={(event) => updateQuestion(questionIndex, { ...question, title: event.target.value })}
-                    />
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label>الدروس</Label>
-                      <CustomMultiSelect
-                        value={question.lessonIds}
-                        placeholder="اختر الدروس"
-                        options={lessonOptions}
-                        onValueChange={(value) => updateQuestion(questionIndex, { ...question, lessonIds: value.map(String) })}
-                        disabled={lessonsQuery.isLoading}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>الملفات / الصور</Label>
-                      <CustomMultiSelect
-                        value={question.fileIds}
-                        placeholder="اختر الملفات إن وجدت"
-                        options={resourceOptions}
-                        onValueChange={(value) => updateQuestion(questionIndex, { ...question, fileIds: value.map(String) })}
-                        disabled={resourcesQuery.isLoading}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label>Hint</Label>
-                      <Textarea
-                        value={question.hint}
-                        rows={2}
-                        placeholder="تلميح قصير بدون إعطاء الجواب"
-                        onChange={(event) => updateQuestion(questionIndex, { ...question, hint: event.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Description</Label>
-                      <Textarea
-                        value={question.description}
-                        rows={2}
-                        placeholder="وصف اختياري"
-                        onChange={(event) => updateQuestion(questionIndex, { ...question, description: event.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 rounded-3xl border border-border bg-muted/20 p-4">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <h3 className="text-sm font-semibold text-foreground">الإجابات</h3>
-                        <p className="text-xs text-muted-foreground">حدد إجابة صحيحة واحدة على الأقل.</p>
-                      </div>
-                      <Button type="button" variant="outline" onClick={() => addAnswer(questionIndex)}>
-                        <Plus className="size-4" /> إضافة خيار
-                      </Button>
-                    </div>
-                    {question.answers.map((answer, answerIndex) => (
-                      <div key={answerIndex} className="grid gap-3 rounded-2xl border border-border bg-card p-3 md:grid-cols-[1fr_auto_auto] md:items-center">
-                        <Input
-                          value={answer.title}
-                          placeholder={`الخيار ${answerIndex + 1}`}
-                          onChange={(event) => updateAnswer(questionIndex, answerIndex, { ...answer, title: event.target.value })}
-                        />
-                        <label className="flex items-center gap-2 text-sm text-foreground">
-                          <input
-                            type="radio"
-                            name={`correct-answer-${questionIndex}`}
-                            checked={answer.isCorrect}
-                            onChange={() => setOnlyCorrectAnswer(questionIndex, answerIndex)}
-                            className="size-4 accent-primary"
-                          />
-                          صحيح
-                        </label>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => removeAnswer(questionIndex, answerIndex)}
-                          disabled={question.answers.length <= 2}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" onClick={addQuestion}>
-                <ListPlus className="size-4" /> إضافة سؤال
-              </Button>
-              <Button type="button" onClick={validateFormAndSave} disabled={saveMutation.isPending}>
-                {saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-                حفظ الاختبار
-              </Button>
-            </div>
-          </div>
-
-          <Card className="min-h-0 rounded-3xl shadow-sm">
+        <div className="min-h-0 space-y-5 overflow-y-auto pe-1">
+          <Card className="rounded-3xl shadow-sm">
             <CardHeader>
-              <CardTitle>Preview JSON</CardTitle>
-              <CardDescription>
-                {formValidation.ok ? 'البيانات صالحة حاليًا.' : `${formValidation.errors.length} خطأ قبل الحفظ.`}
-              </CardDescription>
+              <CardTitle>بيانات الاختبار</CardTitle>
+              <CardDescription>اختر البيانات الأساسية، وسيتم إرسال المعرفات داخليًا للـ API بدون عرضها داخل الواجهة.</CardDescription>
             </CardHeader>
-            <CardContent className="min-h-0">
-              <pre className="max-h-[70vh] overflow-auto rounded-2xl bg-muted p-4 text-xs leading-6 text-foreground">
-                {formPreview}
-              </pre>
+            <CardContent className="grid gap-4 lg:grid-cols-3">
+              <div className="space-y-2">
+                <Label>المدرس</Label>
+                <CustomSelect
+                  value={quizDraft.teacherId || undefined}
+                  placeholder="اختر المدرس"
+                  options={teacherOptions}
+                  onValueChange={(value) => updateQuizField('teacherId', String(value))}
+                  disabled={teachersQuery.isLoading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>مدة الاختبار بالدقائق</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={quizDraft.timeExpiration}
+                  onChange={(event) => updateQuizField('timeExpiration', Number(event.target.value || 0))}
+                />
+              </div>
+              <label className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-muted/30 p-4">
+                <span>
+                  <span className="block text-sm font-semibold text-foreground">اختبار مجاني</span>
+                  <span className="text-xs text-muted-foreground">يتاح للطلاب بدون دفع.</span>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={quizDraft.isFree}
+                  onChange={(event) => updateQuizField('isFree', event.target.checked)}
+                  className="size-5 accent-primary"
+                />
+              </label>
+              <div className="space-y-2 lg:col-span-3">
+                <Label>الصفوف المرتبطة</Label>
+                <CustomMultiSelect
+                  value={quizDraft.entityIds}
+                  placeholder="اختر الصفوف"
+                  options={entityOptions}
+                  onValueChange={(value) => updateQuizField('entityIds', value.map(String))}
+                  disabled={entitiesQuery.isLoading}
+                />
+              </div>
             </CardContent>
           </Card>
+
+          {quizDraft.questions.map((question, questionIndex) => (
+            <Card key={questionIndex} className="rounded-3xl shadow-sm">
+              <CardHeader className="gap-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Layers3 className="size-5 text-primary" /> السؤال {questionIndex + 1}
+                    </CardTitle>
+                    <CardDescription>أدخل نص السؤال، اربطه بالدروس، وحدد الإجابة الصحيحة.</CardDescription>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => removeQuestion(questionIndex)}
+                    disabled={quizDraft.questions.length === 1}
+                  >
+                    <Trash2 className="size-4" /> حذف السؤال
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>نص السؤال</Label>
+                  <Textarea
+                    value={question.title}
+                    rows={3}
+                    placeholder="اكتب السؤال هنا، ويمكن استخدام <MathLm> للرياضيات"
+                    onChange={(event) => updateQuestion(questionIndex, { ...question, title: event.target.value })}
+                  />
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>الدروس</Label>
+                    <CustomMultiSelect
+                      value={question.lessonIds}
+                      placeholder="اختر الدروس"
+                      options={lessonOptions}
+                      onValueChange={(value) => updateQuestion(questionIndex, { ...question, lessonIds: value.map(String) })}
+                      disabled={lessonsQuery.isLoading}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>الملفات / الصور</Label>
+                    <CustomMultiSelect
+                      value={question.fileIds}
+                      placeholder="اختر الملفات إن وجدت"
+                      options={resourceOptions}
+                      onValueChange={(value) => updateQuestion(questionIndex, { ...question, fileIds: value.map(String) })}
+                      disabled={resourcesQuery.isLoading}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>التلميح</Label>
+                    <Textarea
+                      value={question.hint}
+                      rows={2}
+                      placeholder="تلميح قصير بدون إعطاء الجواب"
+                      onChange={(event) => updateQuestion(questionIndex, { ...question, hint: event.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>الوصف</Label>
+                    <Textarea
+                      value={question.description}
+                      rows={2}
+                      placeholder="وصف اختياري"
+                      onChange={(event) => updateQuestion(questionIndex, { ...question, description: event.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3 rounded-3xl border border-border bg-muted/20 p-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">الإجابات</h3>
+                      <p className="text-xs text-muted-foreground">حدد إجابة صحيحة واحدة على الأقل.</p>
+                    </div>
+                    <Button type="button" variant="outline" onClick={() => addAnswer(questionIndex)}>
+                      <Plus className="size-4" /> إضافة خيار
+                    </Button>
+                  </div>
+                  {question.answers.map((answer, answerIndex) => (
+                    <div key={answerIndex} className="grid gap-3 rounded-2xl border border-border bg-card p-3 md:grid-cols-[1fr_auto_auto] md:items-center">
+                      <Input
+                        value={answer.title}
+                        placeholder={`الخيار ${answerIndex + 1}`}
+                        onChange={(event) => updateAnswer(questionIndex, answerIndex, { ...answer, title: event.target.value })}
+                      />
+                      <label className="flex items-center gap-2 text-sm text-foreground">
+                        <input
+                          type="radio"
+                          name={`correct-answer-${questionIndex}`}
+                          checked={answer.isCorrect}
+                          onChange={() => setOnlyCorrectAnswer(questionIndex, answerIndex)}
+                          className="size-4 accent-primary"
+                        />
+                        صحيح
+                      </label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => removeAnswer(questionIndex, answerIndex)}
+                        disabled={question.answers.length <= 2}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+
+          <div className="sticky bottom-0 z-10 flex flex-wrap gap-2 rounded-3xl border border-border bg-background/85 p-3 shadow-sm backdrop-blur">
+            <Button type="button" variant="outline" onClick={addQuestion}>
+              <ListPlus className="size-4" /> إضافة سؤال
+            </Button>
+            <Button type="button" onClick={validateFormAndSave} disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+              حفظ الاختبار
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="grid min-h-0 gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
@@ -654,7 +637,7 @@ export default function QuizBuilderPage() {
             <CardHeader>
               <CardTitle>إدخال JSON</CardTitle>
               <CardDescription>
-                الصق body واحد، أو Array، أو Object يحتوي quizzes. سيتم عمل format وvalidation قبل الإرسال.
+                الصق body واحد، أو Array، أو Object يحتوي quizzes. سيتم تنسيقه والتحقق منه قبل الإرسال.
               </CardDescription>
             </CardHeader>
             <CardContent className="flex min-h-0 flex-col gap-4">
@@ -668,7 +651,7 @@ export default function QuizBuilderPage() {
               />
               <div className="flex flex-wrap gap-2">
                 <Button type="button" variant="outline" onClick={formatJson}>
-                  <Wand2 className="size-4" /> Format + Validate
+                  <Wand2 className="size-4" /> تنسيق والتحقق
                 </Button>
                 <Button type="button" onClick={validateJsonAndSave} disabled={saveMutation.isPending}>
                   {saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
@@ -680,15 +663,14 @@ export default function QuizBuilderPage() {
 
           <Card className="rounded-3xl shadow-sm">
             <CardHeader>
-              <CardTitle>قواعد JSON</CardTitle>
-              <CardDescription>نفس شكل `/api/Quizes` المطلوب من النظام.</CardDescription>
+              <CardTitle>قواعد الإرسال</CardTitle>
+              <CardDescription>الشكل النهائي يرسل إلى `/api/Quizes`.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 text-sm leading-7 text-muted-foreground">
-              <p>كل اختبار يحتاج teacherId و questions.</p>
-              <p>كل سؤال يحتاج title و lessonIds وخيارين على الأقل.</p>
+              <p>كل اختبار يحتاج مدرسًا وسؤالًا واحدًا على الأقل.</p>
+              <p>كل سؤال يحتاج نصًا، ودروسًا مرتبطة، وخيارين على الأقل.</p>
               <p>كل سؤال يحتاج إجابة صحيحة واحدة على الأقل.</p>
-              <p>يمكن لصق Array لإرسال أكثر من اختبار بنفس العملية.</p>
-              <p>لا يتم عرض IDs للمستخدم في وضع الفورم؛ أما JSON فهو للمراجعة التقنية المباشرة.</p>
+              <p>يمكن لصق قائمة لإرسال أكثر من اختبار بنفس العملية.</p>
             </CardContent>
           </Card>
         </div>
