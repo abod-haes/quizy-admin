@@ -1,10 +1,12 @@
 import {
   BookOpenCheck,
+  BookText,
   FileQuestion,
   Gauge,
   GraduationCap,
   Layers3,
   LibraryBig,
+  School,
   Settings,
   UploadCloud,
   UsersRound,
@@ -36,10 +38,17 @@ export const primarySidebarItems: SidebarItem[] = [
     end: true,
   },
   {
-    id: 'lessons',
-    labelKey: 'sidebar.items.lessons',
-    to: APP_ROUTES.lessons.path,
-    icon: BookOpenCheck,
+    id: 'classes',
+    labelKey: 'sidebar.items.classes',
+    to: APP_ROUTES.classes.path,
+    icon: School,
+    end: true,
+  },
+  {
+    id: 'subjects',
+    labelKey: 'sidebar.items.subjects',
+    to: APP_ROUTES.subjects.path,
+    icon: BookText,
     end: true,
   },
   {
@@ -47,6 +56,13 @@ export const primarySidebarItems: SidebarItem[] = [
     labelKey: 'sidebar.items.units',
     to: APP_ROUTES.units.path,
     icon: Layers3,
+    end: true,
+  },
+  {
+    id: 'lessons',
+    labelKey: 'sidebar.items.lessons',
+    to: APP_ROUTES.lessons.path,
+    icon: BookOpenCheck,
     end: true,
   },
   {
