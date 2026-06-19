@@ -14,6 +14,13 @@ export const APP_ROUTES = {
   units: { key: 'units', path: '/units', protected: true, breadcrumbKeys: [] },
   teachers: { key: 'teachers', path: '/teachers', protected: true, breadcrumbKeys: [] },
   students: { key: 'students', path: '/students', protected: true, breadcrumbKeys: [] },
+  courses: { key: 'courses', path: '/courses', protected: true, breadcrumbKeys: [] },
+  resources: { key: 'resources', path: '/resources', protected: true, breadcrumbKeys: [] },
+  ads: { key: 'ads', path: '/ads', protected: true, breadcrumbKeys: [] },
+  pointsOfSale: { key: 'pointsOfSale', path: '/points-of-sale', protected: true, breadcrumbKeys: [] },
+  qrCodes: { key: 'qrCodes', path: '/qr-codes', protected: true, breadcrumbKeys: [] },
+  notifications: { key: 'notifications', path: '/notifications', protected: true, breadcrumbKeys: [] },
+  pageContents: { key: 'pageContents', path: '/page-contents', protected: true, breadcrumbKeys: [] },
   reviewQueue: { key: 'reviewQueue', path: '/review-queue', protected: true, breadcrumbKeys: [] },
   settings: { key: 'settings', path: '/settings', protected: true, breadcrumbKeys: [] },
 
