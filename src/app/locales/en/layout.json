@@ -9,42 +9,17 @@
     "add": "Add",
     "edit": "Edit",
     "view": "View",
-    "dashboard": {
-      "plural": "Dashboard",
-      "singular": "Dashboard"
-    },
-    "quizBuilder": {
-      "plural": "Quiz Builder",
-      "singular": "Quiz Builder"
-    },
-    "quizzes": {
-      "plural": "Quizzes",
-      "singular": "Quiz"
-    },
-    "lessons": {
-      "plural": "Lessons",
-      "singular": "Lesson"
-    },
-    "units": {
-      "plural": "Units",
-      "singular": "Unit"
-    },
-    "teachers": {
-      "plural": "Teachers",
-      "singular": "Teacher"
-    },
-    "students": {
-      "plural": "Students",
-      "singular": "Student"
-    },
-    "reviewQueue": {
-      "plural": "Review Queue",
-      "singular": "Review"
-    },
-    "settings": {
-      "plural": "Settings",
-      "singular": "Setting"
-    }
+    "dashboard": { "plural": "Dashboard", "singular": "Dashboard" },
+    "quizBuilder": { "plural": "Quiz Builder", "singular": "Quiz Builder" },
+    "quizzes": { "plural": "Quizzes", "singular": "Quiz" },
+    "classes": { "plural": "Classes", "singular": "Class" },
+    "subjects": { "plural": "Subjects", "singular": "Subject" },
+    "lessons": { "plural": "Lessons", "singular": "Lesson" },
+    "units": { "plural": "Units", "singular": "Unit" },
+    "teachers": { "plural": "Teachers", "singular": "Teacher" },
+    "students": { "plural": "Students", "singular": "Student" },
+    "reviewQueue": { "plural": "Review Queue", "singular": "Review" },
+    "settings": { "plural": "Settings", "singular": "Setting" }
   },
   "header": {
     "eyebrow": "Quizy Admin",
