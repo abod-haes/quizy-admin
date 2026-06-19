@@ -1,5 +1,10 @@
 {
   "closeNavigation": "Close navigation",
+  "groups": {
+    "quizManagement": "Quiz Management",
+    "contentManagement": "Learning Content",
+    "peopleManagement": "Users"
+  },
   "items": {
     "dashboard": "Dashboard",
     "quizBuilder": "Quiz Builder",
@@ -18,7 +23,6 @@
     "guestName": "Quizy Admin",
     "guestRole": "Content team",
     "menuAriaLabel": "Open user menu",
-    "profile": "Profile",
     "logout": "Logout",
     "logoutConfirm": {
       "title": "Confirm logout",
