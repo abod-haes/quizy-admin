@@ -1,0 +1,81 @@
+{
+  "brand": {
+    "name": "Amoria",
+    "subtitle": "Admin Panel"
+  },
+  "meta": {
+    "login": "Login",
+    "notFound": "Page not found",
+    "add": "Add",
+    "edit": "Edit",
+    "view": "View",
+    "home": {
+      "plural": "Home",
+      "singular": "Home"
+    },
+    "aboutUs": {
+      "plural": "About Us",
+      "singular": "About Us"
+    },
+    "pages": {
+      "plural": "Pages",
+      "singular": "Page"
+    },
+    "projects": {
+      "plural": "Projects",
+      "singular": "Project"
+    },
+    "pageSections": {
+      "plural": "Page Sections",
+      "singular": "Page Section"
+    },
+    "sectionItems": {
+      "plural": "Section Items",
+      "singular": "Section Item"
+    },
+    "boardMembers": {
+      "plural": "Board Members",
+      "singular": "Board Member"
+    },
+    "galleryItems": {
+      "plural": "Gallery Items",
+      "singular": "Gallery Item"
+    },
+    "faqs": {
+      "plural": "FAQs",
+      "singular": "FAQ"
+    },
+    "footerLinks": {
+      "plural": "Footer Links",
+      "singular": "Footer Link"
+    },
+    "contactInfos": {
+      "plural": "Contact Info",
+      "singular": "Contact Info"
+    },
+    "contactMessages": {
+      "plural": "Contact Messages",
+      "singular": "Contact Message"
+    }
+  },
+  "header": {
+    "searchInput": "Search",
+    "searchPlaceholder": "Search by guest or reservation...",
+    "searchLoading": "Searching...",
+    "searchNoResults": "No results found",
+    "searchError": "Something went wrong while searching",
+    "searchResultFallbackTitle": "Unnamed result",
+    "notifications": "Notifications",
+    "helpCenter": "Help Center",
+    "switchToDark": "Switch to dark mode",
+    "switchToLight": "Switch to light mode"
+  },
+  "language": {
+    "menuLabel": "Choose language",
+    "arabicName": "Arabic",
+    "englishName": "English"
+  },
+  "mobile": {
+    "openNavigation": "Open navigation"
+  }
+}

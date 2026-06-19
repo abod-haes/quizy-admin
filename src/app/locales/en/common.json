@@ -1,0 +1,134 @@
+{
+  "labels": {
+    "important": "Important",
+    "urgent": "Urgent",
+    "vip": "VIP",
+    "followUp": "Follow-up",
+    "pending": "Pending"
+  },
+  "actions": {
+    "add": "Add",
+    "edit": "Edit",
+    "create": "Create",
+    "createSuccess": "Added successfully",
+    "createError": "Add failed",
+    "update": "Update",
+    "updateSuccess": "Updated successfully",
+    "updateError": "Update failed",
+    "apply": "Apply",
+    "reset": "Reset",
+    "cancel": "Cancel",
+    "back": "Back",
+    "view": "View",
+    "delete": "Delete",
+    "deleteSuccess": "Deleted successfully",
+    "deleteError": "Delete failed",
+    "deleting": "Deleting...",
+    "confirmDeleteTitle": "Confirm deletion",
+    "confirmDeleteDescription": "Are you sure you want to delete this item?",
+    "save": "Save",
+    "saving": "Saving...",
+    "displayOrdering": "Display Ordering",
+    "saveOrdering": "Save ordering"
+  },
+  "filters": {
+    "title": "Filters",
+    "any": "All"
+  },
+  "table": {
+    "columns": "Columns",
+    "actions": "Actions",
+    "empty": "No results found",
+    "noColumns": "No columns available",
+    "summary": "Showing {{from}}-{{to}} of {{total}}",
+    "sortNone": "No sorting",
+    "sortLabel": "Sort",
+    "sortPlaceholder": "e.g. -created_at",
+    "sortDirection": {
+      "asc": "Asc",
+      "desc": "Desc"
+    },
+    "sortFields": {
+      "id": "ID",
+      "slug": "Slug",
+      "email": "Email",
+      "status": "Status",
+      "full_name": "Full name",
+      "category": "Category",
+      "created_at": "Created at",
+      "updated_at": "Updated at",
+      "handled_at": "Handled at",
+      "sort_order": "Sort order",
+      "section_type": "Section type",
+      "section_key": "Section key",
+      "item_type": "Item type",
+      "value": "Value",
+      "is_published": "Published",
+      "is_featured": "Featured",
+      "svg_element_id": "SVG element ID"
+    }
+  },
+  "boolean": {
+    "yes": "Yes",
+    "no": "No"
+  },
+  "form": {
+    "noEditableFields": "No editable fields were inferred from the Postman request body.",
+    "basicInfo": "Basic Information",
+    "createDescription": "Enter the required details, then save them to add the item to the system.",
+    "updateDescription": "Review the current details, then save your changes when ready."
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalid": "Invalid value",
+    "invalidType": "Invalid value type",
+    "invalidValue": "Selected value is invalid",
+    "invalidFormat": "Invalid value format",
+    "invalidNumber": "Please enter a valid number",
+    "invalidFile": "Please choose a valid file",
+    "duplicateLanguage": "Duplicate translation language is not allowed",
+    "duplicateTabKey": "This tab key is already in use",
+    "duplicateTabKeyHint": "Use a unique key for this tab.",
+    "tooSmall": "Value is too small",
+    "tooBig": "Value is too large"
+  },
+  "pagination": {
+    "previous": "Previous page",
+    "next": "Next page",
+    "pageOf": "Page {{current}} of {{total}}",
+    "pageLabel": "Go to page {{page}}",
+    "pageSize": "Rows"
+  },
+  "media": {
+    "uploadTitle": "Upload media file",
+    "uploadHint": "Choose an image to preview before upload",
+    "choosePreviewBeforeUpload": "Choose an image to preview before upload",
+    "upload": "Upload",
+    "uploading": "Uploading..."
+  },
+  "enums": {
+    "pageSectionTypes": {
+      "hero": "Hero",
+      "marquee": "Marquee",
+      "about": "About",
+      "stats": "Stats",
+      "membership-benefits": "Membership Benefits",
+      "featured-projects": "Featured Projects",
+      "board-preview": "Board Preview",
+      "gallery-preview": "Gallery Preview",
+      "faq-preview": "FAQ Preview",
+      "contact-info": "Contact Info",
+      "footer-links": "Footer Links",
+      "vision": "Vision",
+      "mission": "Mission",
+      "values": "Values",
+      "services-list": "Services List",
+      "projects-list": "Projects List",
+      "projects-map": "Projects Map",
+      "board-members": "Board Members",
+      "gallery-grid": "Gallery Grid",
+      "faq-list": "FAQ List",
+      "contact-form": "Contact Form"
+    }
+  }
+}

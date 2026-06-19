@@ -1,0 +1,30 @@
+{
+  "entity": {
+    "singular": "Singular",
+    "plural": "Plural"
+  },
+  "page": {
+    "description": "Description"
+  },
+  "table": {
+    "columns": {
+      "slug": "Slug",
+      "isPublished": "Is Published",
+      "createdBy": "Created By",
+      "updatedBy": "Updated By",
+      "translations": "Translations",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At"
+    }
+  },
+  "form": {
+    "fields": {
+      "slug": "Slug",
+      "isPublished": "Is Published",
+      "translations": "Translations"
+    }
+  },
+  "view": {
+    "title": "Title"
+  }
+}

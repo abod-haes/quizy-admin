@@ -1,0 +1,21 @@
+{
+  "closeNavigation": "Close navigation",
+  "items": {
+    "pages": "Pages",
+    "faqs": "Faqs"
+  },
+  "user": {
+    "guestName": "System User",
+    "guestRole": "User",
+    "menuAriaLabel": "Open user menu",
+    "profile": "Profile",
+    "logout": "Logout",
+    "logoutConfirm": {
+      "title": "Confirm logout",
+      "description": "Are you sure you want to log out from your account?",
+      "confirm": "Logout",
+      "confirming": "Logging out...",
+      "cancel": "Cancel"
+    }
+  }
+}

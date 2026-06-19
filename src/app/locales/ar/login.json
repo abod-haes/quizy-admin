@@ -1,0 +1,12 @@
+{
+  "title": "تسجيل الدخول",
+  "description": "أدخل البريد الإلكتروني وكلمة المرور للمتابعة.",
+  "email": "البريد الإلكتروني",
+  "password": "كلمة المرور",
+  "emailPlaceholder": "mohammad@example.com",
+  "passwordPlaceholder": "••••••••",
+  "submit": "متابعة",
+  "submitting": "جاري تسجيل الدخول...",
+  "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+  "unexpectedError": "حدث خطأ غير متوقع. حاول مرة أخرى."
+}

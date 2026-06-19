@@ -1,0 +1,12 @@
+{
+  "title": "Sign in",
+  "description": "Enter your email and password to continue.",
+  "email": "Email",
+  "password": "Password",
+  "emailPlaceholder": "john@example.com",
+  "passwordPlaceholder": "••••••••",
+  "submit": "Continue",
+  "submitting": "Signing in...",
+  "invalidCredentials": "Invalid email or password.",
+  "unexpectedError": "Something went wrong. Please try again."
+}

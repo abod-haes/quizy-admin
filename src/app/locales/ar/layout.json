@@ -1,0 +1,81 @@
+{
+  "brand": {
+    "name": "أموريا",
+    "subtitle": "لوحة الإدارة"
+  },
+  "meta": {
+    "login": "تسجيل الدخول",
+    "notFound": "الصفحة غير موجودة",
+    "add": "إضافة",
+    "edit": "تعديل",
+    "view": "عرض",
+    "home": {
+      "plural": "الرئيسية",
+      "singular": "الرئيسية"
+    },
+    "aboutUs": {
+      "plural": "من نحن",
+      "singular": "من نحن"
+    },
+    "pages": {
+      "plural": "الصفحات",
+      "singular": "صفحة"
+    },
+    "projects": {
+      "plural": "المشاريع",
+      "singular": "مشروع"
+    },
+    "pageSections": {
+      "plural": "أقسام الصفحات",
+      "singular": "قسم صفحة"
+    },
+    "sectionItems": {
+      "plural": "عناصر الأقسام",
+      "singular": "عنصر قسم"
+    },
+    "boardMembers": {
+      "plural": "أعضاء مجلس الإدارة",
+      "singular": "عضو مجلس"
+    },
+    "galleryItems": {
+      "plural": "عناصر المعرض",
+      "singular": "عنصر معرض"
+    },
+    "faqs": {
+      "plural": "الأسئلة الشائعة",
+      "singular": "سؤال شائع"
+    },
+    "footerLinks": {
+      "plural": "روابط التذييل",
+      "singular": "رابط تذييل"
+    },
+    "contactInfos": {
+      "plural": "معلومات التواصل",
+      "singular": "معلومة تواصل"
+    },
+    "contactMessages": {
+      "plural": "رسائل التواصل",
+      "singular": "رسالة تواصل"
+    }
+  },
+  "header": {
+    "searchInput": "بحث",
+    "searchPlaceholder": "ابحث بواسطة الضيف أو الحجز...",
+    "searchLoading": "جارٍ البحث...",
+    "searchNoResults": "لا توجد نتائج",
+    "searchError": "حدث خطأ أثناء البحث",
+    "searchResultFallbackTitle": "نتيجة بلا اسم",
+    "notifications": "الإشعارات",
+    "helpCenter": "مركز المساعدة",
+    "switchToDark": "التبديل إلى الوضع الداكن",
+    "switchToLight": "التبديل إلى الوضع الفاتح"
+  },
+  "language": {
+    "menuLabel": "اختيار اللغة",
+    "arabicName": "العربية",
+    "englishName": "الإنجليزية"
+  },
+  "mobile": {
+    "openNavigation": "فتح التنقل"
+  }
+}

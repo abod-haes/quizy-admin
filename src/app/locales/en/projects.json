@@ -1,0 +1,73 @@
+{
+  "entity": {
+    "singular": "Project",
+    "plural": "Projects"
+  },
+  "page": {
+    "description": "Manage projects and their translated content",
+    "orderingTitle": "Display Ordering",
+    "orderingDescription": "Drag rows using the grip handle, then click Save ordering when you finish.",
+    "saveOrdering": "Save ordering",
+    "dragHint": "Drag"
+  },
+  "table": {
+    "columns": {
+      "sectionId": "Section",
+      "status": "Status",
+      "lat": "Latitude",
+      "lng": "Longitude",
+      "isFeatured": "Featured",
+      "sortOrder": "Sort Order",
+      "isActive": "Active",
+      "translations": "Translations",
+      "media": "Media",
+      "mapAreas": "Map Areas",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At"
+    },
+    "values": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "featured": "Featured",
+      "notFeatured": "Not Featured",
+      "mediaCount": "Media: {{count}}",
+      "mapAreasCount": "Map areas: {{count}}",
+      "status": {
+        "published": "Published",
+        "draft": "Draft"
+      }
+    }
+  },
+  "form": {
+    "fields": {
+      "sectionId": "Section",
+      "status": "Status",
+      "lat": "Latitude",
+      "lng": "Longitude",
+      "isFeatured": "Featured",
+      "sortOrder": "Sort Order",
+      "isActive": "Active",
+      "translations": "Translations",
+      "translationLang": "Language (ex: en)",
+      "translationTitle": "Title",
+      "translationShortDescription": "Short Description",
+      "translationLocationName": "Location Name",
+      "mapCoordinates": "Map Coordinates",
+      "projectImages": "Project Images",
+      "projectImagesHint": "Choose an image to preview before upload",
+      "noProjectImages": "No images uploaded yet."
+    },
+    "statusValues": {
+      "published": "Published",
+      "draft": "Draft"
+    },
+    "languages": {
+      "ar": "Arabic",
+      "en": "English",
+      "fr": "French"
+    }
+  },
+  "view": {
+    "title": "Project Details"
+  }
+}

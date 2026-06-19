@@ -1,0 +1,73 @@
+{
+  "entity": {
+    "singular": "مشروع",
+    "plural": "المشاريع"
+  },
+  "page": {
+    "description": "إدارة المشاريع ومحتواها المترجم",
+    "orderingTitle": "ترتيب العرض",
+    "orderingDescription": "اسحب الصفوف باستخدام مقبض السحب ثم اضغط حفظ الترتيب عند الانتهاء.",
+    "saveOrdering": "حفظ الترتيب",
+    "dragHint": "اسحب"
+  },
+  "table": {
+    "columns": {
+      "sectionId": "القسم",
+      "status": "الحالة",
+      "lat": "خط العرض",
+      "lng": "خط الطول",
+      "isFeatured": "مميز",
+      "sortOrder": "ترتيب العرض",
+      "isActive": "نشط",
+      "translations": "الترجمات",
+      "media": "الوسائط",
+      "mapAreas": "مناطق الخريطة",
+      "createdAt": "تاريخ الإنشاء",
+      "updatedAt": "تاريخ التحديث"
+    },
+    "values": {
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "featured": "مميز",
+      "notFeatured": "غير مميز",
+      "mediaCount": "وسائط: {{count}}",
+      "mapAreasCount": "مناطق: {{count}}",
+      "status": {
+        "published": "منشور",
+        "draft": "مسودة"
+      }
+    }
+  },
+  "form": {
+    "fields": {
+      "sectionId": "القسم",
+      "status": "الحالة",
+      "lat": "خط العرض",
+      "lng": "خط الطول",
+      "isFeatured": "مميز",
+      "sortOrder": "ترتيب العرض",
+      "isActive": "نشط",
+      "translations": "الترجمات",
+      "translationLang": "اللغة",
+      "translationTitle": "العنوان",
+      "translationShortDescription": "وصف مختصر",
+      "translationLocationName": "اسم الموقع",
+      "mapCoordinates": "إحداثيات الخريطة",
+      "projectImages": "صور المشروع",
+      "projectImagesHint": "اختر صورة لمعاينتها قبل الرفع",
+      "noProjectImages": "لا توجد صور مرفوعة بعد."
+    },
+    "statusValues": {
+      "published": "منشور",
+      "draft": "مسودة"
+    },
+    "languages": {
+      "ar": "العربية",
+      "en": "الإنجليزية",
+      "fr": "الفرنسية"
+    }
+  },
+  "view": {
+    "title": "تفاصيل المشروع"
+  }
+}

@@ -1,0 +1,25 @@
+export const PAGE_SECTION_TYPES = [
+  'hero',
+  'marquee',
+  'about',
+  'stats',
+  'membership-benefits',
+  'featured-projects',
+  'board-preview',
+  'gallery-preview',
+  'faq-preview',
+  'contact-info',
+  'footer-links',
+  'vision',
+  'mission',
+  'values',
+  'services-list',
+  'projects-list',
+  'projects-map',
+  'board-members',
+  'gallery-grid',
+  'faq-list',
+  'contact-form',
+] as const
+
+export type PageSectionType = (typeof PAGE_SECTION_TYPES)[number]

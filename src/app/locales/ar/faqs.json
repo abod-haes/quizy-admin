@@ -1,0 +1,30 @@
+{
+  "entity": {
+    "singular": "Singular",
+    "plural": "Plural"
+  },
+  "page": {
+    "description": "Description"
+  },
+  "table": {
+    "columns": {
+      "sectionId": "Section Id",
+      "sortOrder": "Sort Order",
+      "isActive": "Is Active",
+      "translations": "Translations",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At"
+    }
+  },
+  "form": {
+    "fields": {
+      "sectionId": "Section Id",
+      "sortOrder": "Sort Order",
+      "isActive": "Is Active",
+      "translations": "Translations"
+    }
+  },
+  "view": {
+    "title": "Title"
+  }
+}
