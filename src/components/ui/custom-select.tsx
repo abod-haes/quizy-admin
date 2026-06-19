@@ -41,6 +41,17 @@ const SELECT_TRIGGER_BASE_CLASS =
 const DEFAULT_TRIGGER_CLASS = SELECT_TRIGGER_BASE_CLASS
 const FILTER_TRIGGER_CLASS = SELECT_TRIGGER_BASE_CLASS
 
+function displayLabel(value: unknown, fallback: unknown): string {
+  const label = typeof value === 'string' && value.trim() ? value : fallback
+  const safeLabel = label === null || label === undefined ? '-' : String(label)
+
+  return formatUiDisplayValue(safeLabel, {
+    isPhoneNumber: looksLikePhoneText(safeLabel),
+    stripIdTokens: true,
+    fallback: safeLabel || '-',
+  })
+}
+
 export function CustomSelect<T extends string | number = string>({
   value,
   defaultValue,
@@ -73,8 +84,6 @@ export function CustomSelect<T extends string | number = string>({
       : String(selectedValue)
   const hasMountedRef = useRef(false)
 
-  // Keep the controlled value stable even before options load. This avoids
-  // losing initial edit values in some form integrations.
   const effectiveValue = selectedValueKey ?? ''
 
   useEffect(() => {
@@ -156,18 +165,14 @@ export function CustomSelect<T extends string | number = string>({
             contentClassName
           )}
         >
-          {options.map((option) => (
+          {options.filter((option) => option.value !== null && option.value !== undefined).map((option) => (
             <SelectItem
               key={String(option.value)}
               value={String(option.value)}
               disabled={option.disabled}
               className="h-9 rounded-sm px-2.5 text-start text-sm"
             >
-              {formatUiDisplayValue(option.label, {
-                isPhoneNumber: looksLikePhoneText(option.label),
-                stripIdTokens: true,
-                fallback: option.label,
-              })}
+              {displayLabel(option.label, option.value)}
             </SelectItem>
           ))}
         </SelectContent>
