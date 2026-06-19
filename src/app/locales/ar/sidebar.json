@@ -1,5 +1,10 @@
 {
   "closeNavigation": "إغلاق التنقل",
+  "groups": {
+    "quizManagement": "إدارة الاختبارات",
+    "contentManagement": "المحتوى التعليمي",
+    "peopleManagement": "المستخدمون"
+  },
   "items": {
     "dashboard": "لوحة التحكم",
     "quizBuilder": "بناء الاختبارات",
@@ -16,6 +21,15 @@
   },
   "user": {
     "guestName": "مدير Quizy",
-    "guestRole": "فريق المحتوى"
+    "guestRole": "فريق المحتوى",
+    "menuAriaLabel": "فتح قائمة المستخدم",
+    "logout": "تسجيل الخروج",
+    "logoutConfirm": {
+      "title": "تأكيد تسجيل الخروج",
+      "description": "هل أنت متأكد أنك تريد الخروج من الحساب؟",
+      "confirm": "تسجيل الخروج",
+      "confirming": "جارٍ تسجيل الخروج...",
+      "cancel": "إلغاء"
+    }
   }
 }
