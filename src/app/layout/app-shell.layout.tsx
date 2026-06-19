@@ -23,6 +23,12 @@ const moduleTranslationKeys: Record<string, string> = {
   settings: 'settings',
 }
 
+const moduleTitleFallbacks: Record<string, string> = {
+  courses: 'Courses',
+  courseSessions: 'Sessions',
+  resources: 'Resources',
+}
+
 export function AppShellLayout() {
   const [mobileOpen, setMobileOpen] = useState<boolean>(false)
   const { i18n, t } = useTranslation()
@@ -38,12 +44,12 @@ export function AppShellLayout() {
 
     if (firstSegment === 'login') return brandName + ' - ' + t('layout.meta.login')
     if (firstSegment === 'not-found') return brandName + ' - ' + t('layout.meta.notFound')
-    if (firstSegment === 'courses' && secondSegment === 'sessions') return brandName + ' - ' + t('layout.meta.courseSessions.plural')
+    if (firstSegment === 'courses' && secondSegment === 'sessions') return brandName + ' - ' + t('layout.meta.courseSessions.plural', { defaultValue: moduleTitleFallbacks.courseSessions })
 
     const moduleKey = moduleTranslationKeys[firstSegment]
     if (!moduleKey) return brandName
 
-    return brandName + ' - ' + t('layout.meta.' + moduleKey + '.plural')
+    return brandName + ' - ' + t('layout.meta.' + moduleKey + '.plural', { defaultValue: moduleTitleFallbacks[moduleKey] ?? brandName })
   }, [location.pathname, t])
 
   useEffect(() => {
