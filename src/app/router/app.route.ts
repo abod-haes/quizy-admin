@@ -9,7 +9,10 @@ import { APP_ROUTES, type AppRouteKey } from '@/app/router/route-object.type'
 import LoginPage from '@/modules/auth/pages/login.page'
 import {
   ClassesPage,
+  CoursesPage,
   LessonsPage,
+  QuestionsPage,
+  QuizzesPage,
   StudentsPage,
   SubjectsPage,
   TeachersPage,
@@ -43,13 +46,15 @@ function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof creat
 
 const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<typeof createElement> }> = [
   { routeKey: 'quizBuilder', element: createElement(ModuleComingSoonPage) },
-  { routeKey: 'quizzes', element: createElement(ModuleComingSoonPage) },
+  { routeKey: 'quizzes', element: createElement(QuizzesPage) },
+  { routeKey: 'questions', element: createElement(QuestionsPage) },
   { routeKey: 'classes', element: createElement(ClassesPage) },
   { routeKey: 'subjects', element: createElement(SubjectsPage) },
   { routeKey: 'lessons', element: createElement(LessonsPage) },
   { routeKey: 'units', element: createElement(UnitsPage) },
   { routeKey: 'teachers', element: createElement(TeachersPage) },
   { routeKey: 'students', element: createElement(StudentsPage) },
+  { routeKey: 'courses', element: createElement(CoursesPage) },
   { routeKey: 'reviewQueue', element: createElement(ModuleComingSoonPage) },
   { routeKey: 'settings', element: createElement(ModuleComingSoonPage) },
 ]
