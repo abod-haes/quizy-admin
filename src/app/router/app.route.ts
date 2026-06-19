@@ -7,6 +7,12 @@ import { AppShellLayout } from '@/app/layout/app-shell.layout'
 import { RequireAuth } from '@/app/router/require-auth.guard'
 import { APP_ROUTES, type AppRouteKey } from '@/app/router/route-object.type'
 import LoginPage from '@/modules/auth/pages/login.page'
+import {
+  ClassesPage,
+  LessonsPage,
+  SubjectsPage,
+  UnitsPage,
+} from '@/modules/content-crud/pages/academic-content-crud.page'
 import DashboardPage from '@/modules/dashboard/pages/dashboard.page'
 import ModuleComingSoonPage from '@/modules/dashboard/pages/module-coming-soon.page'
 import { NotFoundPage } from '@/modules/not-found/pages/not-found.page'
@@ -33,15 +39,17 @@ function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof creat
   )
 }
 
-const quizyModuleRoutes: AppRouteKey[] = [
-  'quizBuilder',
-  'quizzes',
-  'lessons',
-  'units',
-  'teachers',
-  'students',
-  'reviewQueue',
-  'settings',
+const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<typeof createElement> }> = [
+  { routeKey: 'quizBuilder', element: createElement(ModuleComingSoonPage) },
+  { routeKey: 'quizzes', element: createElement(ModuleComingSoonPage) },
+  { routeKey: 'classes', element: createElement(ClassesPage) },
+  { routeKey: 'subjects', element: createElement(SubjectsPage) },
+  { routeKey: 'lessons', element: createElement(LessonsPage) },
+  { routeKey: 'units', element: createElement(UnitsPage) },
+  { routeKey: 'teachers', element: createElement(ModuleComingSoonPage) },
+  { routeKey: 'students', element: createElement(ModuleComingSoonPage) },
+  { routeKey: 'reviewQueue', element: createElement(ModuleComingSoonPage) },
+  { routeKey: 'settings', element: createElement(ModuleComingSoonPage) },
 ]
 
 export const appRouter = createBrowserRouter([
@@ -64,9 +72,9 @@ export const appRouter = createBrowserRouter([
         path: APP_ROUTES.dashboard.path,
         element: withRouteAccess('dashboard', createElement(DashboardPage)),
       },
-      ...quizyModuleRoutes.map((routeKey) => ({
+      ...quizyModuleRoutes.map(({ routeKey, element }) => ({
         path: APP_ROUTES[routeKey].path,
-        element: withRouteAccess(routeKey, createElement(ModuleComingSoonPage)),
+        element: withRouteAccess(routeKey, element),
       })),
     ],
   },
