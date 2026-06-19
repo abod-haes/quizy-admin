@@ -22,6 +22,7 @@ export type AcademicContentItem = {
   phoneNumber?: string | null
   countryCallingCode?: string | null
   url?: string | null
+  isImage?: boolean | null
   primaryImageId?: UUID | null
   fileIds?: UUID[] | null
   desc?: string | null
@@ -93,6 +94,7 @@ export type ContentCrudKey =
   | 'quizzes'
   | 'questions'
   | 'courses'
+  | 'resources'
   | 'ads'
   | 'pointsOfSale'
   | 'qrCodes'
