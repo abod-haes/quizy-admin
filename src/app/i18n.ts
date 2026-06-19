@@ -2,11 +2,13 @@ import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
 import arCommon from '@/app/locales/ar/common.json'
+import arDashboard from '@/app/locales/ar/dashboard.json'
 import arLayout from '@/app/locales/ar/layout.json'
 import arLogin from '@/app/locales/ar/login.json'
 import arNotFound from '@/app/locales/ar/not-found.json'
 import arSidebar from '@/app/locales/ar/sidebar.json'
 import enCommon from '@/app/locales/en/common.json'
+import enDashboard from '@/app/locales/en/dashboard.json'
 import enLayout from '@/app/locales/en/layout.json'
 import enLogin from '@/app/locales/en/login.json'
 import enNotFound from '@/app/locales/en/not-found.json'
@@ -32,9 +34,7 @@ function appendFlatKeysToNestedMap(
 ) {
   for (const [flatKey, value] of Object.entries(flatMap)) {
     const segments = flatKey.split('.').filter(Boolean)
-    if (!segments.length) {
-      continue
-    }
+    if (!segments.length) continue
 
     let cursor: Record<string, unknown> = target
     for (let index = 0; index < segments.length; index += 1) {
@@ -58,6 +58,7 @@ function appendFlatKeysToNestedMap(
 
 const CORE_LOCALE_FILES = new Set([
   'common.json',
+  'dashboard.json',
   'layout.json',
   'not-found.json',
   'sidebar.json',
@@ -89,19 +90,13 @@ function buildFeatureNamespaces(
 
   for (const [modulePath, moduleValue] of Object.entries(modules)) {
     const fileName = modulePath.split('/').pop() ?? ''
-    if (CORE_LOCALE_FILES.has(fileName)) {
-      continue
-    }
+    if (CORE_LOCALE_FILES.has(fileName)) continue
 
     const namespace = fileName.replace(/\.json$/i, '').trim()
-    if (!namespace) {
-      continue
-    }
+    if (!namespace) continue
 
     const payload = moduleValue.default
-    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-      continue
-    }
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) continue
 
     namespaces[namespace] = toNamespacePayload(payload)
   }
@@ -119,6 +114,7 @@ const resources = {
       common: enCommon,
       notFound: enNotFound,
       sidebar: enSidebar,
+      dashboard: enDashboard,
     },
     login: enLogin,
     ...enFeatureNamespaces,
@@ -129,6 +125,7 @@ const resources = {
       common: arCommon,
       notFound: arNotFound,
       sidebar: arSidebar,
+      dashboard: arDashboard,
     },
     login: arLogin,
     ...arFeatureNamespaces,
@@ -137,17 +134,14 @@ const resources = {
 
 function normalizeLanguage(lng: string | null | undefined): AppLanguage | null {
   if (!lng) return null
-
   const shortCode = lng.toLowerCase().split('-')[0] as AppLanguage
   return SUPPORTED_LANGUAGES.includes(shortCode) ? shortCode : null
 }
 
 function getInitialLanguage(): AppLanguage {
   if (typeof window === 'undefined') return 'ar'
-
   const storedLanguage = normalizeLanguage(window.localStorage.getItem(LANGUAGE_STORAGE_KEY))
   if (storedLanguage) return storedLanguage
-
   return 'ar'
 }
 
@@ -165,7 +159,6 @@ i18n.use(initReactI18next).init({
 
 const applyDocumentDirection = (lng: string) => {
   if (typeof document === 'undefined') return
-
   const normalizedLanguage = normalizeLanguage(lng) ?? 'en'
   const direction = i18n.dir(normalizedLanguage)
 
@@ -176,10 +169,8 @@ const applyDocumentDirection = (lng: string) => {
 
 const persistLanguagePreference = (lng: string) => {
   if (typeof window === 'undefined') return
-
   const normalizedLanguage = normalizeLanguage(lng)
   if (!normalizedLanguage) return
-
   window.localStorage.setItem(LANGUAGE_STORAGE_KEY, normalizedLanguage)
 }
 
