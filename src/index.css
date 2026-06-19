@@ -166,6 +166,19 @@
     height: 2.35rem;
     border-radius: 0.9rem;
   }
+
+  .app-shell-frame main > div > section.flex.h-full > div:first-child:not(.quiz-builder-hero) [data-slot='button'] {
+    min-height: 2.75rem;
+    padding-inline: 1.15rem;
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+  .app-shell-frame main > div > section.flex.h-full [data-slot='card-header'] [data-slot='button'] {
+    min-height: 2.4rem;
+    padding-inline: 0.95rem;
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
 }
 
 @layer base {
