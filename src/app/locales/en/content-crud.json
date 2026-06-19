@@ -28,6 +28,8 @@
     "subject": "Subject",
     "unit": "Unit",
     "teacher": "Teacher",
+    "teacherName": "Teacher name",
+    "questionsCount": "Questions count",
     "lessons": "Lessons",
     "order": "Order",
     "firstName": "First name",
