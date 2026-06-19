@@ -10,6 +10,7 @@ import LoginPage from '@/modules/auth/pages/login.page'
 import {
   ClassesPage,
   LessonsPage,
+  StudentsPage,
   SubjectsPage,
   TeachersPage,
   UnitsPage,
@@ -48,7 +49,7 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'lessons', element: createElement(LessonsPage) },
   { routeKey: 'units', element: createElement(UnitsPage) },
   { routeKey: 'teachers', element: createElement(TeachersPage) },
-  { routeKey: 'students', element: createElement(ModuleComingSoonPage) },
+  { routeKey: 'students', element: createElement(StudentsPage) },
   { routeKey: 'reviewQueue', element: createElement(ModuleComingSoonPage) },
   { routeKey: 'settings', element: createElement(ModuleComingSoonPage) },
 ]
@@ -74,5 +75,4 @@ export const appRouter = createBrowserRouter([
     ],
   },
   { path: APP_ROUTES.notFound.path, element: createElement(NotFoundPage) },
-  { path: '*', element: createElement(Navigate, { to: APP_ROUTES.notFound.path, replace: true }) },
 ])
