@@ -8,7 +8,7 @@ export function SidebarBrand() {
     <header className="flex items-center gap-3 border-b border-border/70 px-2 pb-4">
       <div className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-[1.15rem] border border-primary/15 bg-white shadow-md shadow-primary/10 dark:border-white/10 dark:bg-white/95">
         <span className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(139,92,246,0.18),transparent_48%)]" />
-        <img src="/logo-mark.png" alt="" className="relative size-9 object-contain" />
+        <img src="/q-light.png" alt="" className="relative size-9 object-contain" />
         <BrainCircuit className="relative hidden size-6 text-primary" />
       </div>
 
