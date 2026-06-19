@@ -1,7 +1,7 @@
 {
   "brand": {
-    "name": "أموريا",
-    "subtitle": "لوحة الإدارة"
+    "name": "Quizy",
+    "subtitle": "لوحة الاختبارات"
   },
   "meta": {
     "login": "تسجيل الدخول",
@@ -9,58 +9,48 @@
     "add": "إضافة",
     "edit": "تعديل",
     "view": "عرض",
-    "home": {
-      "plural": "الرئيسية",
-      "singular": "الرئيسية"
+    "dashboard": {
+      "plural": "لوحة التحكم",
+      "singular": "لوحة التحكم"
     },
-    "aboutUs": {
-      "plural": "من نحن",
-      "singular": "من نحن"
+    "quizBuilder": {
+      "plural": "بناء الاختبارات",
+      "singular": "باني اختبار"
     },
-    "pages": {
-      "plural": "الصفحات",
-      "singular": "صفحة"
+    "quizzes": {
+      "plural": "الاختبارات",
+      "singular": "اختبار"
     },
-    "projects": {
-      "plural": "المشاريع",
-      "singular": "مشروع"
+    "lessons": {
+      "plural": "الدروس",
+      "singular": "درس"
     },
-    "pageSections": {
-      "plural": "أقسام الصفحات",
-      "singular": "قسم صفحة"
+    "units": {
+      "plural": "الوحدات",
+      "singular": "وحدة"
     },
-    "sectionItems": {
-      "plural": "عناصر الأقسام",
-      "singular": "عنصر قسم"
+    "teachers": {
+      "plural": "المدرسون",
+      "singular": "مدرس"
     },
-    "boardMembers": {
-      "plural": "أعضاء مجلس الإدارة",
-      "singular": "عضو مجلس"
+    "students": {
+      "plural": "الطلاب",
+      "singular": "طالب"
     },
-    "galleryItems": {
-      "plural": "عناصر المعرض",
-      "singular": "عنصر معرض"
+    "reviewQueue": {
+      "plural": "طابور المراجعة",
+      "singular": "مراجعة"
     },
-    "faqs": {
-      "plural": "الأسئلة الشائعة",
-      "singular": "سؤال شائع"
-    },
-    "footerLinks": {
-      "plural": "روابط التذييل",
-      "singular": "رابط تذييل"
-    },
-    "contactInfos": {
-      "plural": "معلومات التواصل",
-      "singular": "معلومة تواصل"
-    },
-    "contactMessages": {
-      "plural": "رسائل التواصل",
-      "singular": "رسالة تواصل"
+    "settings": {
+      "plural": "الإعدادات",
+      "singular": "إعداد"
     }
   },
   "header": {
+    "eyebrow": "Quizy Admin",
+    "title": "حوّل ملفات الاختبارات إلى محتوى تعليمي منظم وجاهز للنشر.",
     "searchInput": "بحث",
-    "searchPlaceholder": "ابحث بواسطة الضيف أو الحجز...",
+    "searchPlaceholder": "ابحث عن اختبار أو درس أو مدرس...",
     "searchLoading": "جارٍ البحث...",
     "searchNoResults": "لا توجد نتائج",
     "searchError": "حدث خطأ أثناء البحث",
