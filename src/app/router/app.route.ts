@@ -9,7 +9,6 @@ import { APP_ROUTES, type AppRouteKey } from '@/app/router/route-object.type'
 import LoginPage from '@/modules/auth/pages/login.page'
 import {
   ClassesPage,
-  CoursesPage,
   LessonsPage,
   QuestionsPage,
   QuizzesPage,
@@ -19,8 +18,10 @@ import {
   UnitsPage,
 } from '@/modules/content-crud/pages/academic-content-crud.page'
 import DashboardPage from '@/modules/dashboard/pages/dashboard.page'
-import ModuleComingSoonPage from '@/modules/dashboard/pages/module-coming-soon.page'
 import { NotFoundPage } from '@/modules/not-found/pages/not-found.page'
+import QuizBuilderPage from '@/modules/quiz-builder/pages/quiz-builder.page'
+import ReviewQueuePage from '@/modules/review-queue/pages/review-queue.page'
+import SettingsPage from '@/modules/settings/pages/settings.page'
 
 function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof createElement>) {
   const route = APP_ROUTES[routeKey]
@@ -45,7 +46,7 @@ function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof creat
 }
 
 const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<typeof createElement> }> = [
-  { routeKey: 'quizBuilder', element: createElement(ModuleComingSoonPage) },
+  { routeKey: 'quizBuilder', element: createElement(QuizBuilderPage) },
   { routeKey: 'quizzes', element: createElement(QuizzesPage) },
   { routeKey: 'questions', element: createElement(QuestionsPage) },
   { routeKey: 'classes', element: createElement(ClassesPage) },
@@ -54,9 +55,8 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'units', element: createElement(UnitsPage) },
   { routeKey: 'teachers', element: createElement(TeachersPage) },
   { routeKey: 'students', element: createElement(StudentsPage) },
-  { routeKey: 'courses', element: createElement(CoursesPage) },
-  { routeKey: 'reviewQueue', element: createElement(ModuleComingSoonPage) },
-  { routeKey: 'settings', element: createElement(ModuleComingSoonPage) },
+  { routeKey: 'reviewQueue', element: createElement(ReviewQueuePage) },
+  { routeKey: 'settings', element: createElement(SettingsPage) },
 ]
 
 export const appRouter = createBrowserRouter([
