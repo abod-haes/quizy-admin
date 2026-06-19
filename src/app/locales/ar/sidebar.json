@@ -13,5 +13,9 @@
     "students": "الطلاب",
     "reviewQueue": "المراجعة",
     "settings": "الإعدادات"
+  },
+  "user": {
+    "guestName": "مدير Quizy",
+    "guestRole": "فريق المحتوى"
   }
 }
