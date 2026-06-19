@@ -6,6 +6,7 @@ import { useAuth } from '@/app/providers/auth.provider'
 import { APP_ROUTES } from '@/app/router/route-object.type'
 import type { ApiError } from '@/core/api/api-error.type'
 import { loginAdmin } from '@/modules/auth/services/login.services'
+import { getPermissionsForRoles } from '@/shared/auth/quizy-permissions'
 import { Button, Card, CardContent, CardHeader, CardTitle, FormField, Input } from '@/shared/ui'
 
 export default function LoginPage() {
@@ -52,8 +53,9 @@ export default function LoginPage() {
       const role = result.role === 'Teacher' || result.role === 'Student' || result.role === 'SuperAdmin'
         ? result.role
         : 'SuperAdmin'
+      const roles = [role]
 
-      login(result.token, [role], [], {
+      login(result.token, roles, getPermissionsForRoles(roles), {
         id: result.userId,
         name: displayName || result.phoneNumber || t('unknownUser'),
         email: '',
