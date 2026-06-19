@@ -333,7 +333,6 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
       <div className="rounded-[2rem] border border-primary/10 bg-card p-6 shadow-sm sm:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl space-y-3">
-            <Badge variant="outline" color="primary" className="rounded-full px-3">{t('status.connected')}</Badge>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">{t(config.titleKey)}</h1>
             <p className="text-base leading-7 text-muted-foreground">{t(config.descriptionKey)}</p>
           </div>
