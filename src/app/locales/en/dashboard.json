@@ -1,0 +1,46 @@
+{
+  "hero": {
+    "badge": "Smart quiz operations",
+    "title": "Welcome to Quizy Admin",
+    "description": "One place to manage quizzes, questions, teachers, students, units, and lessons. The screen is ready for live API data.",
+    "statusLabel": "System status",
+    "statusValue": "Ready to build"
+  },
+  "stats": {
+    "quizzes": "Quizzes",
+    "questions": "Questions",
+    "teachers": "Teachers",
+    "students": "Students"
+  },
+  "modules": {
+    "title": "Core admin modules",
+    "description": "These are the sections Quizy needs for a complete admin dashboard.",
+    "items": {
+      "units": {
+        "title": "Units",
+        "description": "Manage curriculum units and connect them with lessons and quizzes."
+      },
+      "lessons": {
+        "title": "Lessons",
+        "description": "Create lessons and map them to the lessonIds used by quiz payloads."
+      },
+      "quizzes": {
+        "title": "Quizzes",
+        "description": "Upload and manage quizzes sent to /api/Quizes."
+      },
+      "questions": {
+        "title": "Questions",
+        "description": "Review questions, answers, hints, and math formatting before publishing."
+      }
+    }
+  },
+  "dynamic": {
+    "title": "Live data readiness",
+    "description": "Next, replace static cards with API-backed queries.",
+    "steps": {
+      "1": "Add summary endpoints for quizzes, questions, teachers, and students.",
+      "2": "Create a service layer per module using TanStack Query and axios.",
+      "3": "Gate sidebar modules by roles and permissions before rendering them."
+    }
+  }
+}

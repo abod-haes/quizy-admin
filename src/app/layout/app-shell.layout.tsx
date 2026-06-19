@@ -17,58 +17,16 @@ export function AppShellLayout() {
   const pageTitle = useMemo(() => {
     const brandName = t('layout.brand.name')
     const segments = location.pathname.split('/').filter(Boolean)
-    const firstSegment = segments[0] ?? ''
-    const actionSegment = segments[1] ?? ''
+    const firstSegment = segments[0] ?? 'dashboard'
 
-    const moduleMap: Record<string, { plural: string; singular: string }> = {
-      home: {
-        plural: t('layout.meta.home.plural'),
-        singular: t('layout.meta.home.singular'),
-      },
-      'about-us': {
-        plural: t('layout.meta.aboutUs.plural'),
-        singular: t('layout.meta.aboutUs.singular'),
-      },
-      pages: {
-        plural: t('layout.meta.pages.plural'),
-        singular: t('layout.meta.pages.singular'),
-      },
-      projects: {
-        plural: t('layout.meta.projects.plural'),
-        singular: t('layout.meta.projects.singular'),
-      },
-      'page-sections': {
-        plural: t('layout.meta.pageSections.plural'),
-        singular: t('layout.meta.pageSections.singular'),
-      },
-      'section-items': {
-        plural: t('layout.meta.sectionItems.plural'),
-        singular: t('layout.meta.sectionItems.singular'),
-      },
-      'board-members': {
-        plural: t('layout.meta.boardMembers.plural'),
-        singular: t('layout.meta.boardMembers.singular'),
-      },
-      'gallery-items': {
-        plural: t('layout.meta.galleryItems.plural'),
-        singular: t('layout.meta.galleryItems.singular'),
-      },
-      faqs: {
-        plural: t('layout.meta.faqs.plural'),
-        singular: t('layout.meta.faqs.singular'),
-      },
-      'footer-links': {
-        plural: t('layout.meta.footerLinks.plural'),
-        singular: t('layout.meta.footerLinks.singular'),
-      },
-      'contact-infos': {
-        plural: t('layout.meta.contactInfos.plural'),
-        singular: t('layout.meta.contactInfos.singular'),
-      },
-      'contact-messages': {
-        plural: t('layout.meta.contactMessages.plural'),
-        singular: t('layout.meta.contactMessages.singular'),
-      },
+    const moduleMap: Record<string, string> = {
+      dashboard: t('layout.meta.dashboard.plural'),
+      quizzes: t('layout.meta.quizzes.plural'),
+      questions: t('layout.meta.questions.plural'),
+      teachers: t('layout.meta.teachers.plural'),
+      students: t('layout.meta.students.plural'),
+      units: t('layout.meta.units.plural'),
+      lessons: t('layout.meta.lessons.plural'),
     }
 
     if (firstSegment === 'login') {
@@ -79,24 +37,7 @@ export function AppShellLayout() {
       return `${brandName} - ${t('layout.meta.notFound')}`
     }
 
-    const moduleTitle = moduleMap[firstSegment]
-    if (!moduleTitle) {
-      return brandName
-    }
-
-    if (actionSegment === 'add') {
-      return `${brandName} - ${t('layout.meta.add')} ${moduleTitle.singular}`
-    }
-
-    if (actionSegment === 'edit') {
-      return `${brandName} - ${t('layout.meta.edit')} ${moduleTitle.singular}`
-    }
-
-    if (actionSegment === 'view') {
-      return `${brandName} - ${t('layout.meta.view')} ${moduleTitle.singular}`
-    }
-
-    return `${brandName} - ${moduleTitle.plural}`
+    return `${brandName} - ${moduleMap[firstSegment] ?? moduleMap.dashboard}`
   }, [location.pathname, t])
 
   useEffect(() => {
@@ -111,10 +52,10 @@ export function AppShellLayout() {
           <AppSidebar className="h-screen rounded-none border-y-0 border-s-0 shadow-none" />
         </div>
 
-        <section className="relative flex min-h-[70vh] flex-1 flex-col overflow-hidden bg-background">
+        <section className="relative flex min-h-[70vh] flex-1 flex-col overflow-hidden bg-transparent">
           <AppShellHeader onOpenMobileMenu={() => setMobileOpen(true)} />
 
-          <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 flex w-full">
+          <main className="flex w-full flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
             <Outlet />
           </main>
         </section>

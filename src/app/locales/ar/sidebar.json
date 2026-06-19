@@ -1,21 +1,20 @@
 {
-  "closeNavigation": "Close navigation",
+  "closeNavigation": "إغلاق التنقل",
   "items": {
-    "pages": "Pages",
-    "faqs": "Faqs"
+    "dashboard": "لوحة التحكم"
   },
   "user": {
-    "guestName": "System User",
-    "guestRole": "User",
-    "menuAriaLabel": "Open user menu",
-    "profile": "Profile",
-    "logout": "Logout",
+    "guestName": "مستخدم النظام",
+    "guestRole": "مدير Quizy",
+    "menuAriaLabel": "فتح قائمة المستخدم",
+    "profile": "الملف الشخصي",
+    "logout": "تسجيل الخروج",
     "logoutConfirm": {
-      "title": "Confirm logout",
-      "description": "Are you sure you want to log out from your account?",
-      "confirm": "Logout",
-      "confirming": "Logging out...",
-      "cancel": "Cancel"
+      "title": "تأكيد تسجيل الخروج",
+      "description": "هل أنت متأكد أنك تريد تسجيل الخروج من حسابك؟",
+      "confirm": "تسجيل الخروج",
+      "confirming": "جارٍ تسجيل الخروج...",
+      "cancel": "إلغاء"
     }
   }
 }
