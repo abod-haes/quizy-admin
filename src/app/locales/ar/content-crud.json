@@ -28,6 +28,8 @@
     "subject": "المادة",
     "unit": "الوحدة",
     "teacher": "المدرس",
+    "teacherName": "اسم المدرس",
+    "questionsCount": "عدد الأسئلة",
     "lessons": "الدروس",
     "order": "الترتيب",
     "firstName": "الاسم الأول",

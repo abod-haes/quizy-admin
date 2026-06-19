@@ -9,7 +9,6 @@ import {
   Layers3,
   LibraryBig,
   School,
-  Settings,
   UploadCloud,
   UsersRound,
 } from 'lucide-react'
@@ -60,6 +59,4 @@ export const primarySidebarItems: SidebarItem[] = [
   },
 ]
 
-export const secondarySidebarItems: SidebarItem[] = [
-  { id: 'settings', labelKey: 'sidebar.items.settings', to: APP_ROUTES.settings.path, icon: Settings, end: true },
-]
+export const secondarySidebarItems: SidebarItem[] = []

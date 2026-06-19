@@ -56,6 +56,19 @@ function relationNames(ids: string[], options: ContentRelationOption[]): string 
   return names.length > 0 ? names.join('، ') : '-'
 }
 
+function quizTeacherName(item: AcademicContentItem, teachers: ContentRelationOption[]): string {
+  if (item.teacherName?.trim()) return item.teacherName
+  const teacherObjectName = item.teacher?.name
+  if (teacherObjectName?.trim()) return teacherObjectName
+  return relationName(item.teacherId ?? item.teacher?.id, teachers)
+}
+
+function quizQuestionsCount(item: AcademicContentItem): string {
+  if (typeof item.questionsCount === 'number') return String(item.questionsCount)
+  if (Array.isArray(item.questions)) return String(item.questions.length)
+  return '-'
+}
+
 const resourceEndpoints = {
   list: API_ENDPOINTS.resources.list,
   create: API_ENDPOINTS.resources.upload,
@@ -94,7 +107,11 @@ export const academicContentConfigs: Record<ContentCrudConfig['key'], ContentCru
     columns: [{ key: 'firstName', labelKey: 'fields.firstName' }, { key: 'lastName', labelKey: 'fields.lastName' }, { key: 'phoneNumber', labelKey: 'fields.phoneNumber' }],
     fields: [{ name: 'firstName', labelKey: 'fields.firstName', type: 'text', required: true }, { name: 'lastName', labelKey: 'fields.lastName', type: 'text' }, { name: 'phoneNumber', labelKey: 'fields.phoneNumber', type: 'text' }, { name: 'countryCallingCode', labelKey: 'fields.countryCallingCode', type: 'text' }], emptyValues: { firstName: '', lastName: '', phoneNumber: '', countryCallingCode: '+963' }, getInitialValues: (item) => ({ firstName: toStringValue(item.firstName), lastName: toStringValue(item.lastName), phoneNumber: toStringValue(item.phoneNumber), countryCallingCode: toStringValue(item.countryCallingCode) }), validate: (values) => toValidationResult(studentSchema.safeParse(values)), toPayload: (values) => ({ firstName: values.firstName, lastName: values.lastName, phoneNumber: values.phoneNumber, countryCallingCode: values.countryCallingCode }),
   },
-  quizzes: { key: 'quizzes', titleKey: 'modules.quizzes.title', descriptionKey: 'modules.quizzes.description', endpoints: API_ENDPOINTS.quizzes, columns: [{ key: 'title', labelKey: 'fields.title' }, { key: 'isFree', labelKey: 'fields.isFree' }, { key: 'timeExpiration', labelKey: 'fields.timeExpiration' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
+  quizzes: {
+    key: 'quizzes', titleKey: 'modules.quizzes.title', descriptionKey: 'modules.quizzes.description', endpoints: API_ENDPOINTS.quizzes, relations: [{ key: 'teachers', endpoint: API_ENDPOINTS.teachers.brief }],
+    columns: [{ key: 'title', labelKey: 'fields.title' }, { key: 'teacherName', labelKey: 'fields.teacherName', render: (item, context) => quizTeacherName(item, context.relations.teachers ?? []) }, { key: 'questionsCount', labelKey: 'fields.questionsCount', render: (item) => quizQuestionsCount(item) }, { key: 'isFree', labelKey: 'fields.isFree' }],
+    fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values,
+  },
   questions: { key: 'questions', titleKey: 'modules.questions.title', descriptionKey: 'modules.questions.description', endpoints: API_ENDPOINTS.questions, columns: [{ key: 'title', labelKey: 'fields.title' }, { key: 'hint', labelKey: 'fields.hint' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
   courses: {
     key: 'courses', titleKey: 'modules.courses.title', descriptionKey: 'modules.courses.description', endpoints: API_ENDPOINTS.courses, updateMethod: 'patch', relations: [{ key: 'subjects', endpoint: API_ENDPOINTS.subjects.brief }, { key: 'teachers', endpoint: API_ENDPOINTS.teachers.brief }],

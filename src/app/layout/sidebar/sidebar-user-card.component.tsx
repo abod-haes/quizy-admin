@@ -1,4 +1,4 @@
-import { ChevronUp, LogOut, Settings } from 'lucide-react'
+import { ChevronUp, LogOut } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -76,13 +76,6 @@ export function SidebarUserCard() {
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" side="top" className="min-w-48">
-          <DropdownMenuItem
-            onSelect={() => navigate(APP_ROUTES.settings.path)}
-            className="cursor-pointer"
-          >
-            <Settings className="size-4" />
-            {t('sidebar.items.settings', { defaultValue: 'Settings' })}
-          </DropdownMenuItem>
           <DropdownMenuItem
             variant="destructive"
             onSelect={(event) => {
