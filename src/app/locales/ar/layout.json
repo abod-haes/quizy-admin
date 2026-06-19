@@ -13,13 +13,15 @@
     "quizBuilder": { "plural": "بناء الاختبارات", "singular": "بناء اختبار" },
     "quizzes": { "plural": "الاختبارات", "singular": "اختبار" },
     "questions": { "plural": "بنك الأسئلة", "singular": "سؤال" },
+    "courses": { "plural": "الكورسات", "singular": "كورس" },
+    "courseSessions": { "plural": "الجلسات", "singular": "جلسة" },
+    "resources": { "plural": "الملفات", "singular": "ملف" },
     "classes": { "plural": "الصفوف", "singular": "صف" },
     "subjects": { "plural": "المواد", "singular": "مادة" },
     "units": { "plural": "الوحدات", "singular": "وحدة" },
     "lessons": { "plural": "الدروس", "singular": "درس" },
     "teachers": { "plural": "المدرسون", "singular": "مدرس" },
     "students": { "plural": "الطلاب", "singular": "طالب" },
-    "reviewQueue": { "plural": "المراجعة", "singular": "مراجعة" },
     "settings": { "plural": "الإعدادات", "singular": "إعداد" }
   },
   "header": {
