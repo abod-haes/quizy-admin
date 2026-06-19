@@ -18,7 +18,8 @@ const moduleTranslationKeys: Record<string, string> = {
   lessons: 'lessons',
   teachers: 'teachers',
   students: 'students',
-  'review-queue': 'reviewQueue',
+  courses: 'courses',
+  resources: 'resources',
   settings: 'settings',
 }
 
@@ -31,10 +32,13 @@ export function AppShellLayout() {
   const directionClass = isRtl ? 'app-dir-rtl' : 'app-dir-ltr'
   const pageTitle = useMemo(() => {
     const brandName = t('layout.brand.name')
-    const firstSegment = location.pathname.split('/').filter(Boolean)[0] ?? 'dashboard'
+    const pathSegments = location.pathname.split('/').filter(Boolean)
+    const firstSegment = pathSegments[0] ?? 'dashboard'
+    const secondSegment = pathSegments[1]
 
     if (firstSegment === 'login') return brandName + ' - ' + t('layout.meta.login')
     if (firstSegment === 'not-found') return brandName + ' - ' + t('layout.meta.notFound')
+    if (firstSegment === 'courses' && secondSegment === 'sessions') return brandName + ' - ' + t('layout.meta.courseSessions.plural')
 
     const moduleKey = moduleTranslationKeys[firstSegment]
     if (!moduleKey) return brandName
