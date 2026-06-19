@@ -107,6 +107,30 @@
     margin-right: 0.5rem;
   }
 
+  [data-slot='button'] {
+    border-radius: 1rem;
+    box-shadow: var(--quizy-control-shadow);
+    transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+  }
+
+  [data-slot='button']:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+
+  [data-slot='button']:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  [data-slot='button'][data-variant='default'] {
+    box-shadow: 0 14px 30px var(--quizy-glow);
+  }
+
+  [data-slot='button'][data-variant='outline'],
+  [data-slot='button'][data-variant='secondary'] {
+    background: var(--quizy-surface-strong);
+    border-color: color-mix(in srgb, var(--primary) 13%, var(--border));
+  }
+
   .quizy-hero-card {
     border-radius: 2rem;
     border: 1px solid color-mix(in srgb, var(--primary) 14%, transparent);
