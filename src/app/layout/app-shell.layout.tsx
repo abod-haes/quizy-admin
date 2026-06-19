@@ -68,7 +68,7 @@ export function AppShellLayout() {
         <section className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
           <AppShellHeader onOpenMobileMenu={() => setMobileOpen(true)} />
 
-          <main className={cn('flex min-h-0 w-full flex-1 p-4 sm:p-6 lg:p-8', shouldLockPageScroll ? 'overflow-hidden' : 'overflow-auto')}>
+          <main className={cn('flex min-h-0 w-full flex-1 p-4 sm:p-6 lg:p-8', shouldLockPageScroll ? 'quizy-quizzes-scroll-page overflow-hidden' : 'overflow-auto')}>
             <Outlet />
           </main>
         </section>
