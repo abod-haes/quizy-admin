@@ -11,6 +11,8 @@ const moduleTranslationKeys: Record<string, string> = {
   dashboard: 'dashboard',
   'quiz-builder': 'quizBuilder',
   quizzes: 'quizzes',
+  classes: 'classes',
+  subjects: 'subjects',
   lessons: 'lessons',
   units: 'units',
   teachers: 'teachers',
