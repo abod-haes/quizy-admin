@@ -109,8 +109,63 @@ function buildFeatureNamespaces(
   return namespaces
 }
 
+function mergeNamespace(base: Record<string, unknown>, extra: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = { ...base }
+
+  for (const [key, value] of Object.entries(extra)) {
+    const current = result[key]
+    if (
+      current &&
+      value &&
+      typeof current === 'object' &&
+      typeof value === 'object' &&
+      !Array.isArray(current) &&
+      !Array.isArray(value)
+    ) {
+      result[key] = mergeNamespace(current as Record<string, unknown>, value as Record<string, unknown>)
+      continue
+    }
+
+    result[key] = value
+  }
+
+  return result
+}
+
+const contentCrudOverrides = {
+  en: {
+    modules: {
+      courseSessions: { title: 'Sessions', description: 'Manage sessions for each course.' },
+    },
+    fields: { course: 'Course' },
+    sessions: {
+      coursePlaceholder: 'Select course',
+      selectCourseFirst: 'Select a course first.',
+      tableTitle: 'Course sessions',
+      emptySelectTitle: 'Select a course',
+      emptySelectDescription: 'Select a course to view its sessions.',
+    },
+  },
+  ar: {
+    modules: {
+      courseSessions: { title: 'الجلسات', description: 'إدارة جلسات الكورسات.' },
+    },
+    fields: { course: 'الكورس' },
+    sessions: {
+      coursePlaceholder: 'اختر الكورس',
+      selectCourseFirst: 'اختر كورس أولًا.',
+      tableTitle: 'جلسات الكورس',
+      emptySelectTitle: 'اختر كورس',
+      emptySelectDescription: 'اختر كورس لعرض جلساته.',
+    },
+  },
+} satisfies Record<AppLanguage, Record<string, unknown>>
+
 const enFeatureNamespaces = buildFeatureNamespaces(enLocaleModules)
 const arFeatureNamespaces = buildFeatureNamespaces(arLocaleModules)
+
+const enContentCrudNamespace = mergeNamespace(enFeatureNamespaces['content-crud'] ?? {}, contentCrudOverrides.en)
+const arContentCrudNamespace = mergeNamespace(arFeatureNamespaces['content-crud'] ?? {}, contentCrudOverrides.ar)
 
 const resources = {
   en: {
@@ -123,6 +178,7 @@ const resources = {
     login: enLogin,
     sidebar: enSidebar,
     ...enFeatureNamespaces,
+    'content-crud': enContentCrudNamespace,
   },
   ar: {
     translation: {
@@ -134,6 +190,7 @@ const resources = {
     login: arLogin,
     sidebar: arSidebar,
     ...arFeatureNamespaces,
+    'content-crud': arContentCrudNamespace,
   },
 }
 
@@ -191,4 +248,4 @@ i18n.on('languageChanged', (lng) => {
   applyDocumentDirection(lng)
 })
 
-export default i18n
+export { i18n }
