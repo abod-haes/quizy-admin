@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Download, ExternalLink, Loader2, Pencil, Plus, Trash2, Upload } from 'lucide-react'
+import { Download, ExternalLink, FileVideo, Loader2, Pencil, Plus, Trash2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { api } from '@/shared/api/api-client'
@@ -24,13 +24,12 @@ import {
   Textarea,
 } from '@/shared/ui'
 
-type NamedItem = { id: UUID; title?: string | null; name?: string | null; url?: string | null; filePath?: string | null }
-type UploadedResource = { id: UUID; entityId?: UUID | null; filePath?: string | null; isImage?: boolean }
+type NamedItem = { id: UUID; title?: string | null; name?: string | null }
+type UploadedResource = string | { id?: UUID; entityId?: UUID | null; filePath?: string | null; isImage?: boolean }
 type Material = { id: UUID; title?: string | null; description?: string | null; materialType?: number | null; resourceId?: UUID | null; order?: number | null }
 type TextRecord = { id: UUID; content?: string | null; authorRole?: string | null }
 type TabKey = 'materials' | 'comments' | 'notes'
 type DialogKind = 'material' | 'comment' | 'note'
-type ResourceMode = 'existing' | 'upload'
 
 type MaterialForm = {
   courseId: string
@@ -38,8 +37,6 @@ type MaterialForm = {
   title: string
   description: string
   materialType: string
-  resourceMode: ResourceMode
-  resourceId: string
   file: File | null
   order: number
 }
@@ -66,8 +63,6 @@ const createEmptyMaterial = (courseId = '', sessionId = ''): MaterialForm => ({
   title: '',
   description: '',
   materialType: '1',
-  resourceMode: 'upload',
-  resourceId: '',
   file: null,
   order: 0,
 })
@@ -75,13 +70,19 @@ const createEmptyMaterial = (courseId = '', sessionId = ''): MaterialForm => ({
 const createEmptyText = (courseId = '', sessionId = ''): TextForm => ({ courseId, sessionId, content: '' })
 
 function labelOf(item: NamedItem) {
-  return item.title?.trim() || item.name?.trim() || item.filePath?.trim() || item.url?.trim() || '-'
+  return item.title?.trim() || item.name?.trim() || '-'
+}
+
+function extractResourceId(response: UploadedResource): string | null {
+  if (typeof response === 'string' && response.trim()) return response
+  if (response && typeof response === 'object' && typeof response.id === 'string' && response.id.trim()) return response.id
+  return null
 }
 
 function errorMessage(error: unknown) {
   if (error && typeof error === 'object' && 'message' in error) {
     const message = (error as { message?: unknown }).message
-    if (typeof message === 'string') return message
+    if (typeof message === 'string' && message.trim()) return message
   }
   return 'تعذر تنفيذ الطلب'
 }
@@ -134,11 +135,6 @@ export default function CourseContentPage() {
     enabled: Boolean(dialog.open && dialogCourseId),
   })
 
-  const resourcesQuery = useQuery({
-    queryKey: ['course-content', 'resources'],
-    queryFn: () => api.get<PagedResponse<NamedItem>>(API_ENDPOINTS.resources.list, { params: { Page: 1, PerPage: PAGE_SIZE } }),
-  })
-
   const materialsQuery = useQuery({
     queryKey: ['course-content', 'materials', sessionId],
     queryFn: () => api.get<PagedResponse<Material>>(API_ENDPOINTS.courseSessions.materials(sessionId), { params: { Page: 1, PerPage: PAGE_SIZE } }),
@@ -160,19 +156,15 @@ export default function CourseContentPage() {
   const courseOptions = useMemo(() => (coursesQuery.data?.items ?? []).map((item) => ({ value: item.id, label: labelOf(item) })), [coursesQuery.data?.items])
   const sessionOptions = useMemo(() => (sessionsQuery.data?.items ?? []).map((item) => ({ value: item.id, label: labelOf(item) })), [sessionsQuery.data?.items])
   const dialogSessionOptions = useMemo(() => (dialogSessionsQuery.data?.items ?? []).map((item) => ({ value: item.id, label: labelOf(item) })), [dialogSessionsQuery.data?.items])
-  const resourceOptions = useMemo(() => (resourcesQuery.data?.items ?? []).map((item) => ({ value: item.id, label: labelOf(item) })), [resourcesQuery.data?.items])
 
   const invalidateCurrent = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['course-content', 'resources'] })
     await queryClient.invalidateQueries({ queryKey: ['course-content', 'materials', sessionId] })
     await queryClient.invalidateQueries({ queryKey: ['course-content', 'comments', sessionId] })
     await queryClient.invalidateQueries({ queryKey: ['course-content', 'notes', sessionId] })
   }
 
   const uploadResource = async (material: MaterialForm) => {
-    if (!material.file) {
-      throw new Error('اختر ملفًا أو فيديو لرفعه أولًا')
-    }
+    if (!material.file) throw new Error('اختر ملفًا أو فيديو من الفورم')
 
     const formData = new FormData()
     formData.append('file', material.file)
@@ -180,19 +172,20 @@ export default function CourseContentPage() {
     formData.append('isImage', String(material.file.type.startsWith('image/')))
 
     const resource = await api.upload<UploadedResource>(API_ENDPOINTS.resources.upload, formData)
-    return resource.id
+    const resourceId = extractResourceId(resource)
+    if (!resourceId) throw new Error('تم رفع الملف لكن لم يرجع resourceId من السيرفر')
+    return resourceId
   }
 
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (dialog.kind === 'material') {
         const targetSessionId = dialog.material.sessionId
+        if (!dialog.material.courseId) throw new Error('اختر الكورس داخل الفورم')
         if (!targetSessionId) throw new Error('اختر الجلسة داخل الفورم')
         if (!dialog.material.title.trim()) throw new Error('اكتب عنوان المادة')
 
-        const resourceId = dialog.material.resourceMode === 'upload' ? await uploadResource(dialog.material) : dialog.material.resourceId
-        if (!resourceId) throw new Error('اختر موردًا أو ارفع ملفًا')
-
+        const resourceId = await uploadResource(dialog.material)
         const body = {
           title: dialog.material.title.trim(),
           description: dialog.material.description.trim(),
@@ -206,6 +199,7 @@ export default function CourseContentPage() {
       }
 
       const targetSessionId = dialog.text.sessionId
+      if (!dialog.text.courseId) throw new Error('اختر الكورس داخل الفورم')
       if (!targetSessionId) throw new Error('اختر الجلسة داخل الفورم')
       if (!dialog.text.content.trim()) throw new Error('اكتب المحتوى')
 
@@ -260,8 +254,6 @@ export default function CourseContentPage() {
       title: item.title ?? '',
       description: item.description ?? '',
       materialType: String(item.materialType ?? 1),
-      resourceMode: 'existing',
-      resourceId: item.resourceId ?? '',
       order: item.order ?? 0,
     },
     text: createEmptyText(courseId, sessionId),
@@ -279,15 +271,15 @@ export default function CourseContentPage() {
   const activeLoading = tab === 'materials' ? materialsQuery.isLoading : tab === 'comments' ? commentsQuery.isLoading : notesQuery.isLoading
 
   return (
-    <section className="flex min-h-0 w-full flex-col gap-4 overflow-hidden">
-      <div className="rounded-[1.6rem] border border-primary/10 bg-card/95 px-5 py-4 shadow-sm sm:px-6">
+    <section className="flex min-h-0 w-full flex-col gap-3 overflow-hidden">
+      <div className="rounded-[1.4rem] border border-primary/10 bg-card/95 px-4 py-3 shadow-sm sm:px-5">
         <Badge variant="outline" color="primary" className="mb-2 rounded-full px-3">Courses</Badge>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">إدارة محتوى الكورسات</h1>
-        <p className="mt-1 text-sm text-muted-foreground">ارفع ملفًا أو فيديو من نفس الفورم، ثم اربطه بجلسة الكورس كـ CourseMaterial.</p>
+        <p className="mt-1 text-sm text-muted-foreground">اعرض مواد الجلسة من CourseMaterials، وأضف الملفات عبر رفع مباشر من الفورم فقط.</p>
       </div>
 
       <Card className="flex min-h-0 flex-1 flex-col rounded-3xl shadow-sm">
-        <CardHeader className="shrink-0 space-y-3 px-4 py-4 sm:px-5">
+        <CardHeader className="shrink-0 space-y-3 px-4 py-3 sm:px-5">
           <div className="grid gap-3 lg:grid-cols-2">
             <div className="space-y-2">
               <Label>الكورس للعرض</Label>
@@ -379,24 +371,18 @@ export default function CourseContentPage() {
                   <Input type="number" value={String(dialog.material.order)} onChange={(event) => setDialog((current) => ({ ...current, material: { ...current.material, order: Number(event.target.value) } }))} />
                 </div>
                 <div className="space-y-2 lg:col-span-3">
-                  <Label>مصدر المادة</Label>
-                  <div className="grid gap-3 rounded-2xl border border-border bg-muted/20 p-3 sm:grid-cols-2">
-                    <Button type="button" variant={dialog.material.resourceMode === 'upload' ? 'default' : 'outline'} onClick={() => setDialog((current) => ({ ...current, material: { ...current.material, resourceMode: 'upload', resourceId: '' } }))}><Upload className="size-4" /> رفع ملف جديد</Button>
-                    <Button type="button" variant={dialog.material.resourceMode === 'existing' ? 'default' : 'outline'} onClick={() => setDialog((current) => ({ ...current, material: { ...current.material, resourceMode: 'existing', file: null } }))}>اختيار من الموارد</Button>
+                  <Label>الملف / الفيديو</Label>
+                  <div className="rounded-2xl border border-dashed border-primary/25 bg-primary/5 p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-foreground">رفع مباشر فقط</p>
+                        <p className="text-xs text-muted-foreground">لا يتم استخدام GET /api/Resources. يرفع الملف ثم يرسل resourceId إلى CourseMaterials.</p>
+                      </div>
+                      <Input type="file" accept={dialog.material.materialType === '2' ? 'video/*' : undefined} onChange={(event) => setDialog((current) => ({ ...current, material: { ...current.material, file: event.target.files?.[0] ?? null } }))} className="max-w-sm" />
+                    </div>
+                    {dialog.material.file ? <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><FileVideo className="size-4" /> {dialog.material.file.name}</p> : null}
                   </div>
                 </div>
-                {dialog.material.resourceMode === 'upload' ? (
-                  <div className="space-y-2 lg:col-span-3">
-                    <Label>الملف / الفيديو</Label>
-                    <Input type="file" accept={dialog.material.materialType === '2' ? 'video/*' : undefined} onChange={(event) => setDialog((current) => ({ ...current, material: { ...current.material, file: event.target.files?.[0] ?? null } }))} />
-                    <p className="text-xs text-muted-foreground">سيتم رفع الملف على Resources أولًا، ثم إرسال resourceId فقط إلى CourseMaterials.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2 lg:col-span-3">
-                    <Label>المورد</Label>
-                    <CustomSelect value={dialog.material.resourceId || undefined} placeholder="اختر موردًا" options={resourceOptions} onValueChange={(value) => setDialog((current) => ({ ...current, material: { ...current.material, resourceId: value } }))} />
-                  </div>
-                )}
                 <div className="space-y-2 lg:col-span-3">
                   <Label>الوصف</Label>
                   <Textarea value={dialog.material.description} onChange={(event) => setDialog((current) => ({ ...current, material: { ...current.material, description: event.target.value } }))} />
@@ -420,10 +406,11 @@ export default function CourseContentPage() {
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button type="button" variant="outline" onClick={() => setDialog((current) => ({ ...current, open: false }))}>إلغاء</Button>
-            <Button type="button" disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
-              {saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null} حفظ
+            <Button type="button" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+              حفظ
             </Button>
           </DialogFooter>
         </DialogContent>
