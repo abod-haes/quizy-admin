@@ -1,0 +1,80 @@
+{
+  "status": {
+    "connected": "مرتبط بالـ API"
+  },
+  "modules": {
+    "classes": {
+      "title": "الصفوف",
+      "description": "إدارة الصفوف وربطها بالمواد من واجهة واحدة."
+    },
+    "subjects": {
+      "title": "المواد",
+      "description": "إدارة المواد وربطها بالصفوف المناسبة."
+    },
+    "units": {
+      "title": "الوحدات",
+      "description": "إدارة وحدات المواد وتجهيزها لربط الدروس والاختبارات."
+    },
+    "lessons": {
+      "title": "الدروس",
+      "description": "إدارة الدروس وترتيبها داخل الوحدات."
+    }
+  },
+  "fields": {
+    "id": "المعرّف",
+    "name": "الاسم",
+    "description": "الوصف",
+    "classes": "الصفوف",
+    "subjects": "المواد",
+    "subject": "المادة",
+    "unit": "الوحدة",
+    "order": "الترتيب",
+    "actions": "الإجراءات"
+  },
+  "actions": {
+    "create": "إضافة",
+    "refresh": "تحديث",
+    "retry": "إعادة المحاولة",
+    "cancel": "إلغاء",
+    "save": "حفظ"
+  },
+  "table": {
+    "title": "البيانات",
+    "description": "إجمالي العناصر: {{count}}",
+    "page": "صفحة {{page}} من {{totalPages}}"
+  },
+  "pagination": {
+    "previous": "السابق",
+    "next": "التالي",
+    "summary": "{{page}} / {{totalPages}}"
+  },
+  "form": {
+    "createTitle": "إضافة {{entity}}",
+    "editTitle": "تعديل {{entity}}",
+    "description": "املأ الحقول المطلوبة ثم احفظ التغييرات.",
+    "selectPlaceholder": "اختر قيمة"
+  },
+  "states": {
+    "empty": {
+      "title": "لا توجد بيانات بعد",
+      "description": "ابدأ بإضافة أول عنصر أو تحقق من اتصال الـ API."
+    },
+    "error": {
+      "title": "تعذر تحميل البيانات"
+    }
+  },
+  "messages": {
+    "created": "تمت الإضافة بنجاح.",
+    "updated": "تم التعديل بنجاح.",
+    "deleted": "تم الحذف بنجاح.",
+    "deleteConfirm": "هل تريد حذف {{name}}؟"
+  },
+  "validation": {
+    "required": "هذا الحقل مطلوب.",
+    "nonNegativeInt": "يجب أن يكون الرقم صفرًا أو أكبر.",
+    "uuid": "القيمة المختارة غير صحيحة."
+  },
+  "errors": {
+    "generic": "حدث خطأ غير متوقع."
+  }
+}
