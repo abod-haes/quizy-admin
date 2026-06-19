@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AlertTriangle, Braces, CheckCircle2, FileQuestion, Layers3, ListPlus, Loader2, Plus, RefreshCcw, Save, Trash2, Wand2 } from 'lucide-react'
+import { AlertTriangle, Braces, CheckCircle2, FileQuestion, Layers3, ListPlus, Loader2, Plus, RefreshCcw, Save, Trash2, UploadCloud, Wand2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { api } from '@/shared/api/api-client'
@@ -20,6 +20,8 @@ type LookupOption = {
   description?: string | null
   url?: string | null
 }
+
+type ResourceUploadResponse = string | { id?: string; url?: string; isImage?: boolean }
 
 type QuizAnswerPayload = {
   title: string
@@ -151,6 +153,12 @@ function getApiErrorMessage(error: unknown): string {
   return 'تعذر حفظ الاختبار. حاول مرة ثانية.'
 }
 
+function extractResourceId(response: ResourceUploadResponse): string | null {
+  if (typeof response === 'string' && response.trim()) return response
+  if (response && typeof response === 'object' && typeof response.id === 'string' && response.id.trim()) return response.id
+  return null
+}
+
 export default function QuizBuilderPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -161,6 +169,7 @@ export default function QuizBuilderPage() {
   const [quizDraft, setQuizDraft] = useState<QuizDraft>(() => emptyQuiz())
   const [jsonText, setJsonText] = useState('')
   const [validation, setValidation] = useState<ValidationResult | null>(null)
+  const [uploadingQuestionIndex, setUploadingQuestionIndex] = useState<number | null>(null)
 
   const quizDetailQuery = useQuery({
     queryKey: ['quiz-builder', 'quiz-detail', quizId],
@@ -233,6 +242,34 @@ export default function QuizBuilderPage() {
     updateQuestion(questionIndex, { ...question, answers: question.answers.map((answer, index) => ({ ...answer, isCorrect: index === answerIndex })) })
   }
 
+  const uploadQuestionFile = async (questionIndex: number, file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('isImage', String(file.type.startsWith('image/')))
+    if (quizDraft.entityIds[0]) formData.append('entityId', quizDraft.entityIds[0])
+
+    setUploadingQuestionIndex(questionIndex)
+    try {
+      const response = await api.upload<ResourceUploadResponse>(API_ENDPOINTS.resources.upload, formData)
+      const resourceId = extractResourceId(response)
+      if (!resourceId) {
+        toast.error('تم رفع الملف لكن لم يرجع معرف resourceId من السيرفر.')
+        return
+      }
+
+      const question = quizDraft.questions[questionIndex]
+      if (!question) return
+      const nextFileIds = Array.from(new Set([...question.fileIds, resourceId]))
+      updateQuestion(questionIndex, { ...question, fileIds: nextFileIds })
+      await resourcesQuery.refetch()
+      toast.success('تم رفع الملف وربطه بالسؤال')
+    } catch (error) {
+      toast.error(getApiErrorMessage(error))
+    } finally {
+      setUploadingQuestionIndex(null)
+    }
+  }
+
   const validateFormAndSave = () => {
     const result = validateQuizBodies([quizDraft])
     setValidation(result)
@@ -287,7 +324,7 @@ export default function QuizBuilderPage() {
 
       {mode === 'form' || isEditMode ? (
         <div className="min-h-0 space-y-4 overflow-y-auto pe-1">
-          <Card className="rounded-3xl shadow-sm"><CardHeader className="py-4"><CardTitle>بيانات الاختبار</CardTitle><CardDescription>المعرفات ترسل داخليًا للـ API، والواجهة تعرض الأسماء فقط.</CardDescription></CardHeader><CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <Card className="rounded-3xl shadow-sm"><CardHeader className="py-4"><CardTitle>بيانات الاختبار</CardTitle><CardDescription>اختر البيانات الأساسية، والواجهة سترسل المعرفات داخليًا دون عرضها للمستخدم.</CardDescription></CardHeader><CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div className="space-y-2 xl:col-span-2"><Label>المدرس</Label><CustomSelect value={quizDraft.teacherId || undefined} placeholder="اختر المدرس" options={teacherOptions} onValueChange={(value) => updateQuizField('teacherId', String(value))} disabled={teachersQuery.isLoading} /></div>
             <div className="space-y-2"><Label>مدة الاختبار بالدقائق</Label><Input type="number" min={0} value={quizDraft.timeExpiration} onChange={(event) => updateQuizField('timeExpiration', Number(event.target.value || 0))} /></div>
             <label className="flex h-11 items-center justify-between gap-3 self-end rounded-2xl border border-border bg-muted/30 px-4 text-sm"><span>اختبار مجاني</span><input type="checkbox" checked={quizDraft.isFree} onChange={(event) => updateQuizField('isFree', event.target.checked)} className="size-5 accent-primary" /></label>
@@ -295,15 +332,39 @@ export default function QuizBuilderPage() {
           </CardContent></Card>
 
           {quizDraft.questions.map((question, questionIndex) => (
-            <Card key={questionIndex} className="rounded-3xl shadow-sm"><CardHeader className="py-4"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><CardTitle className="flex items-center gap-2"><Layers3 className="size-5 text-primary" /> السؤال {questionIndex + 1}</CardTitle><CardDescription>نص السؤال، الدروس، الملفات، والتلميحات.</CardDescription></div><Button type="button" size="sm" variant="outline" onClick={() => removeQuestion(questionIndex)} disabled={quizDraft.questions.length === 1}><Trash2 className="size-4" /> حذف</Button></div></CardHeader><CardContent className="space-y-4">
+            <Card key={questionIndex} className="rounded-3xl shadow-sm"><CardHeader className="py-4"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><CardTitle className="flex items-center gap-2"><Layers3 className="size-5 text-primary" /> السؤال {questionIndex + 1}</CardTitle><CardDescription>نص السؤال، الدروس، الصور/الملفات، والتلميحات.</CardDescription></div><Button type="button" size="sm" variant="outline" onClick={() => removeQuestion(questionIndex)} disabled={quizDraft.questions.length === 1}><Trash2 className="size-4" /> حذف</Button></div></CardHeader><CardContent className="space-y-4">
               <div className="space-y-2"><Label>نص السؤال</Label><Textarea value={question.title} rows={3} placeholder="اكتب السؤال هنا، ويمكن استخدام <MathLm> للرياضيات" onChange={(event) => updateQuestion(questionIndex, { ...question, title: event.target.value })} /></div>
-              <div className="grid gap-4 lg:grid-cols-2"><div className="space-y-2"><Label>الدروس</Label><CustomMultiSelect value={question.lessonIds} placeholder="اختر الدروس" options={lessonOptions} onValueChange={(value) => updateQuestion(questionIndex, { ...question, lessonIds: value.map(String) })} disabled={lessonsQuery.isLoading} /></div><div className="space-y-2"><Label>الملفات / الصور</Label><CustomMultiSelect value={question.fileIds} placeholder="اختر الملفات إن وجدت" options={resourceOptions} onValueChange={(value) => updateQuestion(questionIndex, { ...question, fileIds: value.map(String) })} disabled={resourcesQuery.isLoading} /></div></div>
+              <div className="grid gap-4 lg:grid-cols-2"><div className="space-y-2"><Label>الدروس</Label><CustomMultiSelect value={question.lessonIds} placeholder="اختر الدروس" options={lessonOptions} onValueChange={(value) => updateQuestion(questionIndex, { ...question, lessonIds: value.map(String) })} disabled={lessonsQuery.isLoading} /></div><div className="space-y-2"><Label>ملفات موجودة</Label><CustomMultiSelect value={question.fileIds} placeholder="اختر من الملفات المرفوعة" options={resourceOptions} onValueChange={(value) => updateQuestion(questionIndex, { ...question, fileIds: value.map(String) })} disabled={resourcesQuery.isLoading} /></div></div>
+              <div className="rounded-3xl border border-dashed border-primary/25 bg-primary/5 p-4">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground">رفع صورة أو ملف للسؤال</h3>
+                    <p className="text-xs text-muted-foreground">يرفع الملف على Resources ثم يضاف الـ resourceId إلى fileIds تلقائيًا.</p>
+                  </div>
+                  <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 py-2 text-sm font-medium shadow-sm hover:bg-muted">
+                    {uploadingQuestionIndex === questionIndex ? <Loader2 className="size-4 animate-spin" /> : <UploadCloud className="size-4" />}
+                    {uploadingQuestionIndex === questionIndex ? 'جارِ الرفع...' : 'اختر ملف'}
+                    <input
+                      type="file"
+                      className="sr-only"
+                      accept="image/*,application/pdf,video/*"
+                      disabled={uploadingQuestionIndex !== null}
+                      onChange={(event) => {
+                        const file = event.target.files?.[0]
+                        event.target.value = ''
+                        if (file) uploadQuestionFile(questionIndex, file)
+                      }}
+                    />
+                  </label>
+                </div>
+                {question.fileIds.length ? <p className="mt-3 text-xs text-muted-foreground">عدد الملفات المرتبطة: {question.fileIds.length}</p> : null}
+              </div>
               <div className="grid gap-4 lg:grid-cols-2"><div className="space-y-2"><Label>التلميح</Label><Textarea value={question.hint} rows={2} placeholder="تلميح قصير بدون إعطاء الجواب" onChange={(event) => updateQuestion(questionIndex, { ...question, hint: event.target.value })} /></div><div className="space-y-2"><Label>الوصف</Label><Textarea value={question.description} rows={2} placeholder="وصف اختياري" onChange={(event) => updateQuestion(questionIndex, { ...question, description: event.target.value })} /></div></div>
               <div className="space-y-3 rounded-3xl border border-border bg-muted/20 p-4"><div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div><h3 className="text-sm font-semibold text-foreground">الإجابات</h3><p className="text-xs text-muted-foreground">حدد إجابة صحيحة واحدة على الأقل.</p></div><Button type="button" size="sm" variant="outline" onClick={() => addAnswer(questionIndex)}><Plus className="size-4" /> إضافة خيار</Button></div>{question.answers.map((answer, answerIndex) => (<div key={answerIndex} className="grid gap-3 rounded-2xl border border-border bg-card p-3 md:grid-cols-[1fr_auto_auto] md:items-center"><Input value={answer.title} placeholder={`الخيار ${answerIndex + 1}`} onChange={(event) => updateAnswer(questionIndex, answerIndex, { ...answer, title: event.target.value })} /><label className="flex items-center gap-2 text-sm text-foreground"><input type="radio" name={`correct-answer-${questionIndex}`} checked={answer.isCorrect} onChange={() => setOnlyCorrectAnswer(questionIndex, answerIndex)} className="size-4 accent-primary" /> صحيح</label><Button type="button" size="icon-sm" variant="outline" onClick={() => removeAnswer(questionIndex, answerIndex)} disabled={question.answers.length <= 2}><Trash2 className="size-4" /></Button></div>))}</div>
             </CardContent></Card>
           ))}
 
-          <div className="sticky bottom-0 z-10 flex flex-wrap gap-2 rounded-3xl border border-border bg-background/90 p-3 shadow-sm backdrop-blur"><Button type="button" variant="outline" onClick={addQuestion}><ListPlus className="size-4" /> إضافة سؤال</Button><Button type="button" onClick={validateFormAndSave} disabled={saveMutation.isPending}>{saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}{isEditMode ? 'حفظ التعديل' : 'حفظ الاختبار'}</Button></div>
+          <div className="sticky bottom-0 z-10 flex flex-wrap gap-2 rounded-3xl border border-border bg-background/90 p-3 shadow-sm backdrop-blur"><Button type="button" variant="outline" onClick={addQuestion}><ListPlus className="size-4" /> إضافة سؤال</Button><Button type="button" onClick={validateFormAndSave} disabled={saveMutation.isPending || uploadingQuestionIndex !== null}>{saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}{isEditMode ? 'حفظ التعديل' : 'حفظ الاختبار'}</Button></div>
         </div>
       ) : (
         <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]"><Card className="min-h-0 rounded-3xl shadow-sm"><CardHeader className="py-4"><CardTitle>إدخال JSON</CardTitle><CardDescription>الصق body واحد، أو Array، أو Object يحتوي quizzes.</CardDescription></CardHeader><CardContent className="flex min-h-0 flex-col gap-4"><Textarea value={jsonText} rows={22} dir="ltr" className="min-h-[30rem] font-mono text-sm" placeholder={`{\n  "teacherId": "...",\n  "timeExpiration": 0,\n  "isFree": true,\n  "entityIds": [],\n  "questions": []\n}`} onChange={(event) => setJsonText(event.target.value)} /><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={formatJson}><Wand2 className="size-4" /> تنسيق والتحقق</Button><Button type="button" onClick={validateJsonAndSave} disabled={saveMutation.isPending}>{saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />} حفظ من JSON</Button></div></CardContent></Card><Card className="rounded-3xl shadow-sm"><CardHeader className="py-4"><CardTitle>قواعد الإرسال</CardTitle><CardDescription>الشكل النهائي يرسل إلى `/api/Quizes`.</CardDescription></CardHeader><CardContent className="space-y-3 text-sm leading-7 text-muted-foreground"><p>كل اختبار يحتاج مدرسًا وسؤالًا واحدًا على الأقل.</p><p>كل سؤال يحتاج نصًا، ودروسًا مرتبطة، وخيارين على الأقل.</p><p>كل سؤال يحتاج إجابة صحيحة واحدة على الأقل.</p></CardContent></Card></div>
