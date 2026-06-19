@@ -1,0 +1,72 @@
+{
+  "hero": {
+    "badge": "Quizy",
+    "title": "لوحة إدارة الاختبارات",
+    "description": "إدارة الاختبارات والدروس والمراجعة من مكان واحد.",
+    "primaryAction": "ابدأ",
+    "secondaryAction": "المراجعة"
+  },
+  "quality": {
+    "title": "الجودة",
+    "description": "قواعد عامة للمحتوى.",
+    "items": ["مراجعة النصوص", "ربط الدروس", "تنسيق المعادلات"]
+  },
+  "metrics": {
+    "quizzes": { "label": "اختبارات", "hint": "جاهزة" },
+    "questions": { "label": "أسئلة", "hint": "منظمة" },
+    "teachers": { "label": "مدرسون", "hint": "مربوطون" },
+    "pendingReviews": { "label": "مراجعات", "hint": "معلقة" }
+  },
+  "workflows": {
+    "title": "الأقسام",
+    "description": "مساحات العمل الأساسية.",
+    "items": {
+      "pdfToJson": { "title": "بناء الاختبار", "description": "تجهيز الاختبار للنشر." },
+      "quizLibrary": { "title": "مكتبة الاختبارات", "description": "إدارة الاختبارات والأسئلة." },
+      "lessonMap": { "title": "الدروس والوحدات", "description": "ربط الدروس والوحدات." }
+    }
+  },
+  "timeline": {
+    "title": "المسار",
+    "description": "خطوات العمل.",
+    "items": {
+      "extractLessons": { "title": "الدروس", "description": "مراجعة الدروس.", "status": "1" },
+      "confirmMappings": { "title": "الربط", "description": "تثبيت المعرفات.", "status": "2" },
+      "publishQuiz": { "title": "النشر", "description": "نشر الاختبار.", "status": "3" }
+    }
+  },
+  "dynamic": {
+    "title": "تطويرات",
+    "description": "اقتراحات للربط الديناميكي.",
+    "items": {
+      "apiContracts": { "label": "العقود", "description": "تثبيت الحقول والروابط." },
+      "entityBuilder": { "label": "المولد", "description": "توليد الجداول والنماذج." },
+      "reviewRules": { "label": "المراجعة", "description": "إدارة العناصر المعلقة." },
+      "analytics": { "label": "التحليلات", "description": "متابعة الأداء والجودة." }
+    }
+  },
+  "module": {
+    "status": "قيد الربط",
+    "pages": {
+      "quizBuilder": { "title": "بناء الاختبارات", "description": "صفحة تجهيز الاختبارات." },
+      "quizzes": { "title": "الاختبارات", "description": "إدارة الاختبارات." },
+      "lessons": { "title": "الدروس", "description": "إدارة الدروس." },
+      "units": { "title": "الوحدات", "description": "إدارة الوحدات." },
+      "teachers": { "title": "المدرسون", "description": "إدارة المدرسين." },
+      "students": { "title": "الطلاب", "description": "إدارة الطلاب." },
+      "reviewQueue": { "title": "المراجعة", "description": "إدارة المراجعات." },
+      "settings": { "title": "الإعدادات", "description": "إعدادات اللوحة." }
+    },
+    "checklist": {
+      "contract": { "title": "العقد", "description": "تثبيت البنية." },
+      "crud": { "title": "الإدارة", "description": "بناء الصفحات." },
+      "permissions": { "title": "الصلاحيات", "description": "تحديد الأدوار." },
+      "integration": { "title": "الربط", "description": "ربط البيانات." }
+    },
+    "next": {
+      "title": "الخطوات التالية",
+      "description": "قرارات مطلوبة قبل الإكمال.",
+      "items": ["تأكيد الحقول.", "تأكيد الصلاحيات.", "تأكيد طريقة التحويل."]
+    }
+  }
+}
