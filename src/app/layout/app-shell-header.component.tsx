@@ -26,8 +26,8 @@ const pageLabelBySegment: Record<string, string> = {
   lessons: 'sidebar.items.lessons',
   teachers: 'sidebar.items.teachers',
   students: 'sidebar.items.students',
-  'review-queue': 'sidebar.items.reviewQueue',
-  settings: 'sidebar.items.settings',
+  courses: 'sidebar.items.courses',
+  resources: 'sidebar.items.resources',
 }
 
 export function AppShellHeader({ onOpenMobileMenu }: AppShellHeaderProps) {
@@ -37,8 +37,11 @@ export function AppShellHeader({ onOpenMobileMenu }: AppShellHeaderProps) {
   const isRtl = i18n.dir() === 'rtl'
   const activeLanguage = (i18n.resolvedLanguage ?? i18n.language).split('-')[0]
   const isDark = resolvedTheme === 'dark'
-  const currentSegment = location.pathname.split('/').filter(Boolean)[0] ?? 'dashboard'
-  const pageLabelKey = pageLabelBySegment[currentSegment] ?? 'sidebar.items.dashboard'
+  const pathSegments = location.pathname.split('/').filter(Boolean)
+  const currentSegment = pathSegments[0] ?? 'dashboard'
+  const pageLabelKey = currentSegment === 'courses' && pathSegments[1] === 'sessions'
+    ? 'sidebar.items.courseSessions'
+    : pageLabelBySegment[currentSegment] ?? 'sidebar.items.dashboard'
 
   const changeLanguage = (language: 'ar' | 'en') => {
     if (activeLanguage === language) return
