@@ -124,6 +124,48 @@
   .app-shell-frame [data-slot='card-header'] { padding-block: 1rem; }
   .app-shell-frame [data-slot='card-content'] { min-height: 0; }
   .app-shell-frame textarea { min-height: 6rem; }
+
+  .app-shell-frame main > div > section.flex.h-full > div:first-child:not(.quiz-builder-hero) {
+    min-height: auto;
+    border-radius: 1.5rem;
+    padding: 0.85rem 1rem;
+    background: color-mix(in srgb, var(--quizy-surface-strong) 90%, transparent);
+    box-shadow: none;
+  }
+  .app-shell-frame main > div > section.flex.h-full > div:first-child:not(.quiz-builder-hero) h1 {
+    font-size: clamp(1.15rem, 1.7vw, 1.55rem);
+    line-height: 1.25;
+  }
+  .app-shell-frame main > div > section.flex.h-full > div:first-child:not(.quiz-builder-hero) p {
+    display: none;
+  }
+  .app-shell-frame main > div > section.flex.h-full [data-slot='card-header'] {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--primary) 8%, var(--border));
+  }
+  .app-shell-frame main > div > section.flex.h-full [data-slot='card-header'] > div {
+    gap: 0.75rem;
+  }
+  .app-shell-frame main > div > section.flex.h-full [data-slot='card-header'] [data-slot='card-title'] {
+    display: none;
+  }
+  .app-shell-frame main > div > section.flex.h-full [data-slot='card-header'] .grid {
+    width: 100%;
+    max-width: none;
+    grid-template-columns: minmax(14rem, 1fr);
+  }
+  @media (min-width: 768px) {
+    .app-shell-frame main > div > section.flex.h-full [data-slot='card-header'] .grid {
+      grid-template-columns: minmax(16rem, 1.15fr) repeat(2, minmax(11rem, 0.8fr)) auto;
+      align-items: center;
+    }
+  }
+  .app-shell-frame main > div > section.flex.h-full [data-slot='card-header'] input,
+  .app-shell-frame main > div > section.flex.h-full [data-slot='card-header'] .quizy-select-field {
+    min-height: 2.35rem;
+    height: 2.35rem;
+    border-radius: 0.9rem;
+  }
 }
 
 @layer base {
