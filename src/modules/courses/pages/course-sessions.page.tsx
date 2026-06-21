@@ -231,10 +231,7 @@ export default function CourseSessionsPage() {
                 }}
               />
             </div>
-            <div>
-              <CardTitle>{t('sessions.tableTitle')}</CardTitle>
-              <CardDescription>{t('table.description', { count: totalCount })}</CardDescription>
-            </div>
+
           </div>
         </CardHeader>
 

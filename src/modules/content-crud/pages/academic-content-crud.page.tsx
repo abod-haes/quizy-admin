@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, DatabaseZap, Loader2, Pencil, Plus, RefreshCcw, Search, SlidersHorizontal, Trash2, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, DatabaseZap, Loader2, Pencil, Plus, RefreshCcw, Search, SlidersHorizontal, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
@@ -22,7 +22,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
   CustomMultiSelect,
   CustomSelect,
   Dialog,
@@ -275,7 +274,6 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
   const pageSize = listQuery.data?.pageSize ?? DEFAULT_PAGE_SIZE
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
   const paginationItems = getPaginationItems(page, totalPages)
-  const hasActiveFilters = filters.search.trim() || Object.values(filters.relations).some(Boolean)
   const tableScrollClass = config.key === 'quizzes' ? 'h-full max-h-full' : 'max-h-[min(62vh,46rem)]'
 
   const saveMutation = useMutation({
@@ -333,10 +331,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
     setFilters((current) => ({ ...current, relations: { ...current.relations, [fieldName]: value === ALL_FILTER_VALUE ? '' : value } }))
   }
 
-  const clearFilters = () => {
-    setPage(1)
-    setFilters({ search: '', relations: {} })
-  }
+
 
   const goToPage = (nextPage: number) => {
     setPage(Math.min(totalPages, Math.max(1, nextPage)))
@@ -376,7 +371,6 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
       <Card className={`flex min-h-0 flex-1 flex-col rounded-3xl shadow-sm ${config.key === 'quizzes' ? 'quizy-quizzes-table-card' : ''}`}>
         <CardHeader className="shrink-0 space-y-3 py-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <CardTitle className="text-base font-semibold">{t('table.title')}</CardTitle>
             <div className="grid flex-1 gap-2 md:grid-cols-2 xl:grid-cols-4 lg:max-w-5xl">
               <label className="relative block md:col-span-2 xl:col-span-1">
                 <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -402,11 +396,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
                   />
                 )
               })}
-              {hasActiveFilters ? (
-                <Button type="button" size="sm" variant="outline" onClick={clearFilters}>
-                  <X className="size-4" />{t('filters.clear')}
-                </Button>
-              ) : null}
+
             </div>
           </div>
         </CardHeader>
