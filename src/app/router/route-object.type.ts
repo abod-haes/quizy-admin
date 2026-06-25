@@ -8,6 +8,18 @@ export const APP_ROUTES = {
     protected: false,
     breadcrumbKeys: [],
   },
+  register: {
+    key: 'register',
+    path: '/register',
+    protected: false,
+    breadcrumbKeys: [],
+  },
+  forgotPassword: {
+    key: 'forgotPassword',
+    path: '/forgot-password',
+    protected: false,
+    breadcrumbKeys: [],
+  },
   root: {
     key: 'root',
     path: '/',

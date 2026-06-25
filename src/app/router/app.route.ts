@@ -7,6 +7,8 @@ import { AppShellLayout } from '@/app/layout/app-shell.layout'
 import { RequireAuth } from '@/app/router/require-auth.guard'
 import { APP_ROUTES, type AppRouteKey } from '@/app/router/route-object.type'
 import LoginPage from '@/modules/auth/pages/login.page'
+import RegisterPage from '@/modules/auth/pages/register.page'
+import ResetAccessPage from '@/modules/auth/pages/reset-access.page'
 import { NotFoundPage } from '@/modules/not-found/pages/not-found.page';
 import PagesPage from '@/modules/pages/pages/pages.page'
 import PagesFormPage from '@/modules/pages/pages/form/pages.form.page'
@@ -42,6 +44,14 @@ export const appRouter = createBrowserRouter([
   {
     path: APP_ROUTES.login.path,
     element: createElement(LoginPage),
+  },
+  {
+    path: APP_ROUTES.register.path,
+    element: createElement(RegisterPage),
+  },
+  {
+    path: APP_ROUTES.forgotPassword.path,
+    element: createElement(ResetAccessPage),
   },
   {
     path: APP_ROUTES.root.path,

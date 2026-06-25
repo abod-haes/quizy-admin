@@ -1,6 +1,7 @@
 export const API_ENDPOINTS = {
   auth: {
     login: '/api/v1/admin/login',
+    register: '/api/v1/admin/register',
     logout: '/api/v1/admin/logout',
     forgotPassword: '/api/v1/admin/forgot-password',
     forgetPassword: '/api/v1/admin/forget-password',
