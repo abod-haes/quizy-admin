@@ -23,6 +23,7 @@ export const APP_ROUTES = {
   qrCodes: { key: 'qrCodes', path: '/qr-codes', protected: true, breadcrumbKeys: [] },
   notifications: { key: 'notifications', path: '/notifications', protected: true, breadcrumbKeys: [] },
   pageContents: { key: 'pageContents', path: '/page-contents', protected: true, breadcrumbKeys: [] },
+  reviewQueue: { key: 'reviewQueue', path: '/review-queue', protected: true, breadcrumbKeys: [] },
   settings: { key: 'settings', path: '/settings', protected: true, breadcrumbKeys: [] },
 
   projects: { key: 'projects', path: '/projects', protected: true, breadcrumbKeys: [] },
