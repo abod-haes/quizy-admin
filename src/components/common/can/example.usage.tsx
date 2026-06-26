@@ -12,11 +12,10 @@ export function CanUsageExample() {
     loginFromBackend({
       token: 'sample-jwt-token',
       user: {
-        roles: ['manager'],
+        roles: ['SuperAdmin'],
         permissions: [
-          'employees.list',
-          'employees.view',
-          'employees.create',
+          'users.global.view',
+          'users.global.create',
           'sidebar.analytics.view',
         ],
       },
@@ -36,8 +35,8 @@ export function CanUsageExample() {
           </Button>
         </Can>
 
-        <Can role={['admin', 'manager']} fallback={<p className="text-sm text-muted-foreground">No access to finance section.</p>}>
-          <p className="text-sm font-medium text-foreground">Finance section is visible for admin/manager.</p>
+        <Can role={['SuperAdmin', 'Teacher']} fallback={<p className="text-sm text-muted-foreground">No access to finance section.</p>}>
+          <p className="text-sm font-medium text-foreground">Finance section is visible for SuperAdmin/Teacher.</p>
         </Can>
       </CardContent>
     </Card>
