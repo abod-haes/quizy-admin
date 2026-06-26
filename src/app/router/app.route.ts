@@ -7,14 +7,28 @@ import { AppShellLayout } from '@/app/layout/app-shell.layout'
 import { RequireAuth } from '@/app/router/require-auth.guard'
 import { APP_ROUTES, type AppRouteKey } from '@/app/router/route-object.type'
 import LoginPage from '@/modules/auth/pages/login.page'
-import { NotFoundPage } from '@/modules/not-found/pages/not-found.page';
-import PagesPage from '@/modules/pages/pages/pages.page'
-import PagesFormPage from '@/modules/pages/pages/form/pages.form.page'
-import PagesViewPage from '@/modules/pages/pages/view/pages.view.page'
-import FaqsPage from '@/modules/faqs/pages/faqs.page'
-import FaqsFormPage from '@/modules/faqs/pages/form/faqs.form.page'
-import FaqsViewPage from '@/modules/faqs/pages/view/faqs.view.page'
-
+import RegisterPage from '@/modules/auth/pages/register.page'
+import RecoverPage from '@/modules/auth/pages/recover.page'
+import ResetPasswordPage from '@/modules/auth/pages/reset-password.page'
+import VerifyCodePage from '@/modules/auth/pages/verify-code.page'
+import {
+  AdsPage,
+  ClassesPage,
+  CoursesPage,
+  LessonsPage,
+  PageContentsPage,
+  QuestionsPage,
+  StudentsPage,
+  SubjectsPage,
+  TeachersPage,
+  UnitsPage,
+} from '@/modules/content-crud/pages/academic-content-crud.page'
+import CourseContentPage from '@/modules/courses/pages/course-content.page'
+import CourseSessionsPage from '@/modules/courses/pages/course-sessions.page'
+import DashboardPage from '@/modules/dashboard/pages/dashboard.page'
+import { NotFoundPage } from '@/modules/not-found/pages/not-found.page'
+import QuizBuilderPage from '@/modules/quiz-builder/pages/quiz-builder-v2.page'
+import QuizzesPage from '@/modules/quizzes/pages/quizzes.page'
 
 function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof createElement>) {
   const route = APP_ROUTES[routeKey]
@@ -38,60 +52,46 @@ function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof creat
   )
 }
 
+const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<typeof createElement> }> = [
+  { routeKey: 'quizBuilder', element: createElement(QuizBuilderPage) },
+  { routeKey: 'quizzes', element: createElement(QuizzesPage) },
+  { routeKey: 'questions', element: createElement(QuestionsPage) },
+  { routeKey: 'classes', element: createElement(ClassesPage) },
+  { routeKey: 'subjects', element: createElement(SubjectsPage) },
+  { routeKey: 'lessons', element: createElement(LessonsPage) },
+  { routeKey: 'units', element: createElement(UnitsPage) },
+  { routeKey: 'teachers', element: createElement(TeachersPage) },
+  { routeKey: 'students', element: createElement(StudentsPage) },
+  { routeKey: 'courses', element: createElement(CoursesPage) },
+  { routeKey: 'courseSessions', element: createElement(CourseSessionsPage) },
+  { routeKey: 'courseContent', element: createElement(CourseContentPage) },
+  { routeKey: 'ads', element: createElement(AdsPage) },
+  { routeKey: 'pageContents', element: createElement(PageContentsPage) },
+]
+
 export const appRouter = createBrowserRouter([
   {
     path: APP_ROUTES.login.path,
     element: createElement(LoginPage),
   },
+  { path: '/register', element: createElement(RegisterPage) },
+  { path: '/recover', element: createElement(RecoverPage) },
+  { path: '/reset-password', element: createElement(ResetPasswordPage) },
+  { path: '/verify-code', element: createElement(VerifyCodePage) },
   {
     path: APP_ROUTES.root.path,
     element: withRouteAccess('root', createElement(AppShellLayout)),
     children: [
-      
-  
-          {
-        path: APP_ROUTES.pages.path,
-        element: withRouteAccess('pages', createElement(PagesPage)),
+      {
+        index: true,
+        element: createElement(Navigate, { to: APP_ROUTES.dashboard.path, replace: true }),
       },
       {
-        path: APP_ROUTES.addPages.path,
-        element: withRouteAccess('addPages', createElement(PagesFormPage)),
+        path: APP_ROUTES.dashboard.path,
+        element: withRouteAccess('dashboard', createElement(DashboardPage)),
       },
-      {
-        path: APP_ROUTES.editPages.path,
-        element: withRouteAccess('editPages', createElement(PagesFormPage)),
-      },
-      {
-        path: APP_ROUTES.viewPages.path,
-        element: withRouteAccess('viewPages', createElement(PagesViewPage)),
-      },
-      {
-        path: APP_ROUTES.faqs.path,
-        element: withRouteAccess('faqs', createElement(FaqsPage)),
-      },
-      {
-        path: APP_ROUTES.addFaqs.path,
-        element: withRouteAccess('addFaqs', createElement(FaqsFormPage)),
-      },
-      {
-        path: APP_ROUTES.editFaqs.path,
-        element: withRouteAccess('editFaqs', createElement(FaqsFormPage)),
-      },
-      {
-        path: APP_ROUTES.viewFaqs.path,
-        element: withRouteAccess('viewFaqs', createElement(FaqsViewPage)),
-      },
-],
+      ...quizyModuleRoutes.map(({ routeKey, element }) => ({ path: APP_ROUTES[routeKey].path, element: withRouteAccess(routeKey, element) })),
+    ],
   },
-  {
-    path: APP_ROUTES.notFound.path,
-    element: createElement(NotFoundPage),
-  },
-  {
-    path: '*',
-    element: createElement(Navigate, {
-      to: APP_ROUTES.notFound.path,
-      replace: true,
-    }),
-  },
+  { path: APP_ROUTES.notFound.path, element: createElement(NotFoundPage) },
 ])

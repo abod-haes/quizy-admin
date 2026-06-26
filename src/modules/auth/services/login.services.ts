@@ -1,27 +1,25 @@
-import { httpClient } from '@/core/api/http.services'
+import { api } from '@/shared/api/api-client'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
-import { unwrapItem } from '@/shared/lib/api/unwrap-api-payload'
 
-export type AdminLoginRequest = {
-  email: string
+export type LoginRequest = {
+  phoneNumber: string
   password: string
-  device_name?: string
+  countryCallingCode?: string
 }
 
-export type AdminLoginUser = {
-  id: number | string
-  name: string
-  email: string
-  is_active: boolean
+export type LoginResponse = {
+  message?: string | null
+  isAuthenticated: boolean
+  requiresVerification: boolean
+  userId: string
+  token?: string | null
+  phoneNumber?: string | null
+  countryCallingCode?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  role?: string | null
 }
 
-export type AdminLoginResponse = {
-  token: string
-  token_type: 'Bearer'
-  user: AdminLoginUser
-}
-
-export async function loginAdmin(payload: AdminLoginRequest): Promise<AdminLoginResponse> {
-  const response = await httpClient.post(API_ENDPOINTS.auth.login, payload)
-  return unwrapItem<AdminLoginResponse>(response.data)
+export async function loginAdmin(payload: LoginRequest): Promise<LoginResponse> {
+  return api.post<LoginResponse, LoginRequest>(API_ENDPOINTS.auth.login, payload)
 }

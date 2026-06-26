@@ -35,6 +35,17 @@ type CustomMultiSelectProps<T extends string | number = string> = {
 const DEFAULT_TRIGGER_CLASS =
   'h-10 w-full min-w-0 rounded-md border border-input bg-card px-3 text-sm text-foreground outline-none transition-[background-color,border-color] duration-150 hover:border-muted-foreground/45 focus-visible:border-primary/55 focus-visible:ring-1 focus-visible:ring-primary/20 data-[state=open]:border-primary/55 data-[state=open]:ring-1 data-[state=open]:ring-primary/20 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-70 dark:bg-background dark:disabled:bg-muted/50'
 
+function displayLabel(value: unknown, fallback: unknown): string {
+  const label = typeof value === 'string' && value.trim() ? value : fallback
+  const safeLabel = label === null || label === undefined ? '-' : String(label)
+
+  return formatUiDisplayValue(safeLabel, {
+    isPhoneNumber: looksLikePhoneText(safeLabel),
+    stripIdTokens: true,
+    fallback: safeLabel || '-',
+  })
+}
+
 export function CustomMultiSelect<T extends string | number = string>({
   value,
   defaultValue,
@@ -48,6 +59,10 @@ export function CustomMultiSelect<T extends string | number = string>({
 }: CustomMultiSelectProps<T>) {
   const { i18n } = useTranslation()
   const isRtl = i18n.dir() === 'rtl'
+  const safeOptions = useMemo(
+    () => options.filter((option) => option.value !== null && option.value !== undefined),
+    [options]
+  )
   const [internalValue, setInternalValue] = useState<T[]>(defaultValue ?? [])
   const isControlled = value !== undefined
   const selectedValues = isControlled ? value : internalValue
@@ -87,16 +102,10 @@ export function CustomMultiSelect<T extends string | number = string>({
     }
 
     const labels = selectedKeys.map((selectedKey) => {
-      const matchingOption = options.find(
+      const matchingOption = safeOptions.find(
         (option) => String(option.value) === selectedKey
       )
-      const rawLabel = matchingOption?.label ?? selectedKey
-
-      return formatUiDisplayValue(rawLabel, {
-        isPhoneNumber: looksLikePhoneText(rawLabel),
-        stripIdTokens: true,
-        fallback: rawLabel,
-      })
+      return displayLabel(matchingOption?.label, selectedKey)
     })
 
     if (labels.length <= 2) {
@@ -104,7 +113,7 @@ export function CustomMultiSelect<T extends string | number = string>({
     }
 
     return `${labels.slice(0, 2).join(', ')} +${labels.length - 2}`
-  }, [options, placeholder, selectedKeys])
+  }, [safeOptions, placeholder, selectedKeys])
 
   return (
     <DropdownMenu dir={isRtl ? 'rtl' : 'ltr'}>
@@ -143,11 +152,11 @@ export function CustomMultiSelect<T extends string | number = string>({
         sideOffset={8}
         className="max-h-72 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto rounded-md border border-border bg-popover p-1.5 text-foreground ring-0"
       >
-        {options.length === 0 ? (
+        {safeOptions.length === 0 ? (
           <div className="px-2 py-2 text-sm text-muted-foreground">-</div>
         ) : null}
 
-        {options.map((option) => {
+        {safeOptions.map((option) => {
           const optionValue = String(option.value)
 
           return (
@@ -159,11 +168,7 @@ export function CustomMultiSelect<T extends string | number = string>({
               onSelect={(event) => event.preventDefault()}
               className="h-9 rounded-sm px-2.5 text-start text-sm text-foreground data-[state=checked]:bg-muted data-[state=checked]:font-medium data-[state=checked]:text-foreground"
             >
-              {formatUiDisplayValue(option.label, {
-                isPhoneNumber: looksLikePhoneText(option.label),
-                stripIdTokens: true,
-                fallback: option.label,
-              })}
+              {displayLabel(option.label, option.value)}
             </DropdownMenuCheckboxItem>
           )
         })}

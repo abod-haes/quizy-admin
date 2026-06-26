@@ -10,7 +10,7 @@ type InputProps = React.ComponentProps<"input"> & {
 }
 
 const INPUT_BASE_CLASS =
-  "h-10 w-full rounded-md border border-input bg-card px-3 text-sm text-foreground transition-[background-color,border-color] duration-150 placeholder:text-muted-foreground hover:border-muted-foreground/45 focus-visible:border-primary/55 focus-visible:ring-1 focus-visible:ring-primary/20 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-70 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20"
+  "h-11 w-full rounded-2xl border border-primary/10 bg-[var(--quizy-surface-strong)] px-4 text-sm font-medium text-foreground shadow-[var(--quizy-control-shadow)] outline-none transition-[transform,background-color,border-color,box-shadow] duration-200 placeholder:text-muted-foreground/75 hover:border-primary/25 focus-visible:-translate-y-px focus-visible:border-primary/55 focus-visible:shadow-[var(--quizy-control-focus-shadow)] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-70 aria-invalid:border-destructive aria-invalid:shadow-[0_0_0_4px_rgba(220,38,38,0.12)]"
 
 const DEFAULT_INPUT_CLASS = INPUT_BASE_CLASS
 const FILTER_INPUT_CLASS = INPUT_BASE_CLASS
@@ -54,8 +54,8 @@ function Input({
       className={cn(
         variant === "filter" ? FILTER_INPUT_CLASS : DEFAULT_INPUT_CLASS,
         className,
-        startIcon && "[padding-inline-start:2.5rem]",
-        hasTrailingControl && "[padding-inline-end:2.5rem]"
+        startIcon && "[padding-inline-start:2.75rem]",
+        hasTrailingControl && "[padding-inline-end:2.75rem]"
       )}
       {...props}
       onChange={handleChange}
@@ -68,13 +68,13 @@ function Input({
 
   return (
     <div className="group/input relative w-full">
-      <span className="pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground/80 transition-colors group-focus-within/input:text-primary/80 [inset-inline-start:0.75rem] [&_svg]:size-4">
+      <span className="pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground/80 transition-colors group-focus-within/input:text-primary/80 [inset-inline-start:0.9rem] [&_svg]:size-4">
         {startIcon}
       </span>
       {hasTrailingControl ? (
         <button
           type="button"
-          className="absolute top-1/2 -translate-y-1/2 rounded-sm text-muted-foreground/80 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/20 [inset-inline-end:0.7rem] [&_svg]:size-4"
+          className="absolute top-1/2 -translate-y-1/2 rounded-xl p-1 text-muted-foreground/80 transition-colors hover:bg-accent/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 [inset-inline-end:0.75rem] [&_svg]:size-4"
           onClick={() => setShowPassword((current) => !current)}
           aria-label={showPassword ? "Hide password" : "Show password"}
         >

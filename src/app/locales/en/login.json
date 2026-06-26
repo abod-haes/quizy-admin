@@ -1,12 +1,12 @@
 {
-  "title": "Sign in",
-  "description": "Enter your email and password to continue.",
+  "title": "Sign in to Quizy",
+  "description": "Continue to the quiz operations dashboard.",
   "email": "Email",
   "password": "Password",
-  "emailPlaceholder": "john@example.com",
+  "emailPlaceholder": "admin@example.com",
   "passwordPlaceholder": "••••••••",
-  "submit": "Continue",
+  "submit": "Open dashboard",
   "submitting": "Signing in...",
-  "invalidCredentials": "Invalid email or password.",
+  "invalidCredentials": "The provided details are not correct.",
   "unexpectedError": "Something went wrong. Please try again."
 }
