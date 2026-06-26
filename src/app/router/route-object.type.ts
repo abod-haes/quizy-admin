@@ -8,6 +8,30 @@ export const APP_ROUTES = {
     protected: false,
     breadcrumbKeys: [],
   },
+  register: {
+    key: 'register',
+    path: '/register',
+    protected: false,
+    breadcrumbKeys: [],
+  },
+  forgotPassword: {
+    key: 'forgotPassword',
+    path: '/forgot-password',
+    protected: false,
+    breadcrumbKeys: [],
+  },
+  verifyCode: {
+    key: 'verifyCode',
+    path: '/verify-code',
+    protected: false,
+    breadcrumbKeys: [],
+  },
+  resetPassword: {
+    key: 'resetPassword',
+    path: '/reset-password',
+    protected: false,
+    breadcrumbKeys: [],
+  },
   root: {
     key: 'root',
     path: '/',
@@ -42,7 +66,7 @@ export const APP_ROUTES = {
     permissions: [PERMISSIONS.projects.view],
     breadcrumbKeys: [],
   },
-    pages: {
+  pages: {
     key: 'pages',
     path: '/pages',
     protected: true,
@@ -66,7 +90,6 @@ export const APP_ROUTES = {
     protected: true,
     breadcrumbKeys: [],
   },
-
   faqs: {
     key: 'faqs',
     path: '/faqs',
@@ -91,8 +114,7 @@ export const APP_ROUTES = {
     protected: true,
     breadcrumbKeys: [],
   },
-
-notFound: {
+  notFound: {
     key: 'notFound',
     path: '/not-found',
     protected: true,
