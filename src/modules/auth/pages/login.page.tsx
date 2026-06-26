@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 
+import type { AppRole } from '@/app/auth/access-control.types'
 import { useAuth } from '@/app/providers/auth.provider'
 import { APP_ROUTES } from '@/app/router/route-object.type'
 import { CountryCodeSelect } from '@/components/ui/country-code-select'
@@ -38,8 +39,8 @@ export default function LoginPage() {
         return
       }
       const displayName = [result.firstName, result.lastName].filter(Boolean).join(' ').trim()
-      const role = result.role === 'Teacher' || result.role === 'Student' || result.role === 'SuperAdmin' ? result.role : 'SuperAdmin'
-      const roles = [role]
+      const role: AppRole = result.role === 'Teacher' || result.role === 'Student' || result.role === 'SuperAdmin' ? result.role : 'SuperAdmin'
+      const roles: AppRole[] = [role]
       login(result.token, roles, getPermissionsForRoles(roles), {
         id: result.userId,
         name: displayName || result.phoneNumber || t('unknownUser'),
