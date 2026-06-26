@@ -7,14 +7,17 @@ import { AppShellLayout } from '@/app/layout/app-shell.layout'
 import { RequireAuth } from '@/app/router/require-auth.guard'
 import { APP_ROUTES, type AppRouteKey } from '@/app/router/route-object.type'
 import LoginPage from '@/modules/auth/pages/login.page'
-import { NotFoundPage } from '@/modules/not-found/pages/not-found.page';
+import RegisterPage from '@/modules/auth/pages/register.page'
+import ForgotPasswordPage from '@/modules/auth/pages/forgot-password.page'
+import VerifyCodePage from '@/modules/auth/pages/verify-code.page'
+import ResetPasswordPage from '@/modules/auth/pages/reset-password.page'
+import { NotFoundPage } from '@/modules/not-found/pages/not-found.page'
 import PagesPage from '@/modules/pages/pages/pages.page'
 import PagesFormPage from '@/modules/pages/pages/form/pages.form.page'
 import PagesViewPage from '@/modules/pages/pages/view/pages.view.page'
 import FaqsPage from '@/modules/faqs/pages/faqs.page'
 import FaqsFormPage from '@/modules/faqs/pages/form/faqs.form.page'
 import FaqsViewPage from '@/modules/faqs/pages/view/faqs.view.page'
-
 
 function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof createElement>) {
   const route = APP_ROUTES[routeKey]
@@ -44,12 +47,26 @@ export const appRouter = createBrowserRouter([
     element: createElement(LoginPage),
   },
   {
+    path: APP_ROUTES.register.path,
+    element: createElement(RegisterPage),
+  },
+  {
+    path: APP_ROUTES.forgotPassword.path,
+    element: createElement(ForgotPasswordPage),
+  },
+  {
+    path: APP_ROUTES.verifyCode.path,
+    element: createElement(VerifyCodePage),
+  },
+  {
+    path: APP_ROUTES.resetPassword.path,
+    element: createElement(ResetPasswordPage),
+  },
+  {
     path: APP_ROUTES.root.path,
     element: withRouteAccess('root', createElement(AppShellLayout)),
     children: [
-      
-  
-          {
+      {
         path: APP_ROUTES.pages.path,
         element: withRouteAccess('pages', createElement(PagesPage)),
       },
@@ -81,7 +98,7 @@ export const appRouter = createBrowserRouter([
         path: APP_ROUTES.viewFaqs.path,
         element: withRouteAccess('viewFaqs', createElement(FaqsViewPage)),
       },
-],
+    ],
   },
   {
     path: APP_ROUTES.notFound.path,
