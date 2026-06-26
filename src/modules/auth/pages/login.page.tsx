@@ -1,118 +1,162 @@
-import { useState, type FormEvent } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { LockKeyhole, LogIn } from 'lucide-react'
+import { useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+import { z } from 'zod'
 
 import { useAuth } from '@/app/providers/auth.provider'
 import { APP_ROUTES } from '@/app/router/route-object.type'
 import type { ApiError } from '@/core/api/api-error.type'
-import { loginAdmin } from '@/modules/auth/services/login.services'
-import { Button, Card, CardContent, CardHeader, CardTitle, FormField, Input } from '@/shared/ui'
+import { QuizyAuthLayout } from '@/modules/auth/components/quizy-auth-layout.component'
+import { QuizyPhoneField } from '@/modules/auth/components/quizy-phone-field.component'
+import { loginQuizy } from '@/modules/auth/services/quizy-auth.services'
+import { DEFAULT_COUNTRY_CALLING_CODE } from '@/modules/auth/utils/quizy-phone.utils'
+import { Button, FormField, Input } from '@/shared/ui'
+
+const loginSchema = z.object({
+  phoneNumber: z.string().min(8, 'أدخل رقم هاتف صحيح'),
+  countryCallingCode: z.string().min(2),
+  password: z.string().min(8, 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'),
+})
+
+type LoginFormValues = z.infer<typeof loginSchema>
+
+function getApiErrorMessage(error: unknown, fallback: string) {
+  const apiError = error as ApiError & { message?: string }
+  return apiError?.message || fallback
+}
 
 export default function LoginPage() {
-  const { t } = useTranslation('login')
   const navigate = useNavigate()
   const { isAuthenticated, login } = useAuth()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      phoneNumber: '',
+      countryCallingCode: DEFAULT_COUNTRY_CALLING_CODE,
+      password: '',
+    },
+  })
+
   if (isAuthenticated) {
-    return <Navigate replace to={APP_ROUTES.home.path} />
+    return <Navigate replace to={APP_ROUTES.root.path} />
   }
 
-  const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
-    event?.preventDefault()
-
-    const normalizedEmail = email.trim()
-    const normalizedPassword = password.trim()
-    if (!normalizedEmail || !normalizedPassword) {
-      return
-    }
-
-    setErrorMessage(null)
+  const onSubmit = async (values: LoginFormValues) => {
     setIsSubmitting(true)
-
     try {
-      const result = await loginAdmin({
-        email: normalizedEmail,
-        password: normalizedPassword,
-        device_name: 'dashboard-web',
-      })
+      const response = await loginQuizy(values)
 
-      login(result.token, [], [], {
-        id: result.user.id,
-        name: result.user.name,
-        email: result.user.email,
-        role: null,
+      if (response.requiresVerification) {
+        navigate({
+          pathname: APP_ROUTES.verifyCode.path,
+          search: new URLSearchParams({
+            flow: 'login',
+            phoneNumber: values.phoneNumber,
+            countryCallingCode: values.countryCallingCode,
+          }).toString(),
+        })
+        return
+      }
+
+      if (!response.token) {
+        toast.error('تعذر تسجيل الدخول', {
+          description: response.message || 'لم يصل رمز الدخول من الخادم.',
+        })
+        return
+      }
+
+      login(response.token, [], [], {
+        id: response.userId || response.phoneNumber || values.phoneNumber,
+        name: `${response.firstName || ''} ${response.lastName || ''}`.trim() || response.phoneNumber || values.phoneNumber,
+        email: response.email || '',
+        role: response.role || null,
         profilePhotoPath: null,
         profilePhotoUrl: null,
-        isActive: result.user.is_active,
+        phoneNumber: response.phoneNumber || values.phoneNumber,
+        firstName: response.firstName,
+        lastName: response.lastName,
       })
-      navigate(APP_ROUTES.home.path, { replace: true })
+      toast.success('تم تسجيل الدخول', { description: 'مرحباً بعودتك إلى لوحة Quizy' })
+      navigate(APP_ROUTES.root.path, { replace: true })
     } catch (error) {
-      const apiError = error as ApiError
-      if (apiError?.status === 422) {
-        setErrorMessage(t('invalidCredentials'))
-      } else {
-        setErrorMessage(t('unexpectedError'))
-      }
+      toast.error('فشل تسجيل الدخول', {
+        description: getApiErrorMessage(error, 'تأكد من رقم الهاتف وكلمة المرور ثم حاول مرة أخرى.'),
+      })
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background p-4 sm:p-8">
-      <Card className="w-full max-w-md rounded-md border border-border bg-card">
-        <CardHeader className="space-y-1">
-          <CardTitle className="font-[var(--font-sans)] text-2xl font-semibold">
-            {t('title')}
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">{t('description')}</p>
-        </CardHeader>
+    <QuizyAuthLayout
+      title="مرحباً بك في Quizy"
+      description="سجل دخولك برقم الهاتف للوصول إلى لوحة إدارة المحتوى التعليمي."
+      footer={
+        <div className="flex flex-col items-center justify-center gap-2 text-sm text-slate-500 sm:flex-row">
+          <span>ليس لديك حساب؟</span>
+          <Link className="font-bold text-[#6949ff] hover:underline" to={APP_ROUTES.register.path}>
+            إنشاء حساب جديد
+          </Link>
+        </div>
+      }
+    >
+      <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+        <Controller
+          control={control}
+          name="phoneNumber"
+          render={({ field }) => (
+            <QuizyPhoneField
+              label="رقم الهاتف"
+              phoneNumber={field.value}
+              countryCallingCode={control._formValues.countryCallingCode}
+              onPhoneNumberChange={field.onChange}
+              onCountryCallingCodeChange={(value) => control._formValues.countryCallingCode = value}
+              error={errors.phoneNumber?.message}
+              disabled={isSubmitting}
+            />
+          )}
+        />
 
-        <CardContent>
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 gap-4">
-              <FormField htmlFor="auth-email" label={t('email')}>
-                <Input
-                  id="auth-email"
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder={t('emailPlaceholder')}
-                />
-              </FormField>
+        <FormField htmlFor="auth-password" label="كلمة المرور">
+          <Input
+            id="auth-password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="أدخل كلمة المرور"
+            startIcon={<LockKeyhole className="size-4" />}
+            aria-invalid={Boolean(errors.password)}
+            {...register('password')}
+          />
+          {errors.password ? <p className="mt-2 text-xs font-medium text-destructive">{errors.password.message}</p> : null}
+        </FormField>
 
-              <FormField htmlFor="auth-password" label={t('password')}>
-                <Input
-                  id="auth-password"
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder={t('passwordPlaceholder')}
-                />
-              </FormField>
-            </div>
-            {errorMessage ? (
-              <p className="rounded-md border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {errorMessage}
-              </p>
-            ) : null}
+        <div className="flex justify-start">
+          <Link className="text-sm font-semibold text-[#6949ff] hover:underline" to={APP_ROUTES.forgotPassword.path}>
+            نسيت كلمة المرور؟
+          </Link>
+        </div>
 
-            <div className="flex justify-end">
-              <Button
-                type="submit"
-                disabled={!email.trim() || !password.trim() || isSubmitting}
-              >
-                {isSubmitting ? t('submitting') : t('submit')}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </main>
+        <Button
+          type="submit"
+          size="lg"
+          loading={isSubmitting}
+          disabled={isSubmitting}
+          icon={<LogIn className="size-4" />}
+          className="h-12 w-full rounded-2xl bg-[#6949ff] text-white shadow-lg shadow-[#6949ff]/25 hover:bg-[#5b3df2]"
+        >
+          تسجيل الدخول
+        </Button>
+      </form>
+    </QuizyAuthLayout>
   )
 }
-
