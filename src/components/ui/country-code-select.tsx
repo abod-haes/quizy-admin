@@ -5,23 +5,31 @@ import { CustomSelect } from '@/components/ui/custom-select'
 
 const PRIORITY_COUNTRIES = ['SY', 'LB', 'JO', 'PS', 'TR', 'SA', 'AE', 'EG']
 
-const COUNTRY_CODE_OPTIONS = Array.from(
-  new Map(
-    getCountries().map((country) => {
-      const callingCode = `+${getCountryCallingCode(country)}`
-      const countryName = (arLabels as Record<string, string>)[country] || country
+type CountryCodeOption = {
+  label: string
+  value: string
+}
 
-      return [
-        callingCode,
-        {
-          label: `${countryName} ${callingCode}`,
-          value: callingCode,
-          country,
-        },
-      ]
+type CountryCodeOptionWithCountry = CountryCodeOption & {
+  country: string
+}
+
+const countryOptionMap = new Map<string, CountryCodeOptionWithCountry>()
+
+getCountries().forEach((country) => {
+  const callingCode = `+${getCountryCallingCode(country)}`
+  const countryName = (arLabels as Record<string, string>)[country] || country
+
+  if (!countryOptionMap.has(callingCode)) {
+    countryOptionMap.set(callingCode, {
+      label: `${countryName} ${callingCode}`,
+      value: callingCode,
+      country,
     })
-  ).values()
-)
+  }
+})
+
+const COUNTRY_CODE_OPTIONS: CountryCodeOption[] = Array.from(countryOptionMap.values())
   .sort((first, second) => {
     const firstPriority = PRIORITY_COUNTRIES.indexOf(first.country)
     const secondPriority = PRIORITY_COUNTRIES.indexOf(second.country)
@@ -32,7 +40,7 @@ const COUNTRY_CODE_OPTIONS = Array.from(
 
     return first.label.localeCompare(second.label, 'ar')
   })
-  .map(({ country: _country, ...option }) => option)
+  .map((option) => ({ label: option.label, value: option.value }))
 
 type CountryCodeSelectProps = {
   id?: string
