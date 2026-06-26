@@ -49,15 +49,8 @@ export const primarySidebarItems: SidebarItem[] = [
       { id: 'subjects', labelKey: 'sidebar.items.subjects', to: APP_ROUTES.subjects.path, icon: BookText, end: true },
       { id: 'units', labelKey: 'sidebar.items.units', to: APP_ROUTES.units.path, icon: Layers3, end: true },
       { id: 'lessons', labelKey: 'sidebar.items.lessons', to: APP_ROUTES.lessons.path, icon: BookOpenCheck, end: true },
-    ],
-  },
-  {
-    id: 'appContentManagement',
-    labelKey: 'sidebar.groups.appContentManagement',
-    icon: FileText,
-    children: [
-      { id: 'ads', labelKey: 'sidebar.items.ads', to: APP_ROUTES.ads.path, icon: Megaphone, end: true },
-      { id: 'pageContents', labelKey: 'sidebar.items.pageContents', to: APP_ROUTES.pageContents.path, icon: FileText, end: true },
+      { id: 'ads', labelKey: 'content-crud:modules.ads.title', to: APP_ROUTES.ads.path, icon: Megaphone, end: true },
+      { id: 'pageContents', labelKey: 'content-crud:modules.pageContents.title', to: APP_ROUTES.pageContents.path, icon: FileText, end: true },
     ],
   },
   {
