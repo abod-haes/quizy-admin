@@ -4,10 +4,6 @@ import { CustomSelect } from '@/components/ui/custom-select'
 
 const PRIORITY_COUNTRIES = ['SY', 'LB', 'JO', 'PS', 'TR', 'SA', 'AE', 'EG']
 
-const regionNames = typeof Intl !== 'undefined' && 'DisplayNames' in Intl
-  ? new Intl.DisplayNames(['ar'], { type: 'region' })
-  : null
-
 type CountryCodeOption = {
   label: string
   value: string
@@ -21,11 +17,10 @@ const countryOptionMap = new Map<string, CountryCodeOptionWithCountry>()
 
 getCountries().forEach((country) => {
   const callingCode = `+${getCountryCallingCode(country)}`
-  const countryName = regionNames?.of(country) || country
 
   if (!countryOptionMap.has(callingCode)) {
     countryOptionMap.set(callingCode, {
-      label: `${countryName} ${callingCode}`,
+      label: `${country} ${callingCode}`,
       value: callingCode,
       country,
     })
