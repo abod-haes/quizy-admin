@@ -6,6 +6,7 @@ import type {
   QuizyMessageResponse,
   QuizyRegisterRequest,
   QuizyRegisterVerifyRequest,
+  QuizyResendPasswordOtpRequest,
   QuizyResetPasswordRequest,
 } from '@/modules/auth/types/quizy-auth-flow.type'
 import { cleanPhoneNumber } from '@/modules/auth/utils/quizy-auth-flow.utils'
@@ -30,4 +31,11 @@ export async function requestAccountResetQuizy(payload: QuizyForgotPasswordReque
 
 export async function completeAccountResetQuizy(payload: QuizyResetPasswordRequest): Promise<QuizyMessageResponse> {
   return api.post<QuizyMessageResponse, QuizyResetPasswordRequest>(API_ENDPOINTS.auth.resetPassword, payload)
+}
+
+export async function sendAccountCodeAgainQuizy(payload: QuizyResendPasswordOtpRequest): Promise<QuizyMessageResponse> {
+  return api.post<QuizyMessageResponse, QuizyResendPasswordOtpRequest>(
+    API_ENDPOINTS.auth.resendPasswordOtp,
+    withCleanPhone(payload)
+  )
 }
