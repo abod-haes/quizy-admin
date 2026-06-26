@@ -3,6 +3,7 @@ const byId = (basePath: string, id: string) => `${basePath}/${id}`
 export const API_ENDPOINTS = {
   auth: {
     login: '/api/Auth/login',
+    logout: '/api/Auth/logout',
     currentUser: '/api/Auth/current-user',
     register: '/api/Auth/register',
     verifyRegistration: '/api/Auth/register/verify',
@@ -137,6 +138,30 @@ export const API_ENDPOINTS = {
     create: '/api/PageContents',
     update: (id: string) => byId('/api/PageContents', id),
     remove: (id: string) => byId('/api/PageContents', id),
+  },
+  pages: {
+    list: '/api/Pages',
+    detail: '/api/Pages/:id',
+    create: '/api/Pages',
+    update: '/api/Pages/:id',
+    remove: '/api/Pages/:id',
+  },
+  projects: {
+    list: '/api/Projects',
+    detail: '/api/Projects/:id',
+    create: '/api/Projects',
+    update: '/api/Projects/:id',
+    remove: '/api/Projects/:id',
+    reorder: '/api/Projects/reorder',
+    addMedia: '/api/Projects/:id/media',
+    removeMedia: '/api/Projects/:id/media/:mediaId',
+  },
+  faqs: {
+    list: '/api/Faqs',
+    detail: '/api/Faqs/:id',
+    create: '/api/Faqs',
+    update: '/api/Faqs/:id',
+    remove: '/api/Faqs/:id',
   },
   pointsOfSale: {
     list: '/api/PointsOfSale',
