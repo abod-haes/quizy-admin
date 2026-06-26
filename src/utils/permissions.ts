@@ -1,9 +1,9 @@
-import { APP_ROLES, type AppRole } from '@/app/auth/access-control.types'
+import { normalizeAppRole, type AppRole } from '@/app/auth/access-control.types'
 import type { AuthUser } from '@/app/auth/auth-user.type'
 import type { AppPermission } from '@/constants/permissions'
 
 function toRecord(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== 'object') {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return null
   }
 
@@ -23,15 +23,27 @@ function uniqueStrings<T extends string>(items: readonly T[]): T[] {
   return Array.from(new Set(items))
 }
 
-function normalizeRoleName(rawValue: string): AppRole | null {
-  const normalized = rawValue.toLowerCase()
-
-  if (normalized === 'employee') {
-    return 'viewer'
+function toArray(value: unknown): unknown[] {
+  if (Array.isArray(value)) {
+    return value
   }
 
-  if (APP_ROLES.includes(normalized as AppRole)) {
-    return normalized as AppRole
+  return value == null ? [] : [value]
+}
+
+function normalizeRoleName(rawValue: string): AppRole | null {
+  const directRole = normalizeAppRole(rawValue)
+  if (directRole) {
+    return directRole
+  }
+
+  const normalized = rawValue.trim().toLowerCase()
+  if (normalized === 'admin' || normalized === 'manager') {
+    return 'SuperAdmin'
+  }
+
+  if (normalized === 'employee' || normalized === 'viewer') {
+    return 'Student'
   }
 
   return null
@@ -82,12 +94,8 @@ function normalizePermissionEntry(value: unknown): AppPermission | null {
 
 function normalizeRoleEntry(value: unknown): AppRole | null {
   const directValue = getString(value)
-
   if (directValue) {
-    const normalized = normalizeRoleName(directValue)
-    if (normalized) {
-      return normalized
-    }
+    return normalizeRoleName(directValue)
   }
 
   const record = toRecord(value)
@@ -112,14 +120,6 @@ function normalizeRoleEntry(value: unknown): AppRole | null {
   return null
 }
 
-function toArray(value: unknown): unknown[] {
-  if (Array.isArray(value)) {
-    return value
-  }
-
-  return value == null ? [] : [value]
-}
-
 function extractRoleDisplayName(value: unknown): string | null {
   const directRole = getString(value)
   if (directRole) {
@@ -138,20 +138,6 @@ function extractRoleDisplayName(value: unknown): string | null {
     getString(roleRecord.slug) ??
     null
   )
-}
-
-function extractPermissionsFromUserRecord(user: Record<string, unknown>): AppPermission[] {
-  const userPermissions = normalizePermissions(user.permissions)
-  if (userPermissions.length) {
-    return userPermissions
-  }
-
-  const roleRecord = toRecord(user.role)
-  if (!roleRecord) {
-    return []
-  }
-
-  return normalizePermissions(roleRecord.permissions)
 }
 
 export function normalizePermissions(input: unknown): AppPermission[] {
@@ -199,6 +185,20 @@ export function hasAnyPermission(
   return requiredPermissions.some((permission) =>
     currentPermissions.includes(permission)
   )
+}
+
+function extractPermissionsFromUserRecord(user: Record<string, unknown>): AppPermission[] {
+  const userPermissions = normalizePermissions(user.permissions)
+  if (userPermissions.length) {
+    return userPermissions
+  }
+
+  const roleRecord = toRecord(user.role)
+  if (!roleRecord) {
+    return []
+  }
+
+  return normalizePermissions(roleRecord.permissions)
 }
 
 function extractToken(payload: Record<string, unknown>): string | null {
