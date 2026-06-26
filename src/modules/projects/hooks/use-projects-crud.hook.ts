@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import i18n from '@/app/i18n'
+
+import { i18n } from '@/app/i18n'
 import { projectsListQueryOptions, projectsDetailQueryOptions, projectsQueryKeys } from '@/modules/projects/queries/projects.query'
 import { addProjectsMedia, createProjects, removeProjects, removeProjectsMedia, reorderProjects, replaceProjects, updateProjects } from '@/modules/projects/services/projects.services'
 import type { ProjectsCreatePayload, ProjectsUpdatePayload } from '@/modules/projects/types/projects.type'
