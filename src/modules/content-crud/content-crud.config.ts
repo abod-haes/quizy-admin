@@ -11,12 +11,12 @@ const toBooleanValue = (value: unknown) => value === true
 
 type ContentValidationResult<T extends Record<string, unknown>> =
   | { success: true; data: T }
-  | { success: false; error: { issues: Array<{ path: PropertyKey[]; message: string }> } }
+  | { success: false; error: { issues: Array<{ path: readonly PropertyKey[]; message: string }> } }
 
 function toValidationResult<T extends Record<string, unknown>>(
   result: ContentValidationResult<T>
 ): { success: true; data: ContentFormValues } | { success: false; errors: Record<string, string> } {
-  if (result.success) return { success: true, data: result.data }
+  if (result.success) return { success: true, data: result.data as ContentFormValues }
   const errors: Record<string, string> = {}
   for (const issue of result.error.issues) {
     const field = issue.path[0]
