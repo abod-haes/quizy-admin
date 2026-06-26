@@ -1,15 +1,38 @@
+import { getCountries, getCountryCallingCode } from 'react-phone-number-input'
+import arLabels from 'react-phone-number-input/locale/ar'
+
 import { CustomSelect } from '@/components/ui/custom-select'
 
-const COUNTRY_CODE_OPTIONS = [
-  { label: 'SY +963', value: '+963' },
-  { label: 'LB +961', value: '+961' },
-  { label: 'JO +962', value: '+962' },
-  { label: 'PS +970', value: '+970' },
-  { label: 'TR +90', value: '+90' },
-  { label: 'SA +966', value: '+966' },
-  { label: 'AE +971', value: '+971' },
-  { label: 'EG +20', value: '+20' },
-]
+const PRIORITY_COUNTRIES = ['SY', 'LB', 'JO', 'PS', 'TR', 'SA', 'AE', 'EG']
+
+const COUNTRY_CODE_OPTIONS = Array.from(
+  new Map(
+    getCountries().map((country) => {
+      const callingCode = `+${getCountryCallingCode(country)}`
+      const countryName = (arLabels as Record<string, string>)[country] || country
+
+      return [
+        callingCode,
+        {
+          label: `${countryName} ${callingCode}`,
+          value: callingCode,
+          country,
+        },
+      ]
+    })
+  ).values()
+)
+  .sort((first, second) => {
+    const firstPriority = PRIORITY_COUNTRIES.indexOf(first.country)
+    const secondPriority = PRIORITY_COUNTRIES.indexOf(second.country)
+
+    if (firstPriority !== -1 || secondPriority !== -1) {
+      return (firstPriority === -1 ? 999 : firstPriority) - (secondPriority === -1 ? 999 : secondPriority)
+    }
+
+    return first.label.localeCompare(second.label, 'ar')
+  })
+  .map(({ country: _country, ...option }) => option)
 
 type CountryCodeSelectProps = {
   id?: string
@@ -34,6 +57,7 @@ export function CountryCodeSelect({
       disabled={disabled}
       options={COUNTRY_CODE_OPTIONS}
       onValueChange={onValueChange}
+      contentClassName="max-h-72"
     />
   )
 }
