@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
-  AlertTriangle,
   BookOpenCheck,
   BrainCircuit,
   CheckCircle2,
@@ -17,7 +17,22 @@ import {
 } from 'lucide-react'
 
 import { APP_ROUTES } from '@/app/router/route-object.type'
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui'
+import { api } from '@/shared/api/api-client'
+import type { PagedResponse } from '@/shared/api/api.types'
+import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from '@/shared/ui'
+
+type MetricTone = 'primary' | 'blue' | 'emerald' | 'amber'
+
+type DashboardNumbers = {
+  quizzes: number | null
+  questions: number | null
+  teachers: number | null
+  students: number | null
+  courses: number | null
+}
+
+type CountKey = keyof DashboardNumbers
 
 function IconTile({ icon: Icon }: { icon: LucideIcon }) {
   return (
@@ -27,19 +42,72 @@ function IconTile({ icon: Icon }: { icon: LucideIcon }) {
   )
 }
 
+function getNumberFromStats(stats: unknown, keys: string[]): number | null {
+  if (!stats || typeof stats !== 'object') return null
+  const source = stats as Record<string, unknown>
+
+  for (const key of keys) {
+    const value = source[key]
+    if (typeof value === 'number' && Number.isFinite(value)) return value
+    if (typeof value === 'string' && value.trim() && Number.isFinite(Number(value))) return Number(value)
+  }
+
+  return null
+}
+
+async function fetchCount(endpoint: string): Promise<number | null> {
+  try {
+    const response = await api.get<PagedResponse<unknown>>(endpoint, { params: { Page: 1, PerPage: 1 } })
+    return typeof response.totalCount === 'number' ? response.totalCount : null
+  } catch {
+    return null
+  }
+}
+
+async function fetchDashboardNumbers(): Promise<DashboardNumbers> {
+  const [statsResult, quizzesCount, questionsCount, teachersCount, studentsCount, coursesCount] = await Promise.all([
+    api.get<unknown>(API_ENDPOINTS.statistics.list).catch(() => null),
+    fetchCount(API_ENDPOINTS.quizzes.list),
+    fetchCount(API_ENDPOINTS.questions.list),
+    fetchCount(API_ENDPOINTS.teachers.list),
+    fetchCount(API_ENDPOINTS.students.list),
+    fetchCount(API_ENDPOINTS.courses.list),
+  ])
+
+  return {
+    quizzes: getNumberFromStats(statsResult, ['quizzesCount', 'quizCount', 'quizesCount', 'totalQuizzes', 'quizzes', 'quizes']) ?? quizzesCount,
+    questions: getNumberFromStats(statsResult, ['questionsCount', 'questionCount', 'totalQuestions', 'questions']) ?? questionsCount,
+    teachers: getNumberFromStats(statsResult, ['teachersCount', 'teacherCount', 'totalTeachers', 'teachers']) ?? teachersCount,
+    students: getNumberFromStats(statsResult, ['studentsCount', 'studentCount', 'totalStudents', 'students']) ?? studentsCount,
+    courses: getNumberFromStats(statsResult, ['coursesCount', 'courseCount', 'totalCourses', 'courses']) ?? coursesCount,
+  }
+}
+
+function formatMetric(value: number | null): string {
+  if (value === null) return '—'
+  return new Intl.NumberFormat().format(value)
+}
+
 export default function DashboardPage() {
   const { t } = useTranslation('dashboard')
+  const dashboardQuery = useQuery({
+    queryKey: ['dashboard', 'statistics'],
+    queryFn: fetchDashboardNumbers,
+    staleTime: 1000 * 60,
+  })
+
+  const stats = dashboardQuery.data
 
   const metrics: Array<{
-    key: string
+    key: CountKey
     value: string
     icon: LucideIcon
-    tone: 'primary' | 'blue' | 'emerald' | 'amber'
+    tone: MetricTone
   }> = [
-    { key: 'quizzes', value: '128', icon: FileQuestion, tone: 'primary' },
-    { key: 'questions', value: '4.8K', icon: BrainCircuit, tone: 'blue' },
-    { key: 'teachers', value: '36', icon: GraduationCap, tone: 'emerald' },
-    { key: 'pendingReviews', value: '17', icon: AlertTriangle, tone: 'amber' },
+    { key: 'quizzes', value: formatMetric(stats?.quizzes ?? null), icon: FileQuestion, tone: 'primary' },
+    { key: 'questions', value: formatMetric(stats?.questions ?? null), icon: BrainCircuit, tone: 'blue' },
+    { key: 'teachers', value: formatMetric(stats?.teachers ?? null), icon: GraduationCap, tone: 'emerald' },
+    { key: 'courses', value: formatMetric(stats?.courses ?? null), icon: BookOpenCheck, tone: 'amber' },
   ]
 
   const workflows: Array<{ key: string; icon: LucideIcon; to: string }> = [
@@ -80,7 +148,7 @@ export default function DashboardPage() {
                 {t('hero.primaryAction')}
               </Link>
               <Link
-                to={APP_ROUTES.reviewQueue.path}
+                to={APP_ROUTES.quizzes.path}
                 className="inline-flex h-11 items-center justify-center rounded-2xl border border-border bg-background px-5 text-sm font-semibold text-foreground transition hover:bg-accent"
               >
                 {t('hero.secondaryAction')}
@@ -113,7 +181,7 @@ export default function DashboardPage() {
               <CardContent className="flex items-center justify-between gap-4 pt-1">
                 <div className="space-y-1.5">
                   <p className="text-sm font-medium text-muted-foreground">{t(`metrics.${metric.key}.label`)}</p>
-                  <p className="text-3xl font-bold tracking-tight">{metric.value}</p>
+                  {dashboardQuery.isLoading ? <Skeleton className="h-9 w-20 rounded-xl" /> : <p className="text-3xl font-bold tracking-tight">{metric.value}</p>}
                   <Badge variant="outline" color={metric.tone}>
                     {t(`metrics.${metric.key}.hint`)}
                   </Badge>
@@ -136,11 +204,11 @@ export default function DashboardPage() {
               <Link
                 key={workflow.key}
                 to={workflow.to}
-                className="group rounded-3xl border border-border/80 bg-background p-4 transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-sm"
+                className="rounded-3xl border border-border/80 bg-background p-4 transition hover:bg-accent/35"
               >
                 <IconTile icon={workflow.icon} />
                 <div className="mt-4 space-y-2">
-                  <h3 className="font-semibold text-foreground group-hover:text-primary">
+                  <h3 className="font-semibold text-foreground">
                     {t(`workflows.items.${workflow.key}.title`)}
                   </h3>
                   <p className="text-sm leading-6 text-muted-foreground">
@@ -189,7 +257,7 @@ export default function DashboardPage() {
           <CardDescription>{t('dynamic.description')}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {['apiContracts', 'entityBuilder', 'reviewRules', 'analytics'].map((item) => (
+          {['apiContracts', 'entityBuilder', 'courseManagement', 'analytics'].map((item) => (
             <div key={item} className="rounded-2xl border border-border/80 bg-background p-4">
               <div className="mb-3 flex items-center gap-2 text-primary">
                 <Clock3 className="size-4" />

@@ -2,9 +2,9 @@
   "hero": {
     "badge": "Quizy",
     "title": "لوحة إدارة الاختبارات",
-    "description": "إدارة الاختبارات والدروس والمراجعة من مكان واحد.",
-    "primaryAction": "ابدأ",
-    "secondaryAction": "المراجعة"
+    "description": "إدارة الاختبارات والدروس والكورسات من مكان واحد مع إحصائيات مباشرة من الـ API.",
+    "primaryAction": "إضافة اختبار",
+    "secondaryAction": "عرض الاختبارات"
   },
   "quality": {
     "title": "الجودة",
@@ -12,10 +12,10 @@
     "items": ["مراجعة النصوص", "ربط الدروس", "تنسيق المعادلات"]
   },
   "metrics": {
-    "quizzes": { "label": "اختبارات", "hint": "جاهزة" },
-    "questions": { "label": "أسئلة", "hint": "منظمة" },
-    "teachers": { "label": "مدرسون", "hint": "مربوطون" },
-    "pendingReviews": { "label": "مراجعات", "hint": "معلقة" }
+    "quizzes": { "label": "الاختبارات", "hint": "من السيرفر" },
+    "questions": { "label": "الأسئلة", "hint": "من السيرفر" },
+    "teachers": { "label": "المدرسون", "hint": "من السيرفر" },
+    "courses": { "label": "الكورسات", "hint": "من السيرفر" }
   },
   "workflows": {
     "title": "الأقسام",
@@ -41,8 +41,8 @@
     "items": {
       "apiContracts": { "label": "العقود", "description": "تثبيت الحقول والروابط." },
       "entityBuilder": { "label": "المولد", "description": "توليد الجداول والنماذج." },
-      "reviewRules": { "label": "المراجعة", "description": "إدارة العناصر المعلقة." },
-      "analytics": { "label": "التحليلات", "description": "متابعة الأداء والجودة." }
+      "courseManagement": { "label": "الكورسات", "description": "إدارة الكورسات والجلسات من واجهة واحدة." },
+      "analytics": { "label": "الإحصائيات", "description": "متابعة أعداد الاختبارات والأسئلة والمدرسين." }
     }
   },
   "module": {
@@ -53,9 +53,7 @@
       "lessons": { "title": "الدروس", "description": "إدارة الدروس." },
       "units": { "title": "الوحدات", "description": "إدارة الوحدات." },
       "teachers": { "title": "المدرسون", "description": "إدارة المدرسين." },
-      "students": { "title": "الطلاب", "description": "إدارة الطلاب." },
-      "reviewQueue": { "title": "المراجعة", "description": "إدارة المراجعات." },
-      "settings": { "title": "الإعدادات", "description": "إعدادات اللوحة." }
+      "students": { "title": "الطلاب", "description": "إدارة الطلاب." }
     },
     "checklist": {
       "contract": { "title": "العقد", "description": "تثبيت البنية." },

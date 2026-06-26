@@ -1,12 +1,15 @@
 {
   "title": "تسجيل الدخول إلى Quizy",
-  "description": "أدخل بياناتك للمتابعة إلى لوحة الاختبارات.",
-  "email": "البريد الإلكتروني",
+  "description": "أدخل رقم الهاتف وكلمة المرور للمتابعة إلى لوحة الاختبارات.",
+  "countryCallingCode": "رمز الدولة",
+  "countryCallingCodePlaceholder": "+963",
+  "phoneNumber": "رقم الهاتف",
+  "phoneNumberPlaceholder": "987654321",
   "password": "كلمة المرور",
-  "emailPlaceholder": "admin@example.com",
   "passwordPlaceholder": "••••••••",
   "submit": "دخول اللوحة",
   "submitting": "جارٍ تسجيل الدخول...",
-  "invalidCredentials": "البيانات غير صحيحة.",
-  "unexpectedError": "حدث خطأ غير متوقع. حاول مرة أخرى."
+  "invalidCredentials": "بيانات الدخول غير صحيحة.",
+  "unexpectedError": "حدث خطأ غير متوقع. حاول مرة أخرى.",
+  "unknownUser": "مستخدم Quizy"
 }

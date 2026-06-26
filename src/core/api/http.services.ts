@@ -2,8 +2,8 @@ import axios, { type AxiosInstance } from 'axios'
 
 import { toApiError } from '@/core/api/api-error.type'
 import { attachAuthInterceptors } from '@/core/api/auth-interceptor.services'
+import { env } from '@/shared/config/env'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.trim() || ''
 const LANGUAGE_STORAGE_KEY = 'app:language'
 const SUPPORTED_LANGUAGES = new Set(['ar', 'en'])
 const DEFAULT_LANGUAGE = 'ar'
@@ -26,20 +26,22 @@ function getCurrentLanguage(): string {
     if (storedLanguage) return storedLanguage
   }
 
-  return DEFAULT_LANGUAGE
+  return env.defaultLocale || DEFAULT_LANGUAGE
 }
 
 const httpClient: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
+  baseURL: env.apiBaseUrl,
+  timeout: 20000,
   headers: {
+    Accept: 'application/json',
     'Content-Type': 'application/json',
-    'X-Accept-Language': getCurrentLanguage(),
+    'Accept-Language': getCurrentLanguage(),
   },
 })
 
 httpClient.interceptors.request.use((config) => {
-  config.headers['X-Accept-Language'] = getCurrentLanguage()
+  config.headers['Accept-Language'] = getCurrentLanguage()
+  config.headers.Accept = config.headers.Accept ?? 'application/json'
 
   if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
     config.headers['Content-Type'] = undefined

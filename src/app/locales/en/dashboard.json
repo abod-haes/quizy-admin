@@ -1,10 +1,10 @@
 {
   "hero": {
-    "badge": "Quizy workflow",
-    "title": "One dashboard for quiz operations from file to publish",
-    "description": "Manage the Quizy flow: upload PDFs, review extracted lessons, map lesson IDs and entity IDs, validate questions, and prepare the final quiz payload.",
-    "primaryAction": "Start quiz builder",
-    "secondaryAction": "Open review queue"
+    "badge": "Quizy dashboard",
+    "title": "Quiz operations dashboard",
+    "description": "Manage quizzes, lessons, teachers, and courses with live API statistics.",
+    "primaryAction": "Add quiz",
+    "secondaryAction": "View quizzes"
   },
   "quality": {
     "title": "Content quality guardrails",
@@ -16,10 +16,10 @@
     ]
   },
   "metrics": {
-    "quizzes": { "label": "Ready quizzes", "hint": "publishable" },
-    "questions": { "label": "Structured questions", "hint": "math ready" },
-    "teachers": { "label": "Teachers", "hint": "mapped" },
-    "pendingReviews": { "label": "Pending reviews", "hint": "needs action" }
+    "quizzes": { "label": "Quizzes", "hint": "from API" },
+    "questions": { "label": "Questions", "hint": "from API" },
+    "teachers": { "label": "Teachers", "hint": "from API" },
+    "courses": { "label": "Courses", "hint": "from API" }
   },
   "workflows": {
     "title": "Core workspaces",
@@ -45,21 +45,19 @@
     "items": {
       "apiContracts": { "label": "API contracts", "description": "Define final endpoints for quizzes, lessons, units, teachers, entities, and files." },
       "entityBuilder": { "label": "Config builder", "description": "Generate forms and tables from one field configuration." },
-      "reviewRules": { "label": "Review queue", "description": "Handle questions that need an answer, image, or clarification." },
-      "analytics": { "label": "Learning analytics", "description": "Track conversion quality and lesson activity." }
+      "courseManagement": { "label": "Courses", "description": "Manage courses and sessions from one place." },
+      "analytics": { "label": "Statistics", "description": "Track quiz, question, and teacher counts." }
     }
   },
   "module": {
     "status": "Ready for API wiring",
     "pages": {
-      "quizBuilder": { "title": "Quiz Builder", "description": "Next step: connect PDF upload, lesson extraction, and quiz JSON generation." },
-      "quizzes": { "title": "Quizzes", "description": "Manage published quizzes, drafts, and review status." },
+      "quizBuilder": { "title": "Quiz Builder", "description": "Connect PDF upload, lesson extraction, and quiz JSON generation." },
+      "quizzes": { "title": "Quizzes", "description": "Manage published quizzes and drafts." },
       "lessons": { "title": "Lessons", "description": "Manage lesson IDs and their unit relationships." },
       "units": { "title": "Units", "description": "Manage unit mapping and lesson distribution." },
       "teachers": { "title": "Teachers", "description": "Manage teacher IDs and assignment ownership." },
-      "students": { "title": "Students", "description": "Future space for usage and results once student APIs exist." },
-      "reviewQueue": { "title": "Review Queue", "description": "Resolve questions that need a correct answer, file, or clarification." },
-      "settings": { "title": "Settings", "description": "Configure identity, API URL, team roles, and conversion rules." }
+      "students": { "title": "Students", "description": "Manage student accounts and contact details." }
     },
     "checklist": {
       "contract": { "title": "Contract", "description": "Confirm each request and response before final CRUD generation." },

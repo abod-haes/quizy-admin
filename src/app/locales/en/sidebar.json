@@ -1,25 +1,34 @@
 {
   "closeNavigation": "Close navigation",
+  "groups": {
+    "quizManagement": "Quiz Management",
+    "courseManagement": "Course Management",
+    "contentManagement": "Learning Content",
+    "peopleManagement": "Users"
+  },
   "items": {
     "dashboard": "Dashboard",
     "quizBuilder": "Quiz Builder",
     "quizzes": "Quizzes",
+    "questions": "Question Bank",
+    "courses": "Courses",
+    "courseSessions": "Sessions",
+    "classes": "Classes",
+    "subjects": "Subjects",
     "lessons": "Lessons",
     "units": "Units",
     "teachers": "Teachers",
     "students": "Students",
-    "reviewQueue": "Review Queue",
     "settings": "Settings"
   },
   "user": {
     "guestName": "Quizy Admin",
     "guestRole": "Content team",
     "menuAriaLabel": "Open user menu",
-    "profile": "Profile",
     "logout": "Logout",
     "logoutConfirm": {
-      "title": "Confirm logout",
-      "description": "Are you sure you want to log out from your account?",
+      "title": "Logout",
+      "description": "Confirm account logout.",
       "confirm": "Logout",
       "confirming": "Logging out...",
       "cancel": "Cancel"

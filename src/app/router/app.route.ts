@@ -7,9 +7,28 @@ import { AppShellLayout } from '@/app/layout/app-shell.layout'
 import { RequireAuth } from '@/app/router/require-auth.guard'
 import { APP_ROUTES, type AppRouteKey } from '@/app/router/route-object.type'
 import LoginPage from '@/modules/auth/pages/login.page'
+import RegisterPage from '@/modules/auth/pages/register.page'
+import RecoverPage from '@/modules/auth/pages/recover.page'
+import ResetPasswordPage from '@/modules/auth/pages/reset-password.page'
+import VerifyCodePage from '@/modules/auth/pages/verify-code.page'
+import {
+  AdsPage,
+  ClassesPage,
+  CoursesPage,
+  LessonsPage,
+  PageContentsPage,
+  QuestionsPage,
+  StudentsPage,
+  SubjectsPage,
+  TeachersPage,
+  UnitsPage,
+} from '@/modules/content-crud/pages/academic-content-crud.page'
+import CourseContentPage from '@/modules/courses/pages/course-content.page'
+import CourseSessionsPage from '@/modules/courses/pages/course-sessions.page'
 import DashboardPage from '@/modules/dashboard/pages/dashboard.page'
-import ModuleComingSoonPage from '@/modules/dashboard/pages/module-coming-soon.page'
 import { NotFoundPage } from '@/modules/not-found/pages/not-found.page'
+import QuizBuilderPage from '@/modules/quiz-builder/pages/quiz-builder-v2.page'
+import QuizzesPage from '@/modules/quizzes/pages/quizzes.page'
 
 function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof createElement>) {
   const route = APP_ROUTES[routeKey]
@@ -33,15 +52,21 @@ function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof creat
   )
 }
 
-const quizyModuleRoutes: AppRouteKey[] = [
-  'quizBuilder',
-  'quizzes',
-  'lessons',
-  'units',
-  'teachers',
-  'students',
-  'reviewQueue',
-  'settings',
+const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<typeof createElement> }> = [
+  { routeKey: 'quizBuilder', element: createElement(QuizBuilderPage) },
+  { routeKey: 'quizzes', element: createElement(QuizzesPage) },
+  { routeKey: 'questions', element: createElement(QuestionsPage) },
+  { routeKey: 'classes', element: createElement(ClassesPage) },
+  { routeKey: 'subjects', element: createElement(SubjectsPage) },
+  { routeKey: 'lessons', element: createElement(LessonsPage) },
+  { routeKey: 'units', element: createElement(UnitsPage) },
+  { routeKey: 'teachers', element: createElement(TeachersPage) },
+  { routeKey: 'students', element: createElement(StudentsPage) },
+  { routeKey: 'courses', element: createElement(CoursesPage) },
+  { routeKey: 'courseSessions', element: createElement(CourseSessionsPage) },
+  { routeKey: 'courseContent', element: createElement(CourseContentPage) },
+  { routeKey: 'ads', element: createElement(AdsPage) },
+  { routeKey: 'pageContents', element: createElement(PageContentsPage) },
 ]
 
 export const appRouter = createBrowserRouter([
@@ -49,36 +74,24 @@ export const appRouter = createBrowserRouter([
     path: APP_ROUTES.login.path,
     element: createElement(LoginPage),
   },
+  { path: '/register', element: createElement(RegisterPage) },
+  { path: '/recover', element: createElement(RecoverPage) },
+  { path: '/reset-password', element: createElement(ResetPasswordPage) },
+  { path: '/verify-code', element: createElement(VerifyCodePage) },
   {
     path: APP_ROUTES.root.path,
     element: withRouteAccess('root', createElement(AppShellLayout)),
     children: [
       {
         index: true,
-        element: createElement(Navigate, {
-          to: APP_ROUTES.dashboard.path,
-          replace: true,
-        }),
+        element: createElement(Navigate, { to: APP_ROUTES.dashboard.path, replace: true }),
       },
       {
         path: APP_ROUTES.dashboard.path,
         element: withRouteAccess('dashboard', createElement(DashboardPage)),
       },
-      ...quizyModuleRoutes.map((routeKey) => ({
-        path: APP_ROUTES[routeKey].path,
-        element: withRouteAccess(routeKey, createElement(ModuleComingSoonPage)),
-      })),
+      ...quizyModuleRoutes.map(({ routeKey, element }) => ({ path: APP_ROUTES[routeKey].path, element: withRouteAccess(routeKey, element) })),
     ],
   },
-  {
-    path: APP_ROUTES.notFound.path,
-    element: createElement(NotFoundPage),
-  },
-  {
-    path: '*',
-    element: createElement(Navigate, {
-      to: APP_ROUTES.notFound.path,
-      replace: true,
-    }),
-  },
+  { path: APP_ROUTES.notFound.path, element: createElement(NotFoundPage) },
 ])

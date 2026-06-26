@@ -9,54 +9,20 @@
     "add": "Add",
     "edit": "Edit",
     "view": "View",
-    "dashboard": {
-      "plural": "Dashboard",
-      "singular": "Dashboard"
-    },
-    "quizBuilder": {
-      "plural": "Quiz Builder",
-      "singular": "Quiz Builder"
-    },
-    "quizzes": {
-      "plural": "Quizzes",
-      "singular": "Quiz"
-    },
-    "lessons": {
-      "plural": "Lessons",
-      "singular": "Lesson"
-    },
-    "units": {
-      "plural": "Units",
-      "singular": "Unit"
-    },
-    "teachers": {
-      "plural": "Teachers",
-      "singular": "Teacher"
-    },
-    "students": {
-      "plural": "Students",
-      "singular": "Student"
-    },
-    "reviewQueue": {
-      "plural": "Review Queue",
-      "singular": "Review"
-    },
-    "settings": {
-      "plural": "Settings",
-      "singular": "Setting"
-    }
+    "dashboard": { "plural": "Dashboard", "singular": "Dashboard" },
+    "quizBuilder": { "plural": "Quiz Builder", "singular": "Quiz Builder" },
+    "quizzes": { "plural": "Quizzes", "singular": "Quiz" },
+    "questions": { "plural": "Question Bank", "singular": "Question" },
+    "classes": { "plural": "Classes", "singular": "Class" },
+    "subjects": { "plural": "Subjects", "singular": "Subject" },
+    "units": { "plural": "Units", "singular": "Unit" },
+    "lessons": { "plural": "Lessons", "singular": "Lesson" },
+    "teachers": { "plural": "Teachers", "singular": "Teacher" },
+    "students": { "plural": "Students", "singular": "Student" },
+    "reviewQueue": { "plural": "Review", "singular": "Review" },
+    "settings": { "plural": "Settings", "singular": "Setting" }
   },
   "header": {
-    "eyebrow": "Quizy Admin",
-    "title": "Turn quiz files into structured learning content ready to publish.",
-    "searchInput": "Search",
-    "searchPlaceholder": "Search quizzes, lessons, or teachers...",
-    "searchLoading": "Searching...",
-    "searchNoResults": "No results found",
-    "searchError": "Something went wrong while searching",
-    "searchResultFallbackTitle": "Unnamed result",
-    "notifications": "Notifications",
-    "helpCenter": "Help Center",
     "switchToDark": "Switch to dark mode",
     "switchToLight": "Switch to light mode"
   },
