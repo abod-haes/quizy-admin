@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Download, ExternalLink, FileVideo, Loader2, Pencil, Plus, Trash2, Upload } from 'lucide-react'
+import { Download, ExternalLink, FileVideo, Loader2, Pencil, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { api } from '@/shared/api/api-client'
@@ -45,40 +45,10 @@ export default function CourseContentPage() {
   const courseOptions = useMemo(() => (coursesQuery.data?.items ?? []).map((item) => ({ value: item.id, label: labelOf(item) })), [coursesQuery.data?.items])
   const sessionOptions = useMemo(() => (sessionsQuery.data?.items ?? []).map((item) => ({ value: item.id, label: labelOf(item) })), [sessionsQuery.data?.items])
   const dialogSessionOptions = useMemo(() => (dialogSessionsQuery.data?.items ?? []).map((item) => ({ value: item.id, label: labelOf(item) })), [dialogSessionsQuery.data?.items])
-
   const invalidateCurrent = async () => { await queryClient.invalidateQueries({ queryKey: ['course-content', 'materials', sessionId] }); await queryClient.invalidateQueries({ queryKey: ['course-content', 'comments', sessionId] }); await queryClient.invalidateQueries({ queryKey: ['course-content', 'notes', sessionId] }) }
   const uploadResource = async (material: MaterialForm) => { if (!material.file) throw new Error('اختر ملفًا أو فيديو من الفورم'); const formData = new FormData(); formData.append('file', material.file); formData.append('entityId', material.courseId); formData.append('isImage', String(material.file.type.startsWith('image/'))); const resource = await api.upload<UploadedResource>(API_ENDPOINTS.resources.upload, formData); const resourceId = extractResourceId(resource); if (!resourceId) throw new Error('تم رفع الملف لكن لم يرجع resourceId من السيرفر'); return resourceId }
-
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (dialog.kind === 'material') {
-        const targetSessionId = dialog.material.sessionId
-        if (!dialog.material.courseId) throw new Error('اختر الكورس داخل الفورم')
-        if (!targetSessionId) throw new Error('اختر الجلسة داخل الفورم')
-        if (!dialog.material.title.trim()) throw new Error('اكتب عنوان المادة')
-        const resourceId = await uploadResource(dialog.material)
-        const body = { title: dialog.material.title.trim(), description: dialog.material.description.trim(), materialType: Number(dialog.material.materialType), resourceId, order: Number(dialog.material.order) || 0 }
-        if (dialog.item?.id) return api.patch(API_ENDPOINTS.courseMaterials.update(dialog.item.id), body)
-        return api.post(API_ENDPOINTS.courseSessions.materials(targetSessionId), body)
-      }
-      const targetSessionId = dialog.text.sessionId
-      if (!dialog.text.courseId) throw new Error('اختر الكورس داخل الفورم')
-      if (!targetSessionId) throw new Error('اختر الجلسة داخل الفورم')
-      if (!dialog.text.content.trim()) throw new Error('اكتب المحتوى')
-      const body = { content: dialog.text.content.trim() }
-      if (dialog.kind === 'comment') { if (dialog.item?.id) return api.patch(API_ENDPOINTS.courseComments.update(dialog.item.id), body); return api.post(API_ENDPOINTS.courseSessions.comments(targetSessionId), body) }
-      if (dialog.item?.id) return api.patch(API_ENDPOINTS.courseTeacherNotes.update(dialog.item.id), body)
-      return api.post(API_ENDPOINTS.courseSessions.notes(targetSessionId), body)
-    },
-    onSuccess: async () => { toast.success('تم الحفظ'); setDialog((current) => ({ ...current, open: false })); await invalidateCurrent() },
-    onError: (error) => toast.error(errorMessage(error)),
-  })
-
-  const removeMutation = useMutation({
-    mutationFn: async (item: Material | TextRecord) => { if (tab === 'materials') return api.delete(API_ENDPOINTS.courseMaterials.remove(item.id)); if (tab === 'comments') return api.delete(API_ENDPOINTS.courseComments.remove(item.id)); return api.delete(API_ENDPOINTS.courseTeacherNotes.remove(item.id)) },
-    onSuccess: async () => { toast.success('تم الحذف'); setDeleteTarget(null); await invalidateCurrent() },
-    onError: (error) => toast.error(errorMessage(error)),
-  })
+  const saveMutation = useMutation({ mutationFn: async () => { if (dialog.kind === 'material') { const targetSessionId = dialog.material.sessionId; if (!dialog.material.courseId) throw new Error('اختر الكورس داخل الفورم'); if (!targetSessionId) throw new Error('اختر الجلسة داخل الفورم'); if (!dialog.material.title.trim()) throw new Error('اكتب عنوان المادة'); const resourceId = await uploadResource(dialog.material); const body = { title: dialog.material.title.trim(), description: dialog.material.description.trim(), materialType: Number(dialog.material.materialType), resourceId, order: Number(dialog.material.order) || 0 }; if (dialog.item?.id) return api.patch(API_ENDPOINTS.courseMaterials.update(dialog.item.id), body); return api.post(API_ENDPOINTS.courseSessions.materials(targetSessionId), body) } const targetSessionId = dialog.text.sessionId; if (!dialog.text.courseId) throw new Error('اختر الكورس داخل الفورم'); if (!targetSessionId) throw new Error('اختر الجلسة داخل الفورم'); if (!dialog.text.content.trim()) throw new Error('اكتب المحتوى'); const body = { content: dialog.text.content.trim() }; if (dialog.kind === 'comment') { if (dialog.item?.id) return api.patch(API_ENDPOINTS.courseComments.update(dialog.item.id), body); return api.post(API_ENDPOINTS.courseSessions.comments(targetSessionId), body) } if (dialog.item?.id) return api.patch(API_ENDPOINTS.courseTeacherNotes.update(dialog.item.id), body); return api.post(API_ENDPOINTS.courseSessions.notes(targetSessionId), body) }, onSuccess: async () => { toast.success('تم الحفظ'); setDialog((current) => ({ ...current, open: false })); await invalidateCurrent() }, onError: (error) => toast.error(errorMessage(error)) })
+  const removeMutation = useMutation({ mutationFn: async (item: Material | TextRecord) => { if (tab === 'materials') return api.delete(API_ENDPOINTS.courseMaterials.remove(item.id)); if (tab === 'comments') return api.delete(API_ENDPOINTS.courseComments.remove(item.id)); return api.delete(API_ENDPOINTS.courseTeacherNotes.remove(item.id)) }, onSuccess: async () => { toast.success('تم الحذف'); setDeleteTarget(null); await invalidateCurrent() }, onError: (error) => toast.error(errorMessage(error)) })
   const downloadMutation = useMutation({ mutationFn: async (material: Material) => api.downloadBlob(API_ENDPOINTS.courseMaterials.download(material.id)), onSuccess: (blob, material) => downloadBlob(blob, getBlobName(material)), onError: (error) => toast.error(errorMessage(error)) })
   const openCreate = (kind: DialogKind) => setDialog({ open: true, kind, item: null, material: createEmptyMaterial(courseId, sessionId), text: createEmptyText(courseId, sessionId) })
   const openMaterial = (item: Material) => setDialog({ open: true, kind: 'material', item, material: { ...createEmptyMaterial(courseId, sessionId), title: item.title ?? '', description: item.description ?? '', materialType: String(item.materialType ?? 1), order: item.order ?? 0 }, text: createEmptyText(courseId, sessionId) })
@@ -86,7 +56,6 @@ export default function CourseContentPage() {
   const activeItems = tab === 'materials' ? (materialsQuery.data?.items ?? []) : tab === 'comments' ? (commentsQuery.data?.items ?? []) : (notesQuery.data?.items ?? [])
   const activeLoading = tab === 'materials' ? materialsQuery.isLoading : tab === 'comments' ? commentsQuery.isLoading : notesQuery.isLoading
   const confirmDelete = () => { if (deleteTarget) removeMutation.mutate(deleteTarget) }
-
   return (
     <section className="flex min-h-0 w-full flex-col gap-3 overflow-hidden">
       <div className="rounded-[1.4rem] border border-primary/10 bg-card/95 px-4 py-3 shadow-sm sm:px-5"><Badge variant="outline" color="primary" className="mb-2 rounded-full px-3">Courses</Badge><h1 className="text-2xl font-bold tracking-tight text-foreground">إدارة محتوى الكورسات</h1><p className="mt-1 text-sm text-muted-foreground">اعرض مواد الجلسة من CourseMaterials، وأضف الملفات عبر رفع مباشر من الفورم فقط.</p></div>
