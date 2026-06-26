@@ -1,6 +1,13 @@
 import { api } from '@/shared/api/api-client'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 
+export type AdminLoginUser = {
+  id: number | string
+  name: string
+  email: string
+  is_active?: boolean
+} & Record<string, unknown>
+
 export type LoginRequest = {
   phoneNumber: string
   password: string
@@ -18,7 +25,10 @@ export type LoginResponse = {
   firstName?: string | null
   lastName?: string | null
   role?: string | null
+  user?: AdminLoginUser | null
 }
+
+export type AdminLoginResponse = LoginResponse
 
 export async function loginAdmin(payload: LoginRequest): Promise<LoginResponse> {
   return api.post<LoginResponse, LoginRequest>(API_ENDPOINTS.auth.login, payload)
