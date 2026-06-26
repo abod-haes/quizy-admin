@@ -1,4 +1,5 @@
 import {
+  BarChart3,
   BookOpenCheck,
   BookText,
   CalendarDays,
@@ -19,7 +20,17 @@ import type { SidebarItem } from '@/app/layout/sidebar/sidebar.types'
 import { APP_ROUTES } from '@/app/router/route-object.type'
 
 export const primarySidebarItems: SidebarItem[] = [
-  { id: 'dashboard', labelKey: 'sidebar.items.dashboard', to: APP_ROUTES.dashboard.path, icon: Gauge, end: true },
+  {
+    id: 'dashboardScope',
+    labelKey: 'sidebar.items.dashboard',
+    icon: Gauge,
+    defaultOpen: true,
+    children: [
+      { id: 'statistics', labelKey: 'translation:layout.meta.dashboard.plural', to: APP_ROUTES.dashboard.path, icon: BarChart3, end: true },
+      { id: 'ads', labelKey: 'content-crud:modules.ads.title', to: APP_ROUTES.ads.path, icon: Megaphone, end: true },
+      { id: 'pageContents', labelKey: 'content-crud:modules.pageContents.title', to: APP_ROUTES.pageContents.path, icon: FileText, end: true },
+    ],
+  },
   {
     id: 'quizManagement',
     labelKey: 'sidebar.groups.quizManagement',
@@ -49,8 +60,6 @@ export const primarySidebarItems: SidebarItem[] = [
       { id: 'subjects', labelKey: 'sidebar.items.subjects', to: APP_ROUTES.subjects.path, icon: BookText, end: true },
       { id: 'units', labelKey: 'sidebar.items.units', to: APP_ROUTES.units.path, icon: Layers3, end: true },
       { id: 'lessons', labelKey: 'sidebar.items.lessons', to: APP_ROUTES.lessons.path, icon: BookOpenCheck, end: true },
-      { id: 'ads', labelKey: 'content-crud:modules.ads.title', to: APP_ROUTES.ads.path, icon: Megaphone, end: true },
-      { id: 'pageContents', labelKey: 'content-crud:modules.pageContents.title', to: APP_ROUTES.pageContents.path, icon: FileText, end: true },
     ],
   },
   {
