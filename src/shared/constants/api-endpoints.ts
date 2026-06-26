@@ -5,6 +5,15 @@ export const API_ENDPOINTS = {
     forgotPassword: '/api/v1/admin/forgot-password',
     forgetPassword: '/api/v1/admin/forget-password',
   },
+  quizyAuth: {
+    register: '/api/Auth/register',
+    registerVerify: '/api/Auth/register/verify',
+    login: '/api/Auth/login',
+    currentUser: '/api/Auth/current-user',
+    forgotPassword: '/api/Auth/password/forgot',
+    resetPassword: '/api/Auth/password/reset',
+    resendPasswordOtp: '/api/Auth/password/resend-otp',
+  },
   homeContent: {
     detail: '/api/v1/admin/home-content',
     update: '/api/v1/admin/home-content',
