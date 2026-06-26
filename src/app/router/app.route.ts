@@ -12,9 +12,11 @@ import RecoverPage from '@/modules/auth/pages/recover.page'
 import ResetPasswordPage from '@/modules/auth/pages/reset-password.page'
 import VerifyCodePage from '@/modules/auth/pages/verify-code.page'
 import {
+  AdsPage,
   ClassesPage,
   CoursesPage,
   LessonsPage,
+  PageContentsPage,
   QuestionsPage,
   StudentsPage,
   SubjectsPage,
@@ -63,6 +65,8 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'courses', element: createElement(CoursesPage) },
   { routeKey: 'courseSessions', element: createElement(CourseSessionsPage) },
   { routeKey: 'courseContent', element: createElement(CourseContentPage) },
+  { routeKey: 'ads', element: createElement(AdsPage) },
+  { routeKey: 'pageContents', element: createElement(PageContentsPage) },
 ]
 
 export const appRouter = createBrowserRouter([
