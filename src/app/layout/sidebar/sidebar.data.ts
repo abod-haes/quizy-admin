@@ -1,5 +1,4 @@
 import {
-  BarChart3,
   BookOpenCheck,
   BookText,
   CalendarDays,
@@ -26,7 +25,7 @@ export const primarySidebarItems: SidebarItem[] = [
     icon: Gauge,
     defaultOpen: true,
     children: [
-      { id: 'statistics', labelKey: 'translation:layout.meta.dashboard.plural', to: APP_ROUTES.dashboard.path, icon: BarChart3, end: true },
+      { id: 'statistics', labelKey: 'translation:layout.meta.dashboard.plural', to: APP_ROUTES.dashboard.path, icon: Gauge, end: true },
       { id: 'ads', labelKey: 'content-crud:modules.ads.title', to: APP_ROUTES.ads.path, icon: Megaphone, end: true },
       { id: 'pageContents', labelKey: 'content-crud:modules.pageContents.title', to: APP_ROUTES.pageContents.path, icon: FileText, end: true },
     ],
