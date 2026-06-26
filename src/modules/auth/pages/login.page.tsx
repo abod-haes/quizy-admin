@@ -12,26 +12,14 @@ import { getPermissionsForRoles } from '@/shared/auth/quizy-permissions'
 import { Button, FormField, Input } from '@/shared/ui'
 
 export default function LoginPage() {
-  const { t, i18n } = useTranslation('login')
+  const { t } = useTranslation('login')
   const navigate = useNavigate()
-  const location = useLocation()
   const { isAuthenticated, login } = useAuth()
   const [countryCallingCode, setCountryCallingCode] = useState('+963')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [password, setPassword] = useState('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(() => {
-    const state = location.state as AuthRouteState | null
-    return state?.successMessage ?? null
-  })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const isArabic = i18n.language.startsWith('ar')
-  const authCopy = {
-    resetLink: isArabic ? 'استعادة الوصول' : 'Reset access',
-    registerPrompt: isArabic ? 'ليس لديك حساب؟' : "Need an account?",
-    registerLinkText: isArabic ? 'إنشاء حساب جديد' : 'Create an account',
-  }
-  const tr = (key: string, fallback: string) => t(key, { defaultValue: fallback })
 
   if (isAuthenticated) return <Navigate replace to={APP_ROUTES.dashboard.path} />
 
@@ -42,7 +30,6 @@ export default function LoginPage() {
     const normalizedPassword = password.trim()
     if (!normalizedPhoneNumber || !normalizedCountryCallingCode || !normalizedPassword) return
     setErrorMessage(null)
-    setSuccessMessage(null)
     setIsSubmitting(true)
     try {
       const result = await loginAdmin({ phoneNumber: normalizedPhoneNumber, countryCallingCode: normalizedCountryCallingCode, password: normalizedPassword })
