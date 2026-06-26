@@ -1,5 +1,5 @@
 import { getCountries, getCountryCallingCode } from 'react-phone-number-input'
-import arLabels from 'react-phone-number-input/locale/ar'
+import arLabels from 'react-phone-number-input/locale/ar.json'
 
 import { CustomSelect } from '@/components/ui/custom-select'
 
