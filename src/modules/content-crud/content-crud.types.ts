@@ -40,7 +40,7 @@ export type AcademicContentItem = {
   classIds?: UUID[] | null
   entityIds?: UUID[] | null
   lessonIds?: UUID[] | null
-  questions?: unknown[] | null
+  questions?: string[] | null
   classes?: ContentRelationOption[] | null
   subjects?: ContentRelationOption[] | null
   subject?: ContentRelationOption | null
