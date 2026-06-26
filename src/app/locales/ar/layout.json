@@ -1,7 +1,7 @@
 {
   "brand": {
-    "name": "أموريا",
-    "subtitle": "لوحة الإدارة"
+    "name": "Quizy",
+    "subtitle": "لوحة الاختبارات"
   },
   "meta": {
     "login": "تسجيل الدخول",
@@ -9,64 +9,22 @@
     "add": "إضافة",
     "edit": "تعديل",
     "view": "عرض",
-    "home": {
-      "plural": "الرئيسية",
-      "singular": "الرئيسية"
-    },
-    "aboutUs": {
-      "plural": "من نحن",
-      "singular": "من نحن"
-    },
-    "pages": {
-      "plural": "الصفحات",
-      "singular": "صفحة"
-    },
-    "projects": {
-      "plural": "المشاريع",
-      "singular": "مشروع"
-    },
-    "pageSections": {
-      "plural": "أقسام الصفحات",
-      "singular": "قسم صفحة"
-    },
-    "sectionItems": {
-      "plural": "عناصر الأقسام",
-      "singular": "عنصر قسم"
-    },
-    "boardMembers": {
-      "plural": "أعضاء مجلس الإدارة",
-      "singular": "عضو مجلس"
-    },
-    "galleryItems": {
-      "plural": "عناصر المعرض",
-      "singular": "عنصر معرض"
-    },
-    "faqs": {
-      "plural": "الأسئلة الشائعة",
-      "singular": "سؤال شائع"
-    },
-    "footerLinks": {
-      "plural": "روابط التذييل",
-      "singular": "رابط تذييل"
-    },
-    "contactInfos": {
-      "plural": "معلومات التواصل",
-      "singular": "معلومة تواصل"
-    },
-    "contactMessages": {
-      "plural": "رسائل التواصل",
-      "singular": "رسالة تواصل"
-    }
+    "dashboard": { "plural": "لوحة التحكم", "singular": "لوحة التحكم" },
+    "quizBuilder": { "plural": "بناء الاختبارات", "singular": "بناء اختبار" },
+    "quizzes": { "plural": "الاختبارات", "singular": "اختبار" },
+    "questions": { "plural": "بنك الأسئلة", "singular": "سؤال" },
+    "courses": { "plural": "الكورسات", "singular": "كورس" },
+    "courseSessions": { "plural": "الجلسات", "singular": "جلسة" },
+    "resources": { "plural": "الملفات", "singular": "ملف" },
+    "classes": { "plural": "الصفوف", "singular": "صف" },
+    "subjects": { "plural": "المواد", "singular": "مادة" },
+    "units": { "plural": "الوحدات", "singular": "وحدة" },
+    "lessons": { "plural": "الدروس", "singular": "درس" },
+    "teachers": { "plural": "المدرسون", "singular": "مدرس" },
+    "students": { "plural": "الطلاب", "singular": "طالب" },
+    "settings": { "plural": "الإعدادات", "singular": "إعداد" }
   },
   "header": {
-    "searchInput": "بحث",
-    "searchPlaceholder": "ابحث بواسطة الضيف أو الحجز...",
-    "searchLoading": "جارٍ البحث...",
-    "searchNoResults": "لا توجد نتائج",
-    "searchError": "حدث خطأ أثناء البحث",
-    "searchResultFallbackTitle": "نتيجة بلا اسم",
-    "notifications": "الإشعارات",
-    "helpCenter": "مركز المساعدة",
     "switchToDark": "التبديل إلى الوضع الداكن",
     "switchToLight": "التبديل إلى الوضع الفاتح"
   },

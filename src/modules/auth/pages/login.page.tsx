@@ -1,28 +1,23 @@
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/app/providers/auth.provider'
 import { APP_ROUTES } from '@/app/router/route-object.type'
+import { CountryCodeSelect } from '@/components/ui/country-code-select'
 import type { ApiError } from '@/core/api/api-error.type'
-import { AuthPageShell } from '@/modules/auth/components/auth-page-shell.component'
-import {
-  ADMIN_DEVICE_NAME,
-  toAuthUser,
-} from '@/modules/auth/services/admin-auth-session.helpers'
+import { AuthVisualLayout } from '@/modules/auth/components/auth-visual-layout.component'
 import { loginAdmin } from '@/modules/auth/services/login.services'
+import { getPermissionsForRoles } from '@/shared/auth/quizy-permissions'
 import { Button, FormField, Input } from '@/shared/ui'
-
-type AuthRouteState = {
-  successMessage?: string
-}
 
 export default function LoginPage() {
   const { t, i18n } = useTranslation('login')
   const navigate = useNavigate()
   const location = useLocation()
   const { isAuthenticated, login } = useAuth()
-  const [email, setEmail] = useState('')
+  const [countryCallingCode, setCountryCallingCode] = useState('+963')
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [password, setPassword] = useState('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(() => {
@@ -38,105 +33,75 @@ export default function LoginPage() {
   }
   const tr = (key: string, fallback: string) => t(key, { defaultValue: fallback })
 
-  if (isAuthenticated) {
-    return <Navigate replace to={APP_ROUTES.pages.path} />
-  }
+  if (isAuthenticated) return <Navigate replace to={APP_ROUTES.dashboard.path} />
 
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault()
-
-    const normalizedEmail = email.trim()
+    const normalizedPhoneNumber = phoneNumber.trim()
+    const normalizedCountryCallingCode = countryCallingCode.trim()
     const normalizedPassword = password.trim()
-    if (!normalizedEmail || !normalizedPassword) {
-      return
-    }
-
+    if (!normalizedPhoneNumber || !normalizedCountryCallingCode || !normalizedPassword) return
     setErrorMessage(null)
     setSuccessMessage(null)
     setIsSubmitting(true)
-
     try {
-      const result = await loginAdmin({
-        email: normalizedEmail,
-        password: normalizedPassword,
-        device_name: ADMIN_DEVICE_NAME,
+      const result = await loginAdmin({ phoneNumber: normalizedPhoneNumber, countryCallingCode: normalizedCountryCallingCode, password: normalizedPassword })
+      if (!result.token || !result.isAuthenticated) {
+        setErrorMessage(result.message || t('invalidCredentials'))
+        return
+      }
+      const displayName = [result.firstName, result.lastName].filter(Boolean).join(' ').trim()
+      const role = result.role === 'Teacher' || result.role === 'Student' || result.role === 'SuperAdmin' ? result.role : 'SuperAdmin'
+      const roles = [role]
+      login(result.token, roles, getPermissionsForRoles(roles), {
+        id: result.userId,
+        name: displayName || result.phoneNumber || t('unknownUser'),
+        email: '',
+        firstName: result.firstName ?? null,
+        lastName: result.lastName ?? null,
+        phoneNumber: result.phoneNumber ?? normalizedPhoneNumber,
+        countryCallingCode: result.countryCallingCode ?? normalizedCountryCallingCode,
+        role,
+        profilePhotoPath: null,
+        profilePhotoUrl: null,
       })
-
-      login(result.token, [], [], toAuthUser(result.user))
-      navigate(APP_ROUTES.pages.path, { replace: true })
+      navigate(APP_ROUTES.dashboard.path, { replace: true })
     } catch (error) {
       const apiError = error as ApiError
-      if (apiError?.status === 422 || apiError?.status === 401) {
-        setErrorMessage(t('invalidCredentials'))
-      } else {
-        setErrorMessage(t('unexpectedError'))
-      }
+      setErrorMessage(apiError?.message || t('unexpectedError'))
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <AuthPageShell title={t('title')} description={t('description')}>
+    <AuthVisualLayout
+      title={t('title')}
+      description={t('description')}
+      footer={
+        <div className="flex flex-col items-center gap-2 text-sm text-slate-500">
+          <Link className="font-bold text-[#6949ff] hover:underline" to="/recover">Forgot access?</Link>
+          <span>New to Quizy? <Link className="font-bold text-[#6949ff] hover:underline" to="/register">Create account</Link></span>
+        </div>
+      }
+    >
       <form className="space-y-5" onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 gap-4">
-          <FormField htmlFor="auth-email" label={t('email')}>
-            <Input
-              id="auth-email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder={t('emailPlaceholder')}
-              autoComplete="email"
-            />
+        <div className="grid grid-cols-[8.25rem_1fr] gap-3">
+          <FormField htmlFor="auth-country-code" label={t('countryCallingCode')}>
+            <CountryCodeSelect id="auth-country-code" value={countryCallingCode} placeholder={t('countryCallingCodePlaceholder')} disabled={isSubmitting} onValueChange={setCountryCallingCode} />
           </FormField>
-
-          <FormField htmlFor="auth-password" label={t('password')}>
-            <Input
-              id="auth-password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder={t('passwordPlaceholder')}
-              autoComplete="current-password"
-            />
+          <FormField htmlFor="auth-phone" label={t('phoneNumber')}>
+            <Input id="auth-phone" inputMode="tel" value={phoneNumber} disabled={isSubmitting} onChange={(event) => setPhoneNumber(event.target.value)} placeholder={t('phoneNumberPlaceholder')} />
           </FormField>
         </div>
-
-        <div className="flex justify-end text-sm">
-          <Link className="text-primary underline-offset-4 hover:underline" to={APP_ROUTES.forgotPassword.path}>
-            {tr('forgotPasswordLink', authCopy.resetLink)}
-          </Link>
-        </div>
-
-        {successMessage ? (
-          <p className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-300">
-            {successMessage}
-          </p>
-        ) : null}
-
-        {errorMessage ? (
-          <p className="rounded-md border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {errorMessage}
-          </p>
-        ) : null}
-
-        <Button
-          className="w-full"
-          type="submit"
-          loading={isSubmitting}
-          disabled={!email.trim() || !password.trim() || isSubmitting}
-        >
+        <FormField htmlFor="auth-password" label={t('password')}>
+          <Input id="auth-password" type="password" value={password} disabled={isSubmitting} onChange={(event) => setPassword(event.target.value)} placeholder={t('passwordPlaceholder')} />
+        </FormField>
+        {errorMessage ? <p className="rounded-2xl border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">{errorMessage}</p> : null}
+        <Button type="submit" disabled={!countryCallingCode.trim() || !phoneNumber.trim() || !password.trim() || isSubmitting} loading={isSubmitting} className="h-12 w-full rounded-2xl bg-[#6949ff] text-white">
           {isSubmitting ? t('submitting') : t('submit')}
         </Button>
       </form>
-
-      <p className="text-center text-sm text-muted-foreground">
-        {tr('registerPrompt', authCopy.registerPrompt)}{' '}
-        <Link className="font-medium text-primary underline-offset-4 hover:underline" to={APP_ROUTES.register.path}>
-          {tr('registerLink', authCopy.registerLinkText)}
-        </Link>
-      </p>
-    </AuthPageShell>
+    </AuthVisualLayout>
   )
 }

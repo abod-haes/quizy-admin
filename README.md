@@ -1,85 +1,44 @@
-# React + TypeScript + Vite
+# Quizy Admin
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+لوحة إدارة مخصصة لمشروع Quizy لإدارة الاختبارات، الدروس، الوحدات، المدرسين، الطلاب، ومراجعة التحويل من ملفات الاختبارات إلى بيانات جاهزة للنشر.
 
-Currently, two official plugins are available:
+## ما تغيّر في هذا الفرع
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- تحويل هوية المشروع من قالب عام / CMS قديم إلى Quizy Admin.
+- إضافة Dashboard رئيسية لمسار العمل التعليمي.
+- استبدال عناصر السايدبار القديمة بعناصر Quizy الفعلية.
+- إضافة صفحات placeholders احترافية للأقسام التي تحتاج ربط API لاحقًا.
+- حذف ملف `postman.json` القديم من الريبو.
 
-## React Compiler
+## أقسام اللوحة المقترحة
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Dashboard
+- Quiz Builder
+- Quizzes
+- Lessons
+- Units
+- Teachers
+- Students
+- Review Queue
+- Settings
 
-## Expanding the ESLint configuration
+## تطويرات ضرورية ليصير المشروع دايناميك بالكامل
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. تثبيت عقود API النهائية لكل مورد: quizzes, lessons, units, teachers, entities, files.
+2. بناء CRUD modules من config موحد بدل تكرار الجداول والنماذج يدويًا.
+3. إضافة Review Queue للأسئلة التي تحتاج إجابة صحيحة، صورة، أو توضيح.
+4. ربط الواجهات بـ React Query بدل البيانات المؤقتة.
+5. إضافة صلاحيات واضحة لأدوار admin, reviewer, content operator.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## التشغيل
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## البناء
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run build
 ```
-
-## CRUD Workflow
-
-- CRUD + roles + validation playbook: `docs/crud-ai-playbook.md`
-- CRUD generator script: `npm run make:crud`
-
-## Permissions & Roles (Backend Driven)
-
-- Permission constants: `src/constants/permissions.ts`
-- Backend payload parser + helpers: `src/utils/permissions.ts`
-- UI guard component: `src/components/common/can/index.tsx`
-- Usage example: `src/components/common/can/example.usage.tsx`

@@ -1,7 +1,7 @@
 {
   "brand": {
-    "name": "Amoria",
-    "subtitle": "Admin Panel"
+    "name": "Quizy",
+    "subtitle": "Quiz Ops"
   },
   "meta": {
     "login": "Login",
@@ -9,64 +9,20 @@
     "add": "Add",
     "edit": "Edit",
     "view": "View",
-    "home": {
-      "plural": "Home",
-      "singular": "Home"
-    },
-    "aboutUs": {
-      "plural": "About Us",
-      "singular": "About Us"
-    },
-    "pages": {
-      "plural": "Pages",
-      "singular": "Page"
-    },
-    "projects": {
-      "plural": "Projects",
-      "singular": "Project"
-    },
-    "pageSections": {
-      "plural": "Page Sections",
-      "singular": "Page Section"
-    },
-    "sectionItems": {
-      "plural": "Section Items",
-      "singular": "Section Item"
-    },
-    "boardMembers": {
-      "plural": "Board Members",
-      "singular": "Board Member"
-    },
-    "galleryItems": {
-      "plural": "Gallery Items",
-      "singular": "Gallery Item"
-    },
-    "faqs": {
-      "plural": "FAQs",
-      "singular": "FAQ"
-    },
-    "footerLinks": {
-      "plural": "Footer Links",
-      "singular": "Footer Link"
-    },
-    "contactInfos": {
-      "plural": "Contact Info",
-      "singular": "Contact Info"
-    },
-    "contactMessages": {
-      "plural": "Contact Messages",
-      "singular": "Contact Message"
-    }
+    "dashboard": { "plural": "Dashboard", "singular": "Dashboard" },
+    "quizBuilder": { "plural": "Quiz Builder", "singular": "Quiz Builder" },
+    "quizzes": { "plural": "Quizzes", "singular": "Quiz" },
+    "questions": { "plural": "Question Bank", "singular": "Question" },
+    "classes": { "plural": "Classes", "singular": "Class" },
+    "subjects": { "plural": "Subjects", "singular": "Subject" },
+    "units": { "plural": "Units", "singular": "Unit" },
+    "lessons": { "plural": "Lessons", "singular": "Lesson" },
+    "teachers": { "plural": "Teachers", "singular": "Teacher" },
+    "students": { "plural": "Students", "singular": "Student" },
+    "reviewQueue": { "plural": "Review", "singular": "Review" },
+    "settings": { "plural": "Settings", "singular": "Setting" }
   },
   "header": {
-    "searchInput": "Search",
-    "searchPlaceholder": "Search by guest or reservation...",
-    "searchLoading": "Searching...",
-    "searchNoResults": "No results found",
-    "searchError": "Something went wrong while searching",
-    "searchResultFallbackTitle": "Unnamed result",
-    "notifications": "Notifications",
-    "helpCenter": "Help Center",
     "switchToDark": "Switch to dark mode",
     "switchToLight": "Switch to light mode"
   },

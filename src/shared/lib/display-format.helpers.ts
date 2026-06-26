@@ -12,12 +12,20 @@ const ID_TOKEN_PATTERNS = [
 
 const PHONE_TEXT_PATTERN = /^[+\d\s()-]+$/
 
-export function normalizePhoneDigits(value: string): string {
-  return value.replace(/\D+/g, '')
+function toSafeText(value: unknown): string {
+  if (value === null || value === undefined) {
+    return ''
+  }
+
+  return String(value).trim()
 }
 
-function toPhoneDisplayValue(value: string): string {
-  const normalizedValue = value.trim()
+export function normalizePhoneDigits(value: unknown): string {
+  return toSafeText(value).replace(/\D+/g, '')
+}
+
+function toPhoneDisplayValue(value: unknown): string {
+  const normalizedValue = toSafeText(value)
   const hasLeadingPlus = normalizedValue.startsWith('+')
   const digits = normalizePhoneDigits(normalizedValue)
 
@@ -28,8 +36,8 @@ function toPhoneDisplayValue(value: string): string {
   return hasLeadingPlus ? `+${digits}` : digits
 }
 
-export function looksLikePhoneText(value: string): boolean {
-  const normalizedValue = value.trim()
+export function looksLikePhoneText(value: unknown): boolean {
+  const normalizedValue = toSafeText(value)
 
   if (!normalizedValue || !PHONE_TEXT_PATTERN.test(normalizedValue)) {
     return false
@@ -38,8 +46,8 @@ export function looksLikePhoneText(value: string): boolean {
   return normalizePhoneDigits(normalizedValue).length >= 7
 }
 
-export function stripDisplayIdTokens(value: string): string {
-  let formattedValue = value
+export function stripDisplayIdTokens(value: unknown): string {
+  let formattedValue = toSafeText(value)
 
   for (const pattern of ID_TOKEN_PATTERNS) {
     formattedValue = formattedValue.replace(pattern, ' ')
@@ -59,12 +67,7 @@ export function formatUiDisplayValue(
   options: UiDisplayFormatOptions = {}
 ): string {
   const fallback = options.fallback ?? '-'
-
-  if (value === null || value === undefined) {
-    return fallback
-  }
-
-  const normalizedValue = String(value).trim()
+  const normalizedValue = toSafeText(value)
 
   if (!normalizedValue) {
     return fallback

@@ -7,6 +7,27 @@ import { AppSidebar } from '@/app/layout/sidebar/app-sidebar.component'
 import { MobileSidebarDrawer } from '@/app/layout/sidebar/mobile-sidebar-drawer.component'
 import { cn } from '@/lib/utils'
 
+const moduleTranslationKeys: Record<string, string> = {
+  dashboard: 'dashboard',
+  'quiz-builder': 'quizBuilder',
+  quizzes: 'quizzes',
+  questions: 'questions',
+  classes: 'classes',
+  subjects: 'subjects',
+  units: 'units',
+  lessons: 'lessons',
+  teachers: 'teachers',
+  students: 'students',
+  courses: 'courses',
+  resources: 'resources',
+}
+
+const moduleTitleFallbacks: Record<string, string> = {
+  courses: 'Courses',
+  courseSessions: 'Sessions',
+  resources: 'Resources',
+}
+
 export function AppShellLayout() {
   const [mobileOpen, setMobileOpen] = useState<boolean>(false)
   const { i18n, t } = useTranslation()
@@ -14,90 +35,23 @@ export function AppShellLayout() {
 
   const isRtl = i18n.dir() === 'rtl'
   const directionClass = isRtl ? 'app-dir-rtl' : 'app-dir-ltr'
+  const pathSegments = location.pathname.split('/').filter(Boolean)
+  const firstSegment = pathSegments[0] ?? 'dashboard'
+  const secondSegment = pathSegments[1]
+  const shouldLockPageScroll = firstSegment === 'quizzes'
+
   const pageTitle = useMemo(() => {
     const brandName = t('layout.brand.name')
-    const segments = location.pathname.split('/').filter(Boolean)
-    const firstSegment = segments[0] ?? ''
-    const actionSegment = segments[1] ?? ''
 
-    const moduleMap: Record<string, { plural: string; singular: string }> = {
-      home: {
-        plural: t('layout.meta.home.plural'),
-        singular: t('layout.meta.home.singular'),
-      },
-      'about-us': {
-        plural: t('layout.meta.aboutUs.plural'),
-        singular: t('layout.meta.aboutUs.singular'),
-      },
-      pages: {
-        plural: t('layout.meta.pages.plural'),
-        singular: t('layout.meta.pages.singular'),
-      },
-      projects: {
-        plural: t('layout.meta.projects.plural'),
-        singular: t('layout.meta.projects.singular'),
-      },
-      'page-sections': {
-        plural: t('layout.meta.pageSections.plural'),
-        singular: t('layout.meta.pageSections.singular'),
-      },
-      'section-items': {
-        plural: t('layout.meta.sectionItems.plural'),
-        singular: t('layout.meta.sectionItems.singular'),
-      },
-      'board-members': {
-        plural: t('layout.meta.boardMembers.plural'),
-        singular: t('layout.meta.boardMembers.singular'),
-      },
-      'gallery-items': {
-        plural: t('layout.meta.galleryItems.plural'),
-        singular: t('layout.meta.galleryItems.singular'),
-      },
-      faqs: {
-        plural: t('layout.meta.faqs.plural'),
-        singular: t('layout.meta.faqs.singular'),
-      },
-      'footer-links': {
-        plural: t('layout.meta.footerLinks.plural'),
-        singular: t('layout.meta.footerLinks.singular'),
-      },
-      'contact-infos': {
-        plural: t('layout.meta.contactInfos.plural'),
-        singular: t('layout.meta.contactInfos.singular'),
-      },
-      'contact-messages': {
-        plural: t('layout.meta.contactMessages.plural'),
-        singular: t('layout.meta.contactMessages.singular'),
-      },
-    }
+    if (firstSegment === 'login') return brandName + ' - ' + t('layout.meta.login')
+    if (firstSegment === 'not-found') return brandName + ' - ' + t('layout.meta.notFound')
+    if (firstSegment === 'courses' && secondSegment === 'sessions') return brandName + ' - ' + t('layout.meta.courseSessions.plural', { defaultValue: moduleTitleFallbacks.courseSessions })
 
-    if (firstSegment === 'login') {
-      return `${brandName} - ${t('layout.meta.login')}`
-    }
+    const moduleKey = moduleTranslationKeys[firstSegment]
+    if (!moduleKey) return brandName
 
-    if (firstSegment === 'not-found') {
-      return `${brandName} - ${t('layout.meta.notFound')}`
-    }
-
-    const moduleTitle = moduleMap[firstSegment]
-    if (!moduleTitle) {
-      return brandName
-    }
-
-    if (actionSegment === 'add') {
-      return `${brandName} - ${t('layout.meta.add')} ${moduleTitle.singular}`
-    }
-
-    if (actionSegment === 'edit') {
-      return `${brandName} - ${t('layout.meta.edit')} ${moduleTitle.singular}`
-    }
-
-    if (actionSegment === 'view') {
-      return `${brandName} - ${t('layout.meta.view')} ${moduleTitle.singular}`
-    }
-
-    return `${brandName} - ${moduleTitle.plural}`
-  }, [location.pathname, t])
+    return brandName + ' - ' + t('layout.meta.' + moduleKey + '.plural', { defaultValue: moduleTitleFallbacks[moduleKey] ?? brandName })
+  }, [firstSegment, secondSegment, t])
 
   useEffect(() => {
     if (typeof document === 'undefined') return
@@ -111,10 +65,10 @@ export function AppShellLayout() {
           <AppSidebar className="h-screen rounded-none border-y-0 border-s-0 shadow-none" />
         </div>
 
-        <section className="relative flex min-h-[70vh] flex-1 flex-col overflow-hidden bg-background">
+        <section className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
           <AppShellHeader onOpenMobileMenu={() => setMobileOpen(true)} />
 
-          <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 flex w-full">
+          <main className={cn('flex min-h-0 w-full flex-1 p-4 sm:p-6 lg:p-8', shouldLockPageScroll ? 'quizy-quizzes-scroll-page overflow-hidden' : 'overflow-auto')}>
             <Outlet />
           </main>
         </section>
