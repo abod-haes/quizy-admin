@@ -37,6 +37,8 @@ export default function LoginPage() {
     control,
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -46,6 +48,8 @@ export default function LoginPage() {
       password: '',
     },
   })
+
+  const countryCallingCode = watch('countryCallingCode')
 
   if (isAuthenticated) {
     return <Navigate replace to={APP_ROUTES.root.path} />
@@ -118,9 +122,9 @@ export default function LoginPage() {
             <QuizyPhoneField
               label="رقم الهاتف"
               phoneNumber={field.value}
-              countryCallingCode={control._formValues.countryCallingCode}
+              countryCallingCode={countryCallingCode}
               onPhoneNumberChange={field.onChange}
-              onCountryCallingCodeChange={(value) => control._formValues.countryCallingCode = value}
+              onCountryCallingCodeChange={(value) => setValue('countryCallingCode', value, { shouldValidate: true })}
               error={errors.phoneNumber?.message}
               disabled={isSubmitting}
             />
