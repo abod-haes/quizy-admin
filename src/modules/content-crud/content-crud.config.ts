@@ -9,8 +9,12 @@ const toNumberValue = (value: unknown) => (typeof value === 'number' ? value : 0
 const toStringArray = (value: unknown): string[] => (Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [])
 const toBooleanValue = (value: unknown) => value === true
 
+type ContentValidationResult<T extends Record<string, unknown>> =
+  | { success: true; data: T }
+  | { success: false; error: { issues: Array<{ path: PropertyKey[]; message: string }> } }
+
 function toValidationResult<T extends Record<string, unknown>>(
-  result: z.SafeParseReturnType<unknown, T>
+  result: ContentValidationResult<T>
 ): { success: true; data: ContentFormValues } | { success: false; errors: Record<string, string> } {
   if (result.success) return { success: true, data: result.data }
   const errors: Record<string, string> = {}
@@ -73,7 +77,7 @@ const resourceEndpoints = {
   list: API_ENDPOINTS.resources.list,
   create: API_ENDPOINTS.resources.upload,
   update: API_ENDPOINTS.resources.detail,
-  remove: API_ENDPOINTS.resources['remove'],
+  remove: API_ENDPOINTS.resources.remove,
 }
 
 export const academicContentConfigs: Record<ContentCrudConfig['key'], ContentCrudConfig> = {
@@ -126,6 +130,6 @@ export const academicContentConfigs: Record<ContentCrudConfig['key'], ContentCru
   ads: { key: 'ads', titleKey: 'modules.ads.title', descriptionKey: 'modules.ads.description', endpoints: API_ENDPOINTS.ads, columns: [{ key: 'title', labelKey: 'fields.title' }, { key: 'description', labelKey: 'fields.description' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
   pointsOfSale: { key: 'pointsOfSale', titleKey: 'modules.pointsOfSale.title', descriptionKey: 'modules.pointsOfSale.description', endpoints: API_ENDPOINTS.pointsOfSale, columns: [{ key: 'name', labelKey: 'fields.name' }, { key: 'code', labelKey: 'fields.code' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
   qrCodes: { key: 'qrCodes', titleKey: 'modules.qrCodes.title', descriptionKey: 'modules.qrCodes.description', endpoints: API_ENDPOINTS.qrCodes, columns: [{ key: 'code', labelKey: 'fields.code' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
-  ['notifications']: { key: 'notifications', titleKey: 'modules.notifications.title', descriptionKey: 'modules.notifications.description', endpoints: API_ENDPOINTS.notifications, columns: [{ key: 'title', labelKey: 'fields.title' }, { key: 'body', labelKey: 'fields.body' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
+  notifications: { key: 'notifications', titleKey: 'modules.notifications.title', descriptionKey: 'modules.notifications.description', endpoints: API_ENDPOINTS.notifications, columns: [{ key: 'title', labelKey: 'fields.title' }, { key: 'body', labelKey: 'fields.body' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
   pageContents: { key: 'pageContents', titleKey: 'modules.pageContents.title', descriptionKey: 'modules.pageContents.description', endpoints: API_ENDPOINTS.pageContents, columns: [{ key: 'key', labelKey: 'fields.key' }, { key: 'title', labelKey: 'fields.title' }], fields: [], emptyValues: {}, getInitialValues: () => ({}), validate: (values) => ({ success: true, data: values }), toPayload: (values) => values },
 }
