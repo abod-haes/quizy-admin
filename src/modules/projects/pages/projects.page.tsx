@@ -2,7 +2,7 @@ import { ArrowDownUp, Plus } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
+import { toast } from '@/shared/lib/toast'
 
 import { APP_ROUTES } from '@/app/router/route-object.type'
 import { AppBreadcrumbs } from '@/app/layout/app-breadcrumbs.component'

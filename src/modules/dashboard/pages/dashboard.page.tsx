@@ -12,7 +12,6 @@ import {
   Rocket,
   Sparkles,
   UploadCloud,
-  UsersRound,
   type LucideIcon,
 } from 'lucide-react'
 

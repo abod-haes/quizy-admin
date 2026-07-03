@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
+import { toast } from '@/shared/lib/toast'
 
 import { CountryCodeSelect } from '@/components/ui/country-code-select'
 import { AuthVisualLayout } from '@/modules/auth/components/auth-visual-layout.component'

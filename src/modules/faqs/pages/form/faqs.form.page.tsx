@@ -132,7 +132,7 @@ export default function FaqsFormPage() {
   const { createMutation, updateMutation, } = useFaqsCrudMutations()
 
   const [draft, setDraft] = useState<Partial<FaqsCreatePayload>>({})
-  const [arrayInputs, setArrayInputs] = useState<Record<string, string>>({})
+  const [arrayInputs] = useState<Record<string, string>>({})
   const [errors, setErrors] = useState<FaqsFormErrors>({})
 
   const baseForm = useMemo<FaqsCreatePayload>(

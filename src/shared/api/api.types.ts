@@ -39,7 +39,8 @@ export type AppError = {
 export type ResourceLink = {
   id: UUID
   url?: string | null
-  isImage?: boolean
+  filePath?: string | null
+  isImage?: boolean | null
 }
 
 export type BriefOption = {

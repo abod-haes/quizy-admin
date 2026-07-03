@@ -1,5 +1,6 @@
 "use client"
 
+/* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 import { AnimatePresence, motion } from "framer-motion"

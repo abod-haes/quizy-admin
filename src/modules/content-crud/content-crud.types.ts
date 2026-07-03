@@ -17,16 +17,32 @@ export type AcademicContentItem = {
   code?: string | null
   body?: string | null
   content?: string | null
+  pageType?: number | string | null
+  styles?: string | null
+  links?: string[] | null
+  prop1?: string | null
+  prop2?: string | null
+  prop3?: string | null
   firstName?: string | null
   lastName?: string | null
   phoneNumber?: string | null
   countryCallingCode?: string | null
+  role?: number | string | null
+  userType?: number | string | null
   url?: string | null
+  imageUrl?: string | null
   isImage?: boolean | null
+  primaryImage?: ResourceLink | null
   primaryImageId?: UUID | null
   fileIds?: UUID[] | null
   desc?: string | null
   description?: string | null
+  data?: Record<string, string> | null
+  isBroadcast?: boolean | null
+  isRead?: boolean | null
+  sentAt?: string | null
+  sentBy?: UUID | null
+  targetUserIds?: UUID[] | null
   order?: number | null
   timeExpiration?: number | null
   isFree?: boolean | null
@@ -52,7 +68,7 @@ export type AcademicContentItem = {
 export type ContentFormValue = string | number | boolean | string[] | null | undefined
 export type ContentFormValues = Record<string, ContentFormValue>
 
-export type ContentFieldType = 'text' | 'textarea' | 'number' | 'select' | 'multi-select' | 'checkbox' | 'json'
+export type ContentFieldType = 'text' | 'textarea' | 'number' | 'select' | 'multi-select' | 'checkbox' | 'json' | 'image'
 
 export type ContentFieldConfig = {
   name: string
@@ -60,6 +76,7 @@ export type ContentFieldConfig = {
   type: ContentFieldType
   placeholderKey?: string
   relationKey?: string
+  options?: Array<{ value: string; labelKey?: string; label?: string }>
   required?: boolean
 }
 
@@ -80,6 +97,7 @@ export type ContentCrudEndpoints = {
   create: string
   update: (id: string) => string
   remove: (id: string) => string
+  detail?: (id: string) => string
   brief?: string
 }
 
@@ -94,6 +112,7 @@ export type ContentCrudKey =
   | 'lessons'
   | 'teachers'
   | 'students'
+  | 'managementUsers'
   | 'quizzes'
   | 'questions'
   | 'courses'
@@ -114,6 +133,8 @@ export type ContentCrudConfig = {
   relations?: ContentRelationConfig[]
   emptyValues: ContentFormValues
   updateMethod?: 'put' | 'patch'
+  allowEdit?: boolean
+  allowDelete?: boolean
   getInitialValues: (item: AcademicContentItem) => ContentFormValues
   validate: (values: ContentFormValues) => { success: true; data: ContentFormValues } | { success: false; errors: Record<string, string> }
   toPayload: (values: ContentFormValues) => Record<string, unknown>

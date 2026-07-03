@@ -129,7 +129,10 @@ export default function ProjectsFormPage() {
       })),
     [t]
   )
-  const translations = ((getValueAtPath(form, 'translations') as ProjectsCreatePayload['translations'] | undefined) ?? [])
+  const translations = useMemo(
+    () => ((getValueAtPath(form, 'translations') as ProjectsCreatePayload['translations'] | undefined) ?? []),
+    [form]
+  )
   const selectedLanguages = useMemo(
     () => new Set(translations.map((entry) => entry?.lang).filter(Boolean)),
     [translations]
@@ -533,16 +536,13 @@ export default function ProjectsFormPage() {
 
 function PendingProjectMediaCard({ file, onRemove }: { file: File; onRemove: () => void }) {
   const { t } = useTranslation('translation')
-  const [previewUrl, setPreviewUrl] = useState<string>('')
+  const [previewUrl] = useState(() => URL.createObjectURL(file))
 
   useEffect(() => {
-    const objectUrl = URL.createObjectURL(file)
-    setPreviewUrl(objectUrl)
-
     return () => {
-      URL.revokeObjectURL(objectUrl)
+      URL.revokeObjectURL(previewUrl)
     }
-  }, [file])
+  }, [previewUrl])
 
   return (
     <div className="rounded-lg border border-border/80 bg-card p-3">

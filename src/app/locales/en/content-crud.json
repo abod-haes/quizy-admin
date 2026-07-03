@@ -1,28 +1,85 @@
 {
-  "status": { "connected": "API connected" },
+  "status": {
+    "connected": "API connected"
+  },
   "modules": {
-    "classes": { "title": "Classes", "description": "Manage class records and connect them with subjects." },
-    "subjects": { "title": "Subjects", "description": "Manage subjects and assign them to the right classes." },
-    "units": { "title": "Units", "description": "Manage subject units before linking lessons and quizzes." },
-    "lessons": { "title": "Lessons", "description": "Manage lessons and their order inside units." },
-    "teachers": { "title": "Teachers", "description": "Manage teacher profiles and educational accounts." },
-    "students": { "title": "Students", "description": "Manage student accounts and contact details." },
-    "quizzes": { "title": "Quizzes", "description": "Manage quizzes and connect them with teachers and content." },
-    "questions": { "title": "Question Bank", "description": "Manage questions, answers, and hints." },
-    "courses": { "title": "Courses", "description": "Manage courses, sessions, and prices." },
-    "resources": { "title": "Resources", "description": "Upload and manage platform files and images." },
-    "ads": { "title": "Ads", "description": "Manage platform ads." },
-    "pointsOfSale": { "title": "Points of Sale", "description": "Manage sales points and related codes." },
-    "qrCodes": { "title": "QR Codes", "description": "Manage quick access codes." },
-    "notifications": { "title": "Notifications", "description": "Manage user notifications." },
-    "pageContents": { "title": "Page Contents", "description": "Manage public page content." }
+    "classes": {
+      "title": "Classes",
+      "description": "Manage class records and connect them with subjects."
+    },
+    "subjects": {
+      "title": "Subjects",
+      "description": "Manage subjects and assign them to the right classes."
+    },
+    "units": {
+      "title": "Units",
+      "description": "Manage subject units before linking lessons and quizzes."
+    },
+    "lessons": {
+      "title": "Lessons",
+      "description": "Manage lessons and their order inside units."
+    },
+    "teachers": {
+      "title": "Teachers",
+      "description": "Manage teacher profiles and educational accounts."
+    },
+    "students": {
+      "title": "Students",
+      "description": "Manage student accounts and contact details."
+    },
+    "quizzes": {
+      "title": "Quizzes",
+      "description": "Manage quizzes and connect them with teachers and content."
+    },
+    "questions": {
+      "title": "Question Bank",
+      "description": "Manage questions, answers, and hints."
+    },
+    "courses": {
+      "title": "Courses",
+      "description": "Manage courses, sessions, and prices."
+    },
+    "resources": {
+      "title": "Resources",
+      "description": "Upload and manage platform files and images."
+    },
+    "ads": {
+      "title": "Ads",
+      "description": "Manage platform ads."
+    },
+    "pointsOfSale": {
+      "title": "Points of Sale",
+      "description": "Manage sales points and related codes."
+    },
+    "qrCodes": {
+      "title": "QR Codes",
+      "description": "Manage quick access codes."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Send push notifications and review sent notifications."
+    },
+    "pageContents": {
+      "title": "Page Contents",
+      "description": "Manage the mobile app pages for privacy, support, and about."
+    },
+    "managementUsers": {
+      "title": "Management Users",
+      "description": "Manage admin and management accounts with role 3 and user type 3."
+    }
   },
   "fields": {
     "id": "ID",
     "name": "Name",
     "title": "Title",
     "description": "Description",
-    "content": "Content",
+    "content": "Content JSON",
+    "pageType": "Page type",
+    "styles": "Styles",
+    "links": "Links",
+    "prop1": "Property 1",
+    "prop2": "Property 2",
+    "prop3": "Property 3",
     "classes": "Classes",
     "subjects": "Subjects",
     "subject": "Subject",
@@ -42,19 +99,104 @@
     "price": "Price",
     "currency": "Currency",
     "url": "URL",
+    "image": "Image",
+    "imageUrl": "Image URL",
     "isImage": "Image",
+    "isBroadcast": "Broadcast",
+    "isRead": "Read",
+    "sentAt": "Sent at",
+    "targetUserIds": "Target users",
+    "data": "Data",
     "key": "Key",
     "body": "Body",
     "code": "Code",
-    "actions": "Actions"
+    "actions": "Actions",
+    "role": "Role",
+    "userType": "User type"
   },
-  "actions": { "create": "Create", "refresh": "Refresh", "retry": "Retry", "cancel": "Cancel", "save": "Save", "upload": "Upload" },
-  "filters": { "searchPlaceholder": "Search by name, title, or phone...", "all": "All {{field}}", "clear": "Clear filters" },
-  "table": { "title": "Data", "description": "Total items: {{count}}", "page": "Page {{page}} of {{totalPages}}" },
-  "pagination": { "previous": "Previous", "next": "Next", "first": "First", "last": "Last", "summary": "{{page}} / {{totalPages}}", "range": "Showing {{start}} - {{end}} of {{total}}" },
-  "form": { "createTitle": "Create {{entity}}", "editTitle": "Edit {{entity}}", "description": "Fill the required fields, then save your changes.", "selectPlaceholder": "Select a value" },
-  "states": { "empty": { "title": "No data yet", "description": "Create the first item or check the API connection." }, "error": { "title": "Could not load data" } },
-  "messages": { "created": "Created successfully.", "updated": "Updated successfully.", "deleted": "Deleted successfully.", "uploaded": "Uploaded successfully.", "deleteConfirm": "Delete {{name}}?", "item": "item" },
-  "validation": { "required": "This field is required.", "fileRequired": "Select a file first.", "nonNegativeInt": "The number must be zero or greater.", "uuid": "The selected value is invalid." },
-  "errors": { "generic": "Unexpected error occurred." }
+  "actions": {
+    "create": "Create",
+    "sendNotification": "Send notification",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "send": "Send",
+    "upload": "Upload",
+    "chooseImage": "Choose image",
+    "deleteImage": "Delete image"
+  },
+  "filters": {
+    "searchPlaceholder": "Search by name, title, or phone...",
+    "all": "All {{field}}",
+    "clear": "Clear filters"
+  },
+  "pageTypes": {
+    "privacy": "Privacy",
+    "support": "Support",
+    "about": "About"
+  },
+  "placeholders": {
+    "imageUrl": "https://example.com/image.png",
+    "userIds": "Paste user IDs separated by comma, space, or line break",
+    "notificationData": "{\"additionalProp1\":\"value\"}",
+    "pageContentJson": "Privacy/support use a JSON array. About uses a JSON object.",
+    "links": "Comma-separated or JSON array links"
+  },
+  "table": {
+    "title": "Data",
+    "description": "Total items: {{count}}",
+    "page": "Page {{page}} of {{totalPages}}"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "first": "First",
+    "last": "Last",
+    "summary": "{{page}} / {{totalPages}}",
+    "range": "Showing {{start}} - {{end}} of {{total}}"
+  },
+  "form": {
+    "createTitle": "Create {{entity}}",
+    "editTitle": "Edit {{entity}}",
+    "description": "Fill the required fields, then save your changes.",
+    "selectPlaceholder": "Select a value",
+    "imageCreateHint": "The selected image is previewed now and uploaded after the item is created.",
+    "imageEditHint": "Choosing a new image uploads it immediately using the Resources endpoint."
+  },
+  "states": {
+    "empty": {
+      "title": "No data yet",
+      "description": "Create the first item or check the API connection."
+    },
+    "error": {
+      "title": "Could not load data"
+    }
+  },
+  "messages": {
+    "created": "Created successfully.",
+    "updated": "Updated successfully.",
+    "deleted": "Deleted successfully.",
+    "uploaded": "Uploaded successfully.",
+    "sent": "Notification sent successfully.",
+    "imageDeleted": "Image deleted successfully.",
+    "deleteConfirm": "Delete {{name}}?",
+    "item": "item"
+  },
+  "validation": {
+    "required": "This field is required.",
+    "fileRequired": "Select a file first.",
+    "nonNegativeInt": "The number must be zero or greater.",
+    "uuid": "The selected value is invalid.",
+    "jsonObject": "Enter a valid JSON object.",
+    "jsonContent": "Enter valid JSON content.",
+    "jsonArrayContent": "This page type requires a JSON array.",
+    "jsonObjectContent": "This page type requires a JSON object.",
+    "uuidList": "Every target user ID must be a valid UUID.",
+    "userIdsRequired": "Add at least one target user when broadcast is off."
+  },
+  "errors": {
+    "generic": "Unexpected error occurred.",
+    "imageUploadRequiresEntity": "The item was saved, but the image could not be uploaded because the API did not return an item ID."
+  }
 }

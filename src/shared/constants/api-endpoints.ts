@@ -68,6 +68,14 @@ export const API_ENDPOINTS = {
     update: (id: string) => byId('/api/Students', id),
     remove: (id: string) => byId('/api/Students', id),
   },
+  users: {
+    list: '/api/Users',
+    brief: '/api/Users/Brief',
+    detail: (id: string) => byId('/api/Users', id),
+    create: '/api/Users',
+    update: (id: string) => byId('/api/Users', id),
+    remove: (id: string) => byId('/api/Users', id),
+  },
   quizzes: {
     list: '/api/Quizes',
     detail: (id: string) => byId('/api/Quizes', id),
@@ -85,7 +93,9 @@ export const API_ENDPOINTS = {
   resources: {
     list: '/api/Resources',
     detail: (id: string) => byId('/api/Resources', id),
+    byEntity: (entityId: string) => `/api/Resources/entity/${entityId}`,
     upload: '/api/Resources',
+    update: (id: string) => byId('/api/Resources', id),
     remove: (id: string) => byId('/api/Resources', id),
   },
   courses: {
@@ -126,8 +136,9 @@ export const API_ENDPOINTS = {
   },
   notifications: {
     list: '/api/Notifications',
+    push: '/api/Notifications/push',
     detail: (id: string) => byId('/api/Notifications', id),
-    create: '/api/Notifications',
+    create: '/api/Notifications/push',
     update: (id: string) => byId('/api/Notifications', id),
     remove: (id: string) => byId('/api/Notifications', id),
     devices: '/api/Notifications/devices',

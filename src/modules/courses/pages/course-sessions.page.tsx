@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { BookOpenCheck, Loader2, Pencil, Plus, RefreshCcw, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { toast } from 'sonner'
+import { toast } from '@/shared/lib/toast'
 
 import { api } from '@/shared/api/api-client'
 import type { PagedResponse, UUID } from '@/shared/api/api.types'

@@ -1,6 +1,7 @@
 import {
   BookOpenCheck,
   BookText,
+  BellRing,
   CalendarDays,
   FileQuestion,
   FileText,
@@ -27,6 +28,7 @@ export const primarySidebarItems: SidebarItem[] = [
     children: [
       { id: 'statistics', labelKey: 'translation:layout.meta.dashboard.plural', to: APP_ROUTES.dashboard.path, icon: Gauge, end: true },
       { id: 'ads', labelKey: 'content-crud:modules.ads.title', to: APP_ROUTES.ads.path, icon: Megaphone, end: true },
+      { id: 'notifications', labelKey: 'content-crud:modules.notifications.title', to: APP_ROUTES.notifications.path, icon: BellRing, end: true },
       { id: 'pageContents', labelKey: 'content-crud:modules.pageContents.title', to: APP_ROUTES.pageContents.path, icon: FileText, end: true },
     ],
   },
@@ -68,6 +70,7 @@ export const primarySidebarItems: SidebarItem[] = [
     children: [
       { id: 'teachers', labelKey: 'sidebar.items.teachers', to: APP_ROUTES.teachers.path, icon: GraduationCap, end: true },
       { id: 'students', labelKey: 'sidebar.items.students', to: APP_ROUTES.students.path, icon: UsersRound, end: true },
+      { id: 'managementUsers', labelKey: 'content-crud:modules.managementUsers.title', to: APP_ROUTES.managementUsers.path, icon: UsersRound, end: true },
     ],
   },
 ]

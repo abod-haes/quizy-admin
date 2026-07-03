@@ -15,7 +15,10 @@ export default function PagesViewPage() {
   const { id } = useParams()
   const detailQuery = usePagesById(id ?? '', Boolean(id))
 
-  const detail = (detailQuery.data ?? {}) as Record<string, unknown>
+  const detail = useMemo(
+    () => (detailQuery.data ?? {}) as Record<string, unknown>,
+    [detailQuery.data]
+  )
 
   const summaryEntries = useMemo(
     () =>

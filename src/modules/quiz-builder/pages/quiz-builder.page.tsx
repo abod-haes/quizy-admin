@@ -14,7 +14,7 @@ import {
   Trash2,
   Wand2,
 } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/shared/lib/toast'
 
 import { api } from '@/shared/api/api-client'
 import type { PagedResponse } from '@/shared/api/api.types'

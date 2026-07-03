@@ -75,6 +75,6 @@ export {
 export { TableRowActionsMenu, type TableRowActionItem } from '@/components/ui/table-row-actions-menu'
 export { TableShell } from '@/components/ui/table-shell'
 export { Textarea } from '@/components/ui/textarea'
-export { Toaster } from '@/components/ui/sonner'
+export { ToastProvider, useToast } from '@/components/ui/toast-provider'
 export { ToggleSwitch } from '@/components/ui/toggle-switch'
 export { TruncatedText } from '@/components/ui/truncated-text'

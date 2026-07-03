@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { Eye, Pencil, Trash2 } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'

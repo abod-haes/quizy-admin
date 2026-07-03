@@ -1,24 +1,97 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, DatabaseZap, Loader2, Pencil, Plus, RefreshCcw, Search, SlidersHorizontal, Trash2 } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  DatabaseZap,
+  ImageIcon,
+  Loader2,
+  Pencil,
+  Plus,
+  RefreshCcw,
+  Search,
+  SlidersHorizontal,
+  Trash2,
+  UserRound,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { toast } from 'sonner'
+import { toast } from '@/shared/lib/toast'
 
 import { api } from '@/shared/api/api-client'
-import type { PagedResponse } from '@/shared/api/api.types'
+import type { PagedResponse, ResourceLink } from '@/shared/api/api.types'
 import { academicContentConfigs } from '@/modules/content-crud/content-crud.config'
-import type { AcademicContentItem, ContentCrudConfig, ContentFieldConfig, ContentFormValue, ContentFormValues, ContentRelationOption } from '@/modules/content-crud/content-crud.types'
+import type {
+  AcademicContentItem,
+  ContentCrudConfig,
+  ContentFieldConfig,
+  ContentFormValue,
+  ContentFormValues,
+  ContentRelationOption,
+} from '@/modules/content-crud/content-crud.types'
+import {
+  deleteContentResource,
+  getContentResourcesByEntity,
+  updateContentResourceFile,
+  uploadContentResource,
+  type ContentResource,
+} from '@/modules/content-crud/services/content-resource.services'
 import { CountryCodeSelect } from '@/components/ui/country-code-select'
-import { Button, Card, CardContent, CardHeader, CustomMultiSelect, CustomSelect, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Skeleton, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Textarea } from '@/shared/ui'
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CustomFileInput,
+  CustomMultiSelect,
+  CustomSelect,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+  Skeleton,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Textarea,
+} from '@/shared/ui'
+import { generateFileUrl } from '@/shared/utils/file-url'
 
 const DEFAULT_PAGE_SIZE = 20
 const ALL_FILTER_VALUE = '__all__'
+const RESOURCE_IMAGE_FIELD_NAME = 'resourceImage'
+const PAGE_CONTENT_TABS = [
+  { value: '1', labelKey: 'pageTypes.privacy' },
+  { value: '2', labelKey: 'pageTypes.support' },
+  { value: '3', labelKey: 'pageTypes.about' },
+]
 
 type AcademicCrudPageProps = { configKey: ContentCrudConfig['key'] }
 type FormMode = 'create' | 'edit'
-type FormState = { open: boolean; mode: FormMode; item: AcademicContentItem | null; values: ContentFormValues; errors: Record<string, string> }
+type FormState = {
+  open: boolean
+  mode: FormMode
+  item: AcademicContentItem | null
+  values: ContentFormValues
+  errors: Record<string, string>
+}
 type FilterState = { search: string; relations: Record<string, string> }
+type ResourceImageState = { resource: ContentResource | null; pendingFile: File | null }
+
+type ResourceMutationPayload = { entityId: string; file: File }
+type ResourceFileMutationPayload = { id: string; entityId?: string | null; file: File }
+type ResourceDeleteMutationPayload = { id: string; entityId?: string | null }
+
+function createEmptyResourceImageState(): ResourceImageState {
+  return { resource: null, pendingFile: null }
+}
 
 function getApiErrorMessage(error: unknown): string {
   if (error && typeof error === 'object' && 'message' in error) {
@@ -45,7 +118,12 @@ function valueFromItem(item: AcademicContentItem, key: string): ContentFormValue
   return undefined
 }
 
-function renderCellValue(item: AcademicContentItem, key: string, relationKey: string | undefined, relations: Record<string, ContentRelationOption[]>): string {
+function renderCellValue(
+  item: AcademicContentItem,
+  key: string,
+  relationKey: string | undefined,
+  relations: Record<string, ContentRelationOption[]>,
+): string {
   const rawValue = valueFromItem(item, key)
   if (relationKey && typeof rawValue === 'string') return relations[relationKey]?.find((option) => option.id === rawValue)?.name ?? '-'
   if (typeof rawValue === 'boolean') return rawValue ? '✓' : '—'
@@ -71,7 +149,23 @@ function getRelationFieldValue(item: AcademicContentItem, fieldName: string): st
 function itemMatchesSearch(item: AcademicContentItem, search: string): boolean {
   const normalized = search.trim().toLowerCase()
   if (!normalized) return true
-  const values = [item.name, item.title, item.key, item.code, item.body, item.content, item.firstName, item.lastName, item.phoneNumber, item.countryCallingCode, item.desc, item.description, item.currency, item.url, item.teacherName]
+  const values = [
+    item.name,
+    item.title,
+    item.key,
+    item.code,
+    item.body,
+    item.content,
+    item.firstName,
+    item.lastName,
+    item.phoneNumber,
+    item.countryCallingCode,
+    item.desc,
+    item.description,
+    item.currency,
+    item.url,
+    item.teacherName,
+  ]
   return values.some((value) => typeof value === 'string' && value.toLowerCase().includes(normalized))
 }
 
@@ -79,6 +173,14 @@ function itemMatchesRelationFilter(item: AcademicContentItem, fieldName: string,
   if (!selectedId) return true
   const value = getRelationFieldValue(item, fieldName)
   return Array.isArray(value) ? value.includes(selectedId) : value === selectedId
+}
+
+function normalizePageContentType(value: unknown): string {
+  const rawValue = String(value ?? '').trim().toLowerCase()
+  if (rawValue === '1' || rawValue === 'privacy') return '1'
+  if (rawValue === '2' || rawValue === 'support') return '2'
+  if (rawValue === '3' || rawValue === 'about') return '3'
+  return ''
 }
 
 function getPaginationItems(page: number, totalPages: number): Array<number | 'ellipsis-left' | 'ellipsis-right'> {
@@ -94,7 +196,7 @@ function getPaginationItems(page: number, totalPages: number): Array<number | 'e
 }
 
 function getFieldGridClass(field: ContentFieldConfig): string {
-  if (field.type === 'textarea' || field.type === 'json') return 'sm:col-span-2 xl:col-span-3'
+  if (field.type === 'image' || field.type === 'textarea' || field.type === 'json') return 'sm:col-span-2 xl:col-span-3'
   if (field.type === 'checkbox') return 'sm:col-span-1'
   return 'sm:col-span-1'
 }
@@ -106,7 +208,9 @@ function readInitialPage(searchParams: URLSearchParams): number {
 
 function readInitialFilters(searchParams: URLSearchParams): FilterState {
   const relations: Record<string, string> = {}
-  searchParams.forEach((value, key) => { if (key.startsWith('filter_') && value) relations[key.replace('filter_', '')] = value })
+  searchParams.forEach((value, key) => {
+    if (key.startsWith('filter_') && value) relations[key.replace('filter_', '')] = value
+  })
   return { search: searchParams.get('search') ?? '', relations }
 }
 
@@ -122,6 +226,108 @@ function getDeleteItemName(item: AcademicContentItem, fallback: string) {
   return item.name || item.title || item.firstName || item.phoneNumber || fallback
 }
 
+function unwrapUnknownPayload(payload: unknown): unknown {
+  if (payload && typeof payload === 'object' && 'data' in (payload as Record<string, unknown>)) {
+    return (payload as { data: unknown }).data
+  }
+  return payload
+}
+
+function extractEntityId(payload: unknown): string | null {
+  const unwrapped = unwrapUnknownPayload(payload)
+  if (!unwrapped || typeof unwrapped !== 'object') return null
+
+  const record = unwrapped as Record<string, unknown>
+  const id = record.id ?? record.entityId
+  return typeof id === 'string' && id.trim() ? id : null
+}
+
+function normalizeResourceLink(link: ResourceLink | null | undefined, entityId?: string | null): ContentResource | null {
+  if (!link) return null
+
+  const id = typeof link.id === 'string' ? link.id : ''
+  const url = typeof link.url === 'string' ? link.url : null
+  const filePath = typeof link.filePath === 'string' ? link.filePath : null
+
+  if (!id && !url && !filePath) return null
+
+  return {
+    id,
+    entityId,
+    url,
+    filePath,
+    isImage: link.isImage ?? true,
+  }
+}
+
+function getItemImageResource(item: AcademicContentItem | null | undefined): ContentResource | null {
+  if (!item) return null
+
+  const primaryImage = normalizeResourceLink(item.primaryImage, item.id)
+  if (primaryImage) return primaryImage
+
+  const image = normalizeResourceLink(item.image, item.id)
+  if (image) return image
+
+  if (item.primaryImageId) {
+    return {
+      id: item.primaryImageId,
+      entityId: item.id,
+      isImage: true,
+    }
+  }
+
+  return null
+}
+
+function getResourceImageUrl(resource: ContentResource | null | undefined): string {
+  return generateFileUrl(resource?.url || resource?.filePath || '')
+}
+
+function getResourceValueLabel(resource: ContentResource | null | undefined): string {
+  return resource?.filePath || resource?.url || resource?.id || ''
+}
+
+function pickFirstImageResource(resources: PagedResponse<ContentResource> | undefined, entityId?: string | null): ContentResource | null {
+  const resource = resources?.items?.find((item) => item.isImage !== false)
+  return resource ? { ...resource, entityId: resource.entityId ?? entityId } : null
+}
+
+function isUserImageModule(configKey: ContentCrudConfig['key']): boolean {
+  return configKey === 'teachers' || configKey === 'students' || configKey === 'managementUsers'
+}
+
+function ContentImagePreview({
+  item,
+  configKey,
+}: {
+  item: AcademicContentItem
+  configKey: ContentCrudConfig['key']
+}) {
+  const [failedImageUrl, setFailedImageUrl] = useState('')
+  const imageUrl = getResourceImageUrl(getItemImageResource(item))
+  const showImage = Boolean(imageUrl && failedImageUrl !== imageUrl)
+  const Icon = isUserImageModule(configKey) ? UserRound : ImageIcon
+
+  return (
+    <div className="flex items-center justify-center">
+      <span className="flex size-12 items-center justify-center overflow-hidden rounded-xl border border-border bg-muted/40 text-muted-foreground">
+        {showImage ? (
+          <img
+            src={imageUrl}
+            alt=""
+            className="size-full object-cover"
+            loading="lazy"
+            onError={() => setFailedImageUrl(imageUrl)}
+          />
+        ) : (
+          <Icon className="size-5" />
+        )}
+      </span>
+    </div>
+  )
+}
+
 function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
   const config = academicContentConfigs[configKey]
   const { t, i18n } = useTranslation('content-crud')
@@ -130,31 +336,138 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
   const [searchParams, setSearchParams] = useSearchParams()
   const [page, setPage] = useState(() => readInitialPage(searchParams))
   const [filters, setFilters] = useState<FilterState>(() => readInitialFilters(searchParams))
+  const [pageContentType, setPageContentType] = useState(() => {
+    const value = searchParams.get('pageType') ?? '1'
+    return PAGE_CONTENT_TABS.some((tab) => tab.value === value) ? value : '1'
+  })
   const [deleteTarget, setDeleteTarget] = useState<AcademicContentItem | null>(null)
   const [formState, setFormState] = useState<FormState>({ open: false, mode: 'create', item: null, values: config.emptyValues, errors: {} })
+  const [detailHydratedId, setDetailHydratedId] = useState<string | null>(null)
+  const [resourceImageState, setResourceImageState] = useState<ResourceImageState>(() => createEmptyResourceImageState())
   const relationFields = useMemo(() => config.fields.filter((field) => field.relationKey && (field.type === 'select' || field.type === 'multi-select')), [config.fields])
+  const hasResourceImageField = useMemo(() => config.fields.some((field) => field.type === 'image'), [config.fields])
+  const canCreate = config.fields.length > 0
+  const canEdit = config.allowEdit !== false && config.fields.length > 0
+  const canDelete = config.allowDelete !== false
+  const showActionsColumn = canEdit || canDelete
+  const activeEditId = formState.open && formState.mode === 'edit' ? formState.item?.id ?? '' : ''
 
   useEffect(() => {
     const nextParams = new URLSearchParams()
     if (page > 1) nextParams.set('page', String(page))
     if (filters.search.trim()) nextParams.set('search', filters.search.trim())
-    Object.entries(filters.relations).forEach(([key, value]) => { if (value) nextParams.set(`filter_${key}`, value) })
+    if (config.key === 'pageContents') nextParams.set('pageType', pageContentType)
+    Object.entries(filters.relations).forEach(([key, value]) => {
+      if (value) nextParams.set(`filter_${key}`, value)
+    })
     setSearchParams(nextParams, { replace: true })
-  }, [filters, page, setSearchParams])
+  }, [config.key, filters, page, pageContentType, setSearchParams])
 
-  const listQueryKey = useMemo(() => ['content-crud', config.key, 'list', page, DEFAULT_PAGE_SIZE], [config.key, page])
+  const listQueryKey = useMemo(() => ['content-crud', config.key, 'list', page, DEFAULT_PAGE_SIZE, config.key === 'pageContents' ? pageContentType : 'all'], [config.key, page, pageContentType])
   const relationQuery = useQuery({ queryKey: ['content-crud', config.key, 'relations'], queryFn: () => fetchRelations(config), staleTime: 1000 * 60 * 5 })
-  const listQuery = useQuery({ queryKey: listQueryKey, queryFn: () => api.get<PagedResponse<AcademicContentItem>>(config.endpoints.list, { params: { Page: page, PerPage: DEFAULT_PAGE_SIZE } }) })
+  const listQuery = useQuery({
+    queryKey: listQueryKey,
+    queryFn: () => api.get<PagedResponse<AcademicContentItem>>(config.endpoints.list, {
+      params: { Page: page, PerPage: DEFAULT_PAGE_SIZE, ...(config.key === 'pageContents' ? { pageType: Number(pageContentType) } : {}) },
+    }),
+  })
+  const detailQuery = useQuery({
+    queryKey: ['content-crud', config.key, 'detail', activeEditId],
+    queryFn: async () => {
+      if (!config.endpoints.detail || !activeEditId) throw new Error('Missing detail endpoint')
+      const response = await api.get<AcademicContentItem | { data: AcademicContentItem }>(config.endpoints.detail(activeEditId))
+      return unwrapUnknownPayload(response) as AcademicContentItem
+    },
+    enabled: Boolean(formState.open && formState.mode === 'edit' && activeEditId && config.endpoints.detail),
+    staleTime: 1000 * 60,
+  })
+  const resourceImageQuery = useQuery({
+    queryKey: ['content-crud', config.key, 'resources', activeEditId],
+    queryFn: () => getContentResourcesByEntity(activeEditId),
+    enabled: Boolean(hasResourceImageField && activeEditId),
+    staleTime: 1000 * 60,
+  })
   const relations = relationQuery.data ?? {}
   const items = useMemo(() => {
     const sourceItems = listQuery.data?.items ?? []
-    return sourceItems.filter((item) => itemMatchesSearch(item, filters.search) && relationFields.every((field) => itemMatchesRelationFilter(item, field.name, filters.relations[field.name] ?? '')))
-  }, [filters, listQuery.data?.items, relationFields])
+    return sourceItems.filter((item) => {
+      const matchesPageContentType = config.key !== 'pageContents' || normalizePageContentType(item.pageType) === pageContentType
+      return matchesPageContentType && itemMatchesSearch(item, filters.search) && relationFields.every((field) => itemMatchesRelationFilter(item, field.name, filters.relations[field.name] ?? ''))
+    })
+  }, [config.key, filters, listQuery.data?.items, pageContentType, relationFields])
   const totalCount = listQuery.data?.totalCount ?? 0
   const pageSize = listQuery.data?.pageSize ?? DEFAULT_PAGE_SIZE
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
   const paginationItems = getPaginationItems(page, totalPages)
   const tableScrollClass = config.key === 'quizzes' ? 'h-full max-h-full' : 'max-h-[min(62vh,46rem)]'
+
+  const uploadResourceMutation = useMutation<ContentResource, Error, ResourceMutationPayload>({
+    mutationFn: uploadContentResource,
+  })
+  const updateResourceFileMutation = useMutation<ContentResource, Error, ResourceFileMutationPayload>({
+    mutationFn: updateContentResourceFile,
+  })
+  const deleteResourceMutation = useMutation<void, Error, ResourceDeleteMutationPayload>({
+    mutationFn: ({ id }) => deleteContentResource(id),
+  })
+  const isResourceBusy = uploadResourceMutation.isPending || updateResourceFileMutation.isPending || deleteResourceMutation.isPending
+
+  useEffect(() => {
+    const detail = detailQuery.data
+    if (!detail?.id || !formState.open || formState.mode !== 'edit' || detail.id !== formState.item?.id || detailHydratedId === detail.id) return
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDetailHydratedId(detail.id)
+    setFormState((current) => {
+      if (!current.open || current.mode !== 'edit' || current.item?.id !== detail.id) return current
+      return { ...current, item: detail, values: config.getInitialValues(detail) }
+    })
+
+    const detailResource = getItemImageResource(detail)
+    if (detailResource) {
+      setResourceImageState((current) => (current.pendingFile ? current : { ...current, resource: detailResource }))
+    }
+  }, [config, detailHydratedId, detailQuery.data, formState.item?.id, formState.mode, formState.open])
+
+  useEffect(() => {
+    if (!hasResourceImageField || !formState.open || formState.mode !== 'edit') return
+
+    const resource = pickFirstImageResource(resourceImageQuery.data, activeEditId)
+    if (!resource) return
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setResourceImageState((current) => {
+      if (current.pendingFile) return current
+      if (current.resource?.id === resource.id && current.resource?.filePath === resource.filePath && current.resource?.url === resource.url) return current
+      return { ...current, resource }
+    })
+  }, [activeEditId, formState.mode, formState.open, hasResourceImageField, resourceImageQuery.data])
+
+  const closeFormDialog = () => {
+    setFormState({ open: false, mode: 'create', item: null, values: { ...config.emptyValues }, errors: {} })
+    setDetailHydratedId(null)
+    setResourceImageState(createEmptyResourceImageState())
+  }
+
+  const invalidateContentQueries = async (entityId?: string | null) => {
+    await queryClient.invalidateQueries({ queryKey: ['content-crud', config.key] })
+    if (entityId) {
+      await queryClient.invalidateQueries({ queryKey: ['content-crud', config.key, 'resources', entityId] })
+    }
+  }
+
+  const persistResourceImage = async (file: File, entityId: string): Promise<ContentResource> => {
+    const currentResource = resourceImageState.resource
+    const savedResource = currentResource?.id
+      ? await updateResourceFileMutation.mutateAsync({ id: currentResource.id, entityId, file })
+      : await uploadResourceMutation.mutateAsync({ entityId, file })
+
+    const normalizedResource = { ...savedResource, entityId: savedResource.entityId ?? entityId }
+    setResourceImageState({ resource: normalizedResource, pendingFile: null })
+    toast.success(t('messages.uploaded'))
+    await invalidateContentQueries(entityId)
+    return normalizedResource
+  }
 
   const saveMutation = useMutation({
     mutationFn: async (values: ContentFormValues) => {
@@ -165,12 +478,29 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
       }
       return api.post<unknown, Record<string, unknown>>(config.endpoints.create, payload)
     },
-    onSuccess: async () => {
-      toast.success(t(formState.mode === 'edit' ? 'messages.updated' : 'messages.created'))
-      setFormState((current) => ({ ...current, open: false, item: null, errors: {} }))
-      await queryClient.invalidateQueries({ queryKey: ['content-crud', config.key] })
+    onSuccess: async (response) => {
+      const pendingImage = resourceImageState.pendingFile
+      const entityId = formState.mode === 'edit' ? formState.item?.id ?? null : extractEntityId(response)
+
+      try {
+        if (pendingImage) {
+          if (!entityId) {
+            toast.error(t('errors.imageUploadRequiresEntity'))
+            return
+          }
+          await persistResourceImage(pendingImage, entityId)
+        }
+
+        toast.success(t(formState.mode === 'edit' ? 'messages.updated' : config.key === 'notifications' ? 'messages.sent' : 'messages.created'))
+        closeFormDialog()
+        await invalidateContentQueries(entityId)
+      } catch (error) {
+        toast.error(t(getApiErrorMessage(error)))
+      }
     },
-    onError: (error) => { toast.error(t(getApiErrorMessage(error))) },
+    onError: (error) => {
+      toast.error(t(getApiErrorMessage(error)))
+    },
   })
 
   const deleteMutation = useMutation({
@@ -180,41 +510,298 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
       setDeleteTarget(null)
       await queryClient.invalidateQueries({ queryKey: ['content-crud', config.key] })
     },
-    onError: (error) => { toast.error(t(getApiErrorMessage(error))) },
+    onError: (error) => {
+      toast.error(t(getApiErrorMessage(error)))
+    },
   })
 
-  const openCreateForm = () => setFormState({ open: true, mode: 'create', item: null, values: { ...config.emptyValues }, errors: {} })
-  const openEditForm = (item: AcademicContentItem) => setFormState({ open: true, mode: 'edit', item, values: config.getInitialValues(item), errors: {} })
+  const openCreateForm = () => {
+    setDetailHydratedId(null)
+    setResourceImageState(createEmptyResourceImageState())
+    setFormState({ open: true, mode: 'create', item: null, values: { ...config.emptyValues }, errors: {} })
+  }
+
+  const openEditForm = (item: AcademicContentItem) => {
+    setDetailHydratedId(null)
+    setResourceImageState({ resource: getItemImageResource(item), pendingFile: null })
+    setFormState({ open: true, mode: 'edit', item, values: config.getInitialValues(item), errors: {} })
+  }
+
   const updateField = (fieldName: string, value: ContentFormValue) => setFormState((current) => ({ ...current, values: { ...current.values, [fieldName]: value }, errors: { ...current.errors, [fieldName]: '' } }))
-  const updateSearch = (value: string) => { setPage(1); setFilters((current) => ({ ...current, search: value })) }
-  const updateRelationFilter = (fieldName: string, value: string) => { setPage(1); setFilters((current) => ({ ...current, relations: { ...current.relations, [fieldName]: value === ALL_FILTER_VALUE ? '' : value } })) }
+  const updateSearch = (value: string) => {
+    setPage(1)
+    setFilters((current) => ({ ...current, search: value }))
+  }
+  const updateRelationFilter = (fieldName: string, value: string) => {
+    setPage(1)
+    setFilters((current) => ({ ...current, relations: { ...current.relations, [fieldName]: value === ALL_FILTER_VALUE ? '' : value } }))
+  }
+  const updatePageContentType = (value: string) => {
+    setPage(1)
+    setPageContentType(value)
+  }
   const goToPage = (nextPage: number) => setPage(Math.min(totalPages, Math.max(1, nextPage)))
+
+  const handleResourceImageFileSelect = async (file: File | null) => {
+    if (!file) {
+      setResourceImageState((current) => ({ ...current, pendingFile: null }))
+      return
+    }
+
+    setResourceImageState((current) => ({ ...current, pendingFile: file }))
+
+    if (formState.mode !== 'edit' || !formState.item?.id) return
+
+    try {
+      await persistResourceImage(file, formState.item.id)
+    } catch (error) {
+      toast.error(t(getApiErrorMessage(error)))
+    }
+  }
+
+  const handleResourceImageDelete = async () => {
+    const currentResource = resourceImageState.resource
+    const entityId = currentResource?.entityId ?? formState.item?.id ?? null
+
+    if (!currentResource?.id) {
+      setResourceImageState(createEmptyResourceImageState())
+      return
+    }
+
+    try {
+      await deleteResourceMutation.mutateAsync({ id: currentResource.id, entityId })
+      setResourceImageState(createEmptyResourceImageState())
+      toast.success(t('messages.imageDeleted'))
+      await invalidateContentQueries(entityId)
+    } catch (error) {
+      toast.error(t(getApiErrorMessage(error)))
+    }
+  }
+
   const handleSubmit = () => {
+    if (isResourceBusy) return
+
     const validation = config.validate(formState.values)
-    if (!validation.success) { setFormState((current) => ({ ...current, errors: validation.errors })); return }
+    if (!validation.success) {
+      setFormState((current) => ({ ...current, errors: validation.errors }))
+      return
+    }
     saveMutation.mutate(validation.data)
   }
   const handleDelete = (item: AcademicContentItem) => setDeleteTarget(item)
-  const confirmDelete = () => { if (deleteTarget) deleteMutation.mutate(deleteTarget) }
+  const confirmDelete = () => {
+    if (deleteTarget) deleteMutation.mutate(deleteTarget)
+  }
+
+  const renderTableCellContent = (item: AcademicContentItem, column: ContentCrudConfig['columns'][number]) => {
+    if (column.key === RESOURCE_IMAGE_FIELD_NAME) {
+      return <ContentImagePreview item={item} configKey={config.key} />
+    }
+
+    return column.render ? column.render(item, { relations }) : renderCellValue(item, column.key, column.relationKey, relations)
+  }
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
       <div className="flex shrink-0 flex-col gap-3 rounded-3xl border border-primary/10 bg-card/95 p-4 shadow-sm xl:flex-row xl:items-center xl:justify-between">
-        <div className="min-w-0 space-y-1"><h1 className="text-2xl font-bold tracking-tight text-foreground">{t(config.titleKey)}</h1><p className="line-clamp-1 text-sm leading-6 text-muted-foreground">{t(config.descriptionKey)}</p></div>
-        <div className="flex flex-wrap gap-2"><Button type="button" size="sm" variant="outline" onClick={() => listQuery.refetch()} disabled={listQuery.isFetching}><RefreshCcw className="size-4" />{t('actions.refresh')}</Button>{config.fields.length > 0 ? <Button type="button" size="sm" onClick={openCreateForm}><Plus className="size-4" />{t('actions.create')}</Button> : null}</div>
+        <div className="min-w-0 space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t(config.titleKey)}</h1>
+          <p className="line-clamp-1 text-sm leading-6 text-muted-foreground">{t(config.descriptionKey)}</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" size="sm" variant="outline" onClick={() => listQuery.refetch()} disabled={listQuery.isFetching}>
+            <RefreshCcw className="size-4" />
+            {t('actions.refresh')}
+          </Button>
+          {canCreate ? (
+            <Button type="button" size="sm" onClick={openCreateForm}>
+              <Plus className="size-4" />
+              {t(config.key === 'notifications' ? 'actions.sendNotification' : 'actions.create')}
+            </Button>
+          ) : null}
+        </div>
       </div>
       <Card className={`flex min-h-0 flex-1 flex-col rounded-3xl shadow-sm ${config.key === 'quizzes' ? 'quizy-quizzes-table-card' : ''}`}>
-        <CardHeader className="shrink-0 space-y-3 py-4"><div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"><div className="grid flex-1 gap-2 md:grid-cols-2 xl:grid-cols-4 lg:max-w-5xl"><label className="relative block md:col-span-2 xl:col-span-1"><Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input className="h-10 ps-10" value={filters.search} placeholder={t('filters.searchPlaceholder')} onChange={(event) => updateSearch(event.target.value)} /></label>{relationFields.map((field) => { const options = field.relationKey ? relations[field.relationKey] ?? [] : []; const selected = filters.relations[field.name] || ALL_FILTER_VALUE; return <CustomSelect key={field.name} value={selected} variant="filter" icon={<SlidersHorizontal />} placeholder={t('filters.all', { field: t(field.labelKey) })} options={[{ value: ALL_FILTER_VALUE, label: t('filters.all', { field: t(field.labelKey) }) }, ...options.map((option) => ({ value: option.id, label: option.name }))]} onValueChange={(value) => updateRelationFilter(field.name, value)} /> })}</div></div></CardHeader>
+        <CardHeader className="shrink-0 space-y-3 py-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="grid flex-1 gap-2 md:grid-cols-2 xl:grid-cols-4 lg:max-w-5xl">
+              <label className="relative block md:col-span-2 xl:col-span-1">
+                <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input className="h-10 ps-10" value={filters.search} placeholder={t('filters.searchPlaceholder')} onChange={(event) => updateSearch(event.target.value)} />
+              </label>
+              {relationFields.map((field) => {
+                const options = field.relationKey ? relations[field.relationKey] ?? [] : []
+                const selected = filters.relations[field.name] || ALL_FILTER_VALUE
+                return (
+                  <CustomSelect
+                    key={field.name}
+                    value={selected}
+                    variant="filter"
+                    icon={<SlidersHorizontal />}
+                    placeholder={t('filters.all', { field: t(field.labelKey) })}
+                    options={[{ value: ALL_FILTER_VALUE, label: t('filters.all', { field: t(field.labelKey) }) }, ...options.map((option) => ({ value: option.id, label: option.name }))]}
+                    onValueChange={(value) => updateRelationFilter(field.name, value)}
+                  />
+                )
+              })}
+            </div>
+            {config.key === 'pageContents' ? (
+              <div className="flex flex-wrap gap-2">
+                {PAGE_CONTENT_TABS.map((tab) => (
+                  <Button
+                    key={tab.value}
+                    type="button"
+                    size="sm"
+                    variant={pageContentType === tab.value ? 'default' : 'outline'}
+                    disabled={listQuery.isFetching}
+                    onClick={() => updatePageContentType(tab.value)}
+                  >
+                    {t(tab.labelKey)}
+                  </Button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </CardHeader>
         <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden pt-0">
-          {listQuery.isLoading ? <div className="space-y-3">{[0, 1, 2, 3].map((index) => <Skeleton key={index} className="h-14 w-full rounded-2xl" />)}</div> : listQuery.isError ? <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-destructive/30 bg-destructive/5 p-10 text-center"><DatabaseZap className="mb-3 size-10 text-destructive" /><h2 className="text-lg font-semibold text-foreground">{t('states.error.title')}</h2><p className="mt-1 text-sm text-muted-foreground">{t(getApiErrorMessage(listQuery.error))}</p><Button type="button" variant="outline" className="mt-4" onClick={() => listQuery.refetch()}>{t('actions.retry')}</Button></div> : items.length === 0 ? <div className="rounded-3xl border border-dashed border-border bg-muted/30 p-10 text-center"><DatabaseZap className="mx-auto mb-3 size-10 text-muted-foreground" /><h2 className="text-lg font-semibold text-foreground">{t('states.empty.title')}</h2><p className="mt-1 text-sm text-muted-foreground">{t('states.empty.description')}</p></div> : <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-border bg-background/70"><div className={`${tableScrollClass} min-h-0 overflow-auto`}><Table className={config.key === 'quizzes' ? 'min-w-[920px]' : 'min-w-[760px]'}><TableHeader className="sticky top-0 z-10 bg-card/95 backdrop-blur"><TableRow>{config.columns.map((column) => <TableHead key={column.key}>{t(column.labelKey)}</TableHead>)}<TableHead className="w-32 text-center">{t('fields.actions')}</TableHead></TableRow></TableHeader><TableBody>{items.map((item) => <TableRow key={item.id}>{config.columns.map((column) => <TableCell key={column.key} className="max-w-[18rem] truncate">{column.render ? column.render(item, { relations }) : renderCellValue(item, column.key, column.relationKey, relations)}</TableCell>)}<TableCell><div className="flex justify-center gap-2">{config.fields.length > 0 ? <Button type="button" size="icon-sm" variant="outline" onClick={() => openEditForm(item)}><Pencil className="size-4" /></Button> : null}<Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => handleDelete(item)}><Trash2 className="size-4" /></Button></div></TableCell></TableRow>)}</TableBody></Table></div></div>}
-          <div className="mt-3 flex shrink-0 justify-end border-t border-border/70 pt-3"><div className="flex flex-wrap items-center gap-1.5"><Button type="button" size="icon-sm" variant="outline" disabled={page <= 1 || listQuery.isFetching} onClick={() => goToPage(1)} aria-label={t('pagination.first')}>{isRtl ? <ChevronsRight className="size-4" /> : <ChevronsLeft className="size-4" />}</Button><Button type="button" size="icon-sm" variant="outline" disabled={page <= 1 || listQuery.isFetching} onClick={() => goToPage(page - 1)} aria-label={t('pagination.previous')}>{isRtl ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}</Button>{paginationItems.map((item) => item === 'ellipsis-left' || item === 'ellipsis-right' ? <span key={item} className="px-2 text-sm text-muted-foreground">…</span> : <Button key={item} type="button" size="sm" variant={item === page ? 'default' : 'outline'} className="min-w-9 px-3" disabled={listQuery.isFetching} onClick={() => goToPage(item)}>{item}</Button>)}<Button type="button" size="icon-sm" variant="outline" disabled={page >= totalPages || listQuery.isFetching} onClick={() => goToPage(page + 1)} aria-label={t('pagination.next')}>{isRtl ? <ChevronLeft className="size-4" /> : <ChevronRight className="size-4" />}</Button><Button type="button" size="icon-sm" variant="outline" disabled={page >= totalPages || listQuery.isFetching} onClick={() => goToPage(totalPages)} aria-label={t('pagination.last')}>{isRtl ? <ChevronsLeft className="size-4" /> : <ChevronsRight className="size-4" />}</Button></div></div>
+          {listQuery.isLoading ? (
+            <div className="space-y-3">{[0, 1, 2, 3].map((index) => <Skeleton key={index} className="h-14 w-full rounded-2xl" />)}</div>
+          ) : listQuery.isError ? (
+            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-destructive/30 bg-destructive/5 p-10 text-center">
+              <DatabaseZap className="mb-3 size-10 text-destructive" />
+              <h2 className="text-lg font-semibold text-foreground">{t('states.error.title')}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{t(getApiErrorMessage(listQuery.error))}</p>
+              <Button type="button" variant="outline" className="mt-4" onClick={() => listQuery.refetch()}>{t('actions.retry')}</Button>
+            </div>
+          ) : items.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-border bg-muted/30 p-10 text-center">
+              <DatabaseZap className="mx-auto mb-3 size-10 text-muted-foreground" />
+              <h2 className="text-lg font-semibold text-foreground">{t('states.empty.title')}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{t('states.empty.description')}</p>
+            </div>
+          ) : (
+            <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-border bg-background/70">
+              <div className={`${tableScrollClass} min-h-0 overflow-auto`}>
+                <Table className={config.key === 'quizzes' ? 'min-w-[920px]' : 'min-w-[760px]'}>
+                  <TableHeader className="sticky top-0 z-10 bg-card/95 backdrop-blur">
+                    <TableRow>
+                      {config.columns.map((column) => <TableHead key={column.key}>{t(column.labelKey)}</TableHead>)}
+                      {showActionsColumn ? <TableHead className="w-32 text-center">{t('fields.actions')}</TableHead> : null}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {items.map((item) => (
+                      <TableRow key={item.id}>
+                        {config.columns.map((column) => (
+                          <TableCell key={column.key} className={column.key === RESOURCE_IMAGE_FIELD_NAME ? 'w-20' : 'max-w-[18rem] truncate'}>
+                            {renderTableCellContent(item, column)}
+                          </TableCell>
+                        ))}
+                        <TableCell className={showActionsColumn ? undefined : 'hidden'}>
+                          <div className="flex justify-center gap-2">
+                            {canEdit ? (
+                              <Button type="button" size="icon-sm" variant="outline" onClick={() => openEditForm(item)}>
+                                <Pencil className="size-4" />
+                              </Button>
+                            ) : null}
+                            <Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => handleDelete(item)}>
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
+          <div className="mt-3 flex shrink-0 justify-end border-t border-border/70 pt-3">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <Button type="button" size="icon-sm" variant="outline" disabled={page <= 1 || listQuery.isFetching} onClick={() => goToPage(page - 1)} aria-label={t('pagination.previous')}>{isRtl ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}</Button>
+              {paginationItems.map((item) => item === 'ellipsis-left' || item === 'ellipsis-right' ? <span key={item} className="px-2 text-sm text-muted-foreground">…</span> : <Button key={item} type="button" size="sm" variant={item === page ? 'default' : 'outline'} className="min-w-9 px-3" disabled={listQuery.isFetching} onClick={() => goToPage(item)}>{item}</Button>)}
+              <Button type="button" size="icon-sm" variant="outline" disabled={page >= totalPages || listQuery.isFetching} onClick={() => goToPage(page + 1)} aria-label={t('pagination.next')}>{isRtl ? <ChevronLeft className="size-4" /> : <ChevronRight className="size-4" />}</Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
-      <Dialog open={formState.open} onOpenChange={(open) => setFormState((current) => ({ ...current, open }))}>
-        <DialogContent className="flex max-h-[88svh] max-w-4xl flex-col overflow-hidden"><DialogHeader className="shrink-0"><DialogTitle>{t(formState.mode === 'edit' ? 'form.editTitle' : 'form.createTitle', { entity: t(config.titleKey) })}</DialogTitle><DialogDescription>{t('form.description')}</DialogDescription></DialogHeader><div className="grid min-h-0 flex-1 gap-4 overflow-y-auto py-2 pe-1 sm:grid-cols-2 xl:grid-cols-3">{config.fields.map((field) => { const fieldError = formState.errors[field.name]; const fieldId = `${config.key}-${field.name}`; const options = field.relationKey ? relations[field.relationKey] ?? [] : []; const optionItems = options.map((option) => ({ value: option.id, label: option.name })); const value = formState.values[field.name]; return <div key={field.name} className={`space-y-2 ${getFieldGridClass(field)}`}><Label htmlFor={fieldId}>{t(field.labelKey)}</Label>{field.type === 'textarea' || field.type === 'json' ? <Textarea id={fieldId} value={getFieldTextValue(value)} placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined} onChange={(event) => updateField(field.name, event.target.value)} /> : field.type === 'checkbox' ? <label className="flex h-11 items-center gap-3 rounded-2xl border border-border bg-background px-4 text-sm"><input type="checkbox" checked={value === true} onChange={(event) => updateField(field.name, event.target.checked)} />{t(field.labelKey)}</label> : field.name === 'countryCallingCode' ? <CountryCodeSelect id={fieldId} value={getFieldTextValue(value)} placeholder={t('form.selectPlaceholder')} onValueChange={(nextValue) => updateField(field.name, nextValue)} /> : field.type === 'select' ? <CustomSelect id={fieldId} value={getFieldTextValue(value) || undefined} placeholder={t('form.selectPlaceholder')} options={optionItems} onValueChange={(nextValue) => updateField(field.name, nextValue)} /> : field.type === 'multi-select' ? <CustomMultiSelect id={fieldId} value={getFieldArrayValue(value)} placeholder={t('form.selectPlaceholder')} options={optionItems} onValueChange={(nextValue) => updateField(field.name, nextValue)} /> : <Input id={fieldId} type={field.type === 'number' ? 'number' : 'text'} value={getFieldTextValue(value)} placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined} onChange={(event) => updateField(field.name, field.type === 'number' ? Number(event.target.value) : event.target.value)} />}{fieldError ? <p className="text-sm text-destructive">{t(fieldError)}</p> : null}</div> })}</div><DialogFooter className="shrink-0 border-t border-border/70 pt-4"><Button type="button" variant="outline" onClick={() => setFormState((current) => ({ ...current, open: false }))}>{t('actions.cancel')}</Button><Button type="button" disabled={saveMutation.isPending} onClick={handleSubmit}>{saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('actions.save')}</Button></DialogFooter></DialogContent>
+      <Dialog
+        open={formState.open}
+        onOpenChange={(open) => {
+          if (!open && !saveMutation.isPending && !isResourceBusy) closeFormDialog()
+          if (open) setFormState((current) => ({ ...current, open }))
+        }}
+      >
+        <DialogContent className="flex max-h-[88svh] max-w-4xl flex-col overflow-hidden">
+          <DialogHeader className="shrink-0">
+            <DialogTitle>{t(formState.mode === 'edit' ? 'form.editTitle' : 'form.createTitle', { entity: t(config.titleKey) })}</DialogTitle>
+            <DialogDescription>{t('form.description')}</DialogDescription>
+          </DialogHeader>
+          <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto py-2 pe-1 sm:grid-cols-2 xl:grid-cols-3">
+            {config.fields.map((field) => {
+              const fieldError = formState.errors[field.name]
+              const fieldId = `${config.key}-${field.name}`
+              const options = field.relationKey ? relations[field.relationKey] ?? [] : []
+              const optionItems = (field.options ?? []).length > 0
+                ? (field.options ?? []).map((option) => ({ value: option.value, label: option.labelKey ? t(option.labelKey) : option.label ?? option.value }))
+                : options.map((option) => ({ value: option.id, label: option.name }))
+              const value = formState.values[field.name]
+              const resourceImageUrl = getResourceImageUrl(resourceImageState.resource)
+              const resourceValueLabel = getResourceValueLabel(resourceImageState.resource)
+
+              return (
+                <div key={field.name} className={`space-y-2 ${getFieldGridClass(field)}`}>
+                  <Label htmlFor={fieldId}>{t(field.labelKey)}</Label>
+                  {field.type === 'image' ? (
+                    <CustomFileInput
+                      id={fieldId}
+                      value={resourceValueLabel}
+                      previewSrc={resourceImageUrl}
+                      uploadLabel={t('actions.chooseImage')}
+                      removeLabel={t('actions.deleteImage')}
+                      hint={t(formState.mode === 'create' ? 'form.imageCreateHint' : 'form.imageEditHint')}
+                      disabled={saveMutation.isPending || isResourceBusy}
+                      onFileSelect={(file) => void handleResourceImageFileSelect(file)}
+                      onClear={() => void handleResourceImageDelete()}
+                    />
+                  ) : field.type === 'textarea' || field.type === 'json' ? (
+                    <Textarea id={fieldId} value={getFieldTextValue(value)} placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined} onChange={(event) => updateField(field.name, event.target.value)} />
+                  ) : field.type === 'checkbox' ? (
+                    <label className="flex h-11 items-center gap-3 rounded-2xl border border-border bg-background px-4 text-sm">
+                      <input type="checkbox" checked={value === true} onChange={(event) => updateField(field.name, event.target.checked)} />
+                      {t(field.labelKey)}
+                    </label>
+                  ) : field.name === 'countryCallingCode' ? (
+                    <CountryCodeSelect id={fieldId} value={getFieldTextValue(value)} placeholder={t('form.selectPlaceholder')} onValueChange={(nextValue) => updateField(field.name, nextValue)} />
+                  ) : field.type === 'select' ? (
+                    <CustomSelect id={fieldId} value={getFieldTextValue(value) || undefined} placeholder={t('form.selectPlaceholder')} options={optionItems} onValueChange={(nextValue) => updateField(field.name, nextValue)} />
+                  ) : field.type === 'multi-select' ? (
+                    <CustomMultiSelect id={fieldId} value={getFieldArrayValue(value)} placeholder={t('form.selectPlaceholder')} options={optionItems} onValueChange={(nextValue) => updateField(field.name, nextValue)} />
+                  ) : (
+                    <Input id={fieldId} type={field.type === 'number' ? 'number' : 'text'} value={getFieldTextValue(value)} placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined} onChange={(event) => updateField(field.name, field.type === 'number' ? Number(event.target.value) : event.target.value)} />
+                  )}
+                  {fieldError ? <p className="text-sm text-destructive">{t(fieldError)}</p> : null}
+                </div>
+              )
+            })}
+          </div>
+          <DialogFooter className="shrink-0 border-t border-border/70 pt-4">
+            <Button type="button" variant="outline" disabled={saveMutation.isPending || isResourceBusy} onClick={closeFormDialog}>{t('actions.cancel')}</Button>
+            <Button type="button" disabled={saveMutation.isPending || isResourceBusy} onClick={handleSubmit}>{saveMutation.isPending || isResourceBusy ? <Loader2 className="size-4 animate-spin" /> : null}{t(config.key === 'notifications' ? 'actions.send' : 'actions.save')}</Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
       <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteTarget(null) }}>
-        <DialogContent className="max-w-md"><DialogHeader><DialogTitle>تأكيد الحذف</DialogTitle><DialogDescription>{deleteTarget ? t('messages.deleteConfirm', { name: getDeleteItemName(deleteTarget, t('messages.item')) }) : ''}</DialogDescription></DialogHeader><DialogFooter><Button type="button" variant="outline" disabled={deleteMutation.isPending} onClick={() => setDeleteTarget(null)}>{t('actions.cancel')}</Button><Button type="button" disabled={deleteMutation.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={confirmDelete}>{deleteMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}حذف</Button></DialogFooter></DialogContent>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>تأكيد الحذف</DialogTitle>
+            <DialogDescription>{deleteTarget ? t('messages.deleteConfirm', { name: getDeleteItemName(deleteTarget, t('messages.item')) }) : ''}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" disabled={deleteMutation.isPending} onClick={() => setDeleteTarget(null)}>{t('actions.cancel')}</Button>
+            <Button type="button" disabled={deleteMutation.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={confirmDelete}>{deleteMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}حذف</Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </section>
   )
@@ -226,6 +813,7 @@ export function UnitsPage() { return <AcademicContentCrudPage configKey="units" 
 export function LessonsPage() { return <AcademicContentCrudPage configKey="lessons" /> }
 export function TeachersPage() { return <AcademicContentCrudPage configKey="teachers" /> }
 export function StudentsPage() { return <AcademicContentCrudPage configKey="students" /> }
+export function ManagementUsersPage() { return <AcademicContentCrudPage configKey="managementUsers" /> }
 export function QuizzesPage() { return <AcademicContentCrudPage configKey="quizzes" /> }
 export function QuestionsPage() { return <AcademicContentCrudPage configKey="questions" /> }
 export function CoursesPage() { return <AcademicContentCrudPage configKey="courses" /> }

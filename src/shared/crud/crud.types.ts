@@ -65,6 +65,7 @@ export type CrudEntityConfig<
   routeBase: string
   endpoints: CrudEndpointConfig
   columns: Array<CrudColumn<TList>>
+  details?: { columns?: Array<CrudColumn<TDetails>> }
   filters?: Array<CrudField<TFilters>>
   relations?: CrudRelation[]
   form?: {

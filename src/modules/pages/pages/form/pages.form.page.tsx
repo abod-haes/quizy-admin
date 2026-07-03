@@ -128,7 +128,7 @@ export default function PagesFormPage() {
   const { createMutation, updateMutation, } = usePagesCrudMutations()
 
   const [draft, setDraft] = useState<Partial<PagesCreatePayload>>({})
-  const [arrayInputs, setArrayInputs] = useState<Record<string, string>>({})
+  const [arrayInputs] = useState<Record<string, string>>({})
   const [errors, setErrors] = useState<PagesFormErrors>({})
 
   const baseForm = useMemo<PagesCreatePayload>(
@@ -140,8 +140,6 @@ export default function PagesFormPage() {
     () => ({ ...baseForm, ...draft }),
     [baseForm, draft]
   )
-
-  const relationOptionsByField: Record<string, { value: string; label: string }[]> = {}
 
   const handleSubmit = async () => {
     const { value: nextForm, errors: arrayErrors } = applyArrayInputsToForm(

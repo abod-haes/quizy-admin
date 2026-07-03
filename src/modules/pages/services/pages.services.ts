@@ -1,6 +1,6 @@
 import { httpClient } from '@/core/api/http.services'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
-import { unwrapItem, unwrapList, unwrapPaginatedList, type PaginatedListResult } from '@/shared/lib/api/unwrap-api-payload'
+import { unwrapItem, unwrapPaginatedList, type PaginatedListResult } from '@/shared/lib/api/unwrap-api-payload'
 import { toAdminListQueryParams, type AdminListFilters, type AdminListPagination } from '@/shared/lib/api/admin-list-query.helpers'
 import type { PagesEntity, PagesCreatePayload, PagesUpdatePayload } from '@/modules/pages/types/pages.type'
 

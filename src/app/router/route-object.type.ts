@@ -14,6 +14,7 @@ export const APP_ROUTES = {
   units: { key: 'units', path: '/units', protected: true, breadcrumbKeys: [] },
   teachers: { key: 'teachers', path: '/teachers', protected: true, breadcrumbKeys: [] },
   students: { key: 'students', path: '/students', protected: true, breadcrumbKeys: [] },
+  managementUsers: { key: 'managementUsers', path: '/management-users', protected: true, breadcrumbKeys: [] },
   courses: { key: 'courses', path: '/courses', protected: true, breadcrumbKeys: [] },
   courseSessions: { key: 'courseSessions', path: '/courses/sessions', protected: true, breadcrumbKeys: [] },
   courseContent: { key: 'courseContent', path: '/courses/content', protected: true, breadcrumbKeys: [] },

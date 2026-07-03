@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
-import { toast } from 'sonner'
+import { toast } from '@/shared/lib/toast'
 
 import { normalizeAppRole } from '@/app/auth/access-control.types'
 import { useAuth } from '@/app/providers/auth.provider'

@@ -16,6 +16,8 @@ import {
   ClassesPage,
   CoursesPage,
   LessonsPage,
+  ManagementUsersPage,
+  NotificationsPage,
   PageContentsPage,
   QuestionsPage,
   StudentsPage,
@@ -62,10 +64,12 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'units', element: createElement(UnitsPage) },
   { routeKey: 'teachers', element: createElement(TeachersPage) },
   { routeKey: 'students', element: createElement(StudentsPage) },
+  { routeKey: 'managementUsers', element: createElement(ManagementUsersPage) },
   { routeKey: 'courses', element: createElement(CoursesPage) },
   { routeKey: 'courseSessions', element: createElement(CourseSessionsPage) },
   { routeKey: 'courseContent', element: createElement(CourseContentPage) },
   { routeKey: 'ads', element: createElement(AdsPage) },
+  { routeKey: 'notifications', element: createElement(NotificationsPage) },
   { routeKey: 'pageContents', element: createElement(PageContentsPage) },
 ]
 

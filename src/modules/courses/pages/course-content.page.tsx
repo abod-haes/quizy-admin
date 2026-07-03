@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Download, ExternalLink, FileVideo, Loader2, Pencil, Plus, Trash2 } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/shared/lib/toast'
 
 import { api } from '@/shared/api/api-client'
 import type { PagedResponse, UUID } from '@/shared/api/api.types'
@@ -24,6 +24,7 @@ const createEmptyText = (courseId = '', sessionId = ''): TextForm => ({ courseId
 function labelOf(item: NamedItem) { return item.title?.trim() || item.name?.trim() || '-' }
 function extractResourceId(response: UploadedResource): string | null { if (typeof response === 'string' && response.trim()) return response; if (response && typeof response === 'object' && typeof response.id === 'string' && response.id.trim()) return response.id; return null }
 function errorMessage(error: unknown) { if (error && typeof error === 'object' && 'message' in error) { const message = (error as { message?: unknown }).message; if (typeof message === 'string' && message.trim()) return message } return 'تعذر تنفيذ الطلب' }
+// eslint-disable-next-line no-useless-escape
 function getBlobName(material: Material) { return (material.title?.trim() || 'course-material').replace(/[\/:*?"<>|]+/g, '-').slice(0, 80) }
 function downloadBlob(blob: Blob, fileName: string) { const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = fileName; document.body.appendChild(anchor); anchor.click(); anchor.remove(); URL.revokeObjectURL(url) }
 function deleteLabel(tab: TabKey, item: Material | TextRecord) { if (tab === 'materials') return (item as Material).title || 'هذه المادة'; return (item as TextRecord).content?.slice(0, 60) || 'هذا العنصر' }
