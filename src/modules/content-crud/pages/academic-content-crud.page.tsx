@@ -778,7 +778,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
                   ) : field.type === 'multi-select' ? (
                     <CustomMultiSelect id={fieldId} value={getFieldArrayValue(value)} placeholder={t('form.selectPlaceholder')} options={optionItems} onValueChange={(nextValue) => updateField(field.name, nextValue)} />
                   ) : (
-                    <Input id={fieldId} type={field.type === 'number' ? 'number' : 'text'} value={getFieldTextValue(value)} placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined} onChange={(event) => updateField(field.name, field.type === 'number' ? Number(event.target.value) : event.target.value)} />
+                    <Input id={fieldId} type={field.type === 'number' ? 'number' : field.type === 'password' ? 'password' : 'text'} value={getFieldTextValue(value)} placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined} onChange={(event) => updateField(field.name, field.type === 'number' ? Number(event.target.value) : event.target.value)} />
                   )}
                   {fieldError ? <p className="text-sm text-destructive">{t(fieldError)}</p> : null}
                 </div>

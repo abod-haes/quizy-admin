@@ -112,7 +112,8 @@
     "code": "Code",
     "actions": "Actions",
     "role": "Role",
-    "userType": "User type"
+    "userType": "User type",
+    "password": "Password"
   },
   "actions": {
     "create": "Create",

@@ -34,7 +34,7 @@ const unitSchema = z.object({ name: requiredString('validation.required'), desc:
 const lessonSchema = z.object({ name: requiredString('validation.required'), desc: optionalString(), unitId: uuidField('validation.required'), order: nonNegativeInt('validation.nonNegativeInt') })
 const teacherSchema = z.object({ firstName: requiredString('validation.required'), lastName: optionalString(), phoneNumber: optionalString(), countryCallingCode: optionalString(), description: optionalString() })
 const studentSchema = z.object({ firstName: requiredString('validation.required'), lastName: optionalString(), phoneNumber: optionalString(), countryCallingCode: optionalString() })
-const managementUserSchema = z.object({ firstName: requiredString('validation.required'), lastName: optionalString(), phoneNumber: optionalString(), countryCallingCode: optionalString() })
+const managementUserSchema = z.object({ firstName: requiredString('validation.required'), lastName: optionalString(), password: optionalString(), phoneNumber: optionalString(), countryCallingCode: optionalString(), description: optionalString() })
 const courseSchema = z.object({
   subjectId: uuidField('validation.required'),
   teacherId: uuidField('validation.required'),
@@ -186,11 +186,11 @@ export const academicContentConfigs: Record<ContentCrudConfig['key'], ContentCru
   managementUsers: {
     key: 'managementUsers', titleKey: 'modules.managementUsers.title', descriptionKey: 'modules.managementUsers.description', endpoints: managementUserEndpoints,
     columns: [resourceImageColumn, { key: 'firstName', labelKey: 'fields.firstName' }, { key: 'lastName', labelKey: 'fields.lastName' }, { key: 'phoneNumber', labelKey: 'fields.phoneNumber' }, { key: 'role', labelKey: 'fields.role' }, { key: 'userType', labelKey: 'fields.userType' }],
-    fields: [resourceImageField, { name: 'firstName', labelKey: 'fields.firstName', type: 'text', required: true }, { name: 'lastName', labelKey: 'fields.lastName', type: 'text' }, { name: 'phoneNumber', labelKey: 'fields.phoneNumber', type: 'text' }, { name: 'countryCallingCode', labelKey: 'fields.countryCallingCode', type: 'text' }],
-    emptyValues: { firstName: '', lastName: '', phoneNumber: '', countryCallingCode: '+963' },
-    getInitialValues: (item) => ({ firstName: toStringValue(item.firstName), lastName: toStringValue(item.lastName), phoneNumber: toStringValue(item.phoneNumber), countryCallingCode: toStringValue(item.countryCallingCode) }),
+    fields: [resourceImageField, { name: 'firstName', labelKey: 'fields.firstName', type: 'text', required: true }, { name: 'lastName', labelKey: 'fields.lastName', type: 'text' }, { name: 'password', labelKey: 'fields.password', type: 'password' }, { name: 'phoneNumber', labelKey: 'fields.phoneNumber', type: 'text' }, { name: 'countryCallingCode', labelKey: 'fields.countryCallingCode', type: 'text' }, { name: 'description', labelKey: 'fields.description', type: 'textarea' }],
+    emptyValues: { firstName: '', lastName: '', password: '', phoneNumber: '', countryCallingCode: '+963', description: '' },
+    getInitialValues: (item) => ({ firstName: toStringValue(item.firstName), lastName: toStringValue(item.lastName), password: '', phoneNumber: toStringValue(item.phoneNumber), countryCallingCode: toStringValue(item.countryCallingCode), description: toStringValue(item.description) }),
     validate: (values) => toValidationResult(managementUserSchema.safeParse(values)),
-    toPayload: (values) => ({ firstName: values.firstName, lastName: values.lastName, phoneNumber: values.phoneNumber, countryCallingCode: values.countryCallingCode, role: 3, userType: 3 }),
+    toPayload: (values) => ({ firstName: values.firstName, lastName: values.lastName || null, password: values.password || null, phoneNumber: values.phoneNumber || null, countryCallingCode: values.countryCallingCode || null, role: 3, description: values.description || null, url: null, primaryImageId: null, fileIds: [] }),
   },
   quizzes: {
     key: 'quizzes', titleKey: 'modules.quizzes.title', descriptionKey: 'modules.quizzes.description', endpoints: API_ENDPOINTS.quizzes, relations: [{ key: 'teachers', endpoint: API_ENDPOINTS.teachers.brief }],

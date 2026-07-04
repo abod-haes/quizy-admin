@@ -68,7 +68,7 @@ export type AcademicContentItem = {
 export type ContentFormValue = string | number | boolean | string[] | null | undefined
 export type ContentFormValues = Record<string, ContentFormValue>
 
-export type ContentFieldType = 'text' | 'textarea' | 'number' | 'select' | 'multi-select' | 'checkbox' | 'json' | 'image'
+export type ContentFieldType = 'text' | 'textarea' | 'number' | 'password' | 'select' | 'multi-select' | 'checkbox' | 'json' | 'image'
 
 export type ContentFieldConfig = {
   name: string
