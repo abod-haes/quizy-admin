@@ -1,5 +1,6 @@
 import { api } from '@/shared/api/api-client'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
+import { normalizeCountryCallingCode, trimCountryCode } from '@/modules/auth/utils/quizy-auth-flow.utils'
 
 export type AdminLoginUser = {
   id: number | string
@@ -31,5 +32,10 @@ export type LoginResponse = {
 export type AdminLoginResponse = LoginResponse
 
 export async function loginAdmin(payload: LoginRequest): Promise<LoginResponse> {
-  return api.post<LoginResponse, LoginRequest>(API_ENDPOINTS.auth.login, payload)
+  const countryCallingCode = normalizeCountryCallingCode(payload.countryCallingCode)
+  return api.post<LoginResponse, LoginRequest>(API_ENDPOINTS.auth.login, {
+    ...payload,
+    phoneNumber: trimCountryCode(payload.phoneNumber, countryCallingCode),
+    countryCallingCode,
+  })
 }

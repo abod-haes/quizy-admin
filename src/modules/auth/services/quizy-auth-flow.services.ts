@@ -8,10 +8,15 @@ import type {
   QuizyResetRequest,
   QuizyVerifyRequest,
 } from '@/modules/auth/types/quizy-auth-flow.type'
-import { trimCountryCode } from '@/modules/auth/utils/quizy-auth-flow.utils'
+import { normalizeCountryCallingCode, trimCountryCode } from '@/modules/auth/utils/quizy-auth-flow.utils'
 
 function withPhone<T extends { phoneNumber: string; countryCallingCode?: string }>(payload: T): T {
-  return { ...payload, phoneNumber: trimCountryCode(payload.phoneNumber, payload.countryCallingCode) }
+  const countryCallingCode = normalizeCountryCallingCode(payload.countryCallingCode)
+  return {
+    ...payload,
+    phoneNumber: trimCountryCode(payload.phoneNumber, countryCallingCode),
+    countryCallingCode,
+  }
 }
 
 export async function registerQuizy(payload: QuizyRegisterRequest): Promise<QuizyAuthResponse> {
