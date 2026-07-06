@@ -3,6 +3,13 @@ import type { PagedResponse, ResourceLink, UUID } from '@/shared/api/api.types'
 export type ContentRelationOption = {
   id: UUID
   name: string
+  title?: string | null
+  label?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  fullName?: string | null
+  email?: string | null
+  phoneNumber?: string | null
   description?: string | null
   subjectId?: UUID | null
   unitId?: UUID | null

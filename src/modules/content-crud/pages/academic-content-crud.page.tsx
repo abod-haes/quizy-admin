@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ChevronLeft,
   ChevronRight,
   DatabaseZap,
+  Eye,
   ImageIcon,
   Loader2,
   Pencil,
@@ -61,6 +62,7 @@ import {
   TableHeader,
   TableRow,
   Textarea,
+  ToggleSwitch,
 } from '@/shared/ui'
 import { generateFileUrl } from '@/shared/utils/file-url'
 
@@ -118,6 +120,25 @@ function valueFromItem(item: AcademicContentItem, key: string): ContentFormValue
   return undefined
 }
 
+function getRelationOptionLabel(option: ContentRelationOption): string {
+  const fullName = [option.firstName, option.lastName]
+    .map((part) => (typeof part === 'string' ? part.trim() : ''))
+    .filter(Boolean)
+    .join(' ')
+
+  return (
+    option.name?.trim() ||
+    option.title?.trim() ||
+    option.label?.trim() ||
+    option.fullName?.trim() ||
+    fullName ||
+    option.email?.trim() ||
+    option.phoneNumber?.trim() ||
+    option.id ||
+    '-'
+  )
+}
+
 function renderCellValue(
   item: AcademicContentItem,
   key: string,
@@ -125,7 +146,10 @@ function renderCellValue(
   relations: Record<string, ContentRelationOption[]>,
 ): string {
   const rawValue = valueFromItem(item, key)
-  if (relationKey && typeof rawValue === 'string') return relations[relationKey]?.find((option) => option.id === rawValue)?.name ?? '-'
+  if (relationKey && typeof rawValue === 'string') {
+    const option = relations[relationKey]?.find((relationOption) => relationOption.id === rawValue)
+    return option ? getRelationOptionLabel(option) : '-'
+  }
   if (typeof rawValue === 'boolean') return rawValue ? '✓' : '—'
   if (typeof rawValue === 'number') return String(rawValue)
   if (typeof rawValue === 'string' && rawValue.trim()) return rawValue
@@ -214,10 +238,17 @@ function readInitialFilters(searchParams: URLSearchParams): FilterState {
   return { search: searchParams.get('search') ?? '', relations }
 }
 
+function normalizeRelationOption(option: ContentRelationOption): ContentRelationOption {
+  return {
+    ...option,
+    name: getRelationOptionLabel(option),
+  }
+}
+
 async function fetchRelations(config: ContentCrudConfig): Promise<Record<string, ContentRelationOption[]>> {
   const entries = await Promise.all((config.relations ?? []).map(async (relation) => {
     const options = await api.get<ContentRelationOption[]>(relation.endpoint)
-    return [relation.key, options] as const
+    return [relation.key, options.map(normalizeRelationOption)] as const
   }))
   return Object.fromEntries(entries)
 }
@@ -332,6 +363,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
   const config = academicContentConfigs[configKey]
   const { t, i18n } = useTranslation('content-crud')
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const isRtl = i18n.dir() === 'rtl'
   const [searchParams, setSearchParams] = useSearchParams()
   const [page, setPage] = useState(() => readInitialPage(searchParams))
@@ -349,7 +381,8 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
   const canCreate = config.fields.length > 0
   const canEdit = config.allowEdit !== false && config.fields.length > 0
   const canDelete = config.allowDelete !== false
-  const showActionsColumn = canEdit || canDelete
+  const canViewCourse = config.key === 'courses'
+  const showActionsColumn = canEdit || canDelete || canViewCourse
   const activeEditId = formState.open && formState.mode === 'edit' ? formState.item?.id ?? '' : ''
 
   useEffect(() => {
@@ -387,7 +420,22 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
     enabled: Boolean(hasResourceImageField && activeEditId),
     staleTime: 1000 * 60,
   })
+  const courseSubjectId = config.key === 'courses' ? getFieldTextValue(formState.values.subjectId) : ''
+  const courseTeacherOptionsQuery = useQuery({
+    queryKey: ['content-crud', config.key, 'course-teachers-by-subject', courseSubjectId],
+    queryFn: async () => {
+      const teachersRelation = config.relations?.find((relation) => relation.key === 'teachers')
+      if (!teachersRelation || !courseSubjectId) return []
+      const options = await api.get<ContentRelationOption[]>(teachersRelation.endpoint, {
+        params: { subjectId: courseSubjectId },
+      })
+      return options.map(normalizeRelationOption)
+    },
+    enabled: Boolean(config.key === 'courses' && courseSubjectId),
+    staleTime: 1000 * 60 * 5,
+  })
   const relations = relationQuery.data ?? {}
+  const courseTeacherOptions = courseSubjectId ? courseTeacherOptionsQuery.data ?? [] : relations.teachers ?? []
   const items = useMemo(() => {
     const sourceItems = listQuery.data?.items ?? []
     return sourceItems.filter((item) => {
@@ -527,7 +575,13 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
     setFormState({ open: true, mode: 'edit', item, values: config.getInitialValues(item), errors: {} })
   }
 
-  const updateField = (fieldName: string, value: ContentFormValue) => setFormState((current) => ({ ...current, values: { ...current.values, [fieldName]: value }, errors: { ...current.errors, [fieldName]: '' } }))
+  const updateField = (fieldName: string, value: ContentFormValue) => setFormState((current) => {
+    const nextValues = { ...current.values, [fieldName]: value }
+    if (config.key === 'courses' && fieldName === 'subjectId' && current.values.subjectId !== value) {
+      nextValues.teacherId = ''
+    }
+    return { ...current, values: nextValues, errors: { ...current.errors, [fieldName]: '', ...(fieldName === 'subjectId' ? { teacherId: '' } : {}) } }
+  })
   const updateSearch = (value: string) => {
     setPage(1)
     setFilters((current) => ({ ...current, search: value }))
@@ -639,7 +693,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
                     variant="filter"
                     icon={<SlidersHorizontal />}
                     placeholder={t('filters.all', { field: t(field.labelKey) })}
-                    options={[{ value: ALL_FILTER_VALUE, label: t('filters.all', { field: t(field.labelKey) }) }, ...options.map((option) => ({ value: option.id, label: option.name }))]}
+                    options={[{ value: ALL_FILTER_VALUE, label: t('filters.all', { field: t(field.labelKey) }) }, ...options.map((option) => ({ value: option.id, label: getRelationOptionLabel(option) }))]}
                     onValueChange={(value) => updateRelationFilter(field.name, value)}
                   />
                 )
@@ -699,6 +753,11 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
                         ))}
                         <TableCell className={showActionsColumn ? undefined : 'hidden'}>
                           <div className="flex justify-center gap-2">
+                            {canViewCourse ? (
+                              <Button type="button" size="icon-sm" variant="outline" onClick={() => navigate(`/courses/${item.id}`)}>
+                                <Eye className="size-4" />
+                              </Button>
+                            ) : null}
                             {canEdit ? (
                               <Button type="button" size="icon-sm" variant="outline" onClick={() => openEditForm(item)}>
                                 <Pencil className="size-4" />
@@ -741,10 +800,12 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
             {config.fields.map((field) => {
               const fieldError = formState.errors[field.name]
               const fieldId = `${config.key}-${field.name}`
-              const options = field.relationKey ? relations[field.relationKey] ?? [] : []
+              const options = config.key === 'courses' && field.name === 'teacherId'
+                ? courseTeacherOptions
+                : field.relationKey ? relations[field.relationKey] ?? [] : []
               const optionItems = (field.options ?? []).length > 0
                 ? (field.options ?? []).map((option) => ({ value: option.value, label: option.labelKey ? t(option.labelKey) : option.label ?? option.value }))
-                : options.map((option) => ({ value: option.id, label: option.name }))
+                : options.map((option) => ({ value: option.id, label: getRelationOptionLabel(option) }))
               const value = formState.values[field.name]
               const resourceImageUrl = getResourceImageUrl(resourceImageState.resource)
               const resourceValueLabel = getResourceValueLabel(resourceImageState.resource)
@@ -767,18 +828,24 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
                   ) : field.type === 'textarea' || field.type === 'json' ? (
                     <Textarea id={fieldId} value={getFieldTextValue(value)} placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined} onChange={(event) => updateField(field.name, event.target.value)} />
                   ) : field.type === 'checkbox' ? (
-                    <label className="flex h-11 items-center gap-3 rounded-2xl border border-border bg-background px-4 text-sm">
-                      <input type="checkbox" checked={value === true} onChange={(event) => updateField(field.name, event.target.checked)} />
-                      {t(field.labelKey)}
-                    </label>
+                    <div className="flex h-11 items-center justify-between gap-3 rounded-2xl border border-border bg-background px-4 text-sm">
+                      <span>{t(field.labelKey)}</span>
+                      <ToggleSwitch
+                        checked={value === true}
+                        onCheckedChange={(checked) => {
+                          updateField(field.name, checked)
+                          if (config.key === 'courses' && field.name === 'isFree' && checked) updateField('price', 0)
+                        }}
+                      />
+                    </div>
                   ) : field.name === 'countryCallingCode' ? (
                     <CountryCodeSelect id={fieldId} value={getFieldTextValue(value)} placeholder={t('form.selectPlaceholder')} onValueChange={(nextValue) => updateField(field.name, nextValue)} />
                   ) : field.type === 'select' ? (
-                    <CustomSelect id={fieldId} value={getFieldTextValue(value) || undefined} placeholder={t('form.selectPlaceholder')} options={optionItems} onValueChange={(nextValue) => updateField(field.name, nextValue)} />
+                    <CustomSelect id={fieldId} value={getFieldTextValue(value) || undefined} placeholder={t('form.selectPlaceholder')} disabled={config.key === 'courses' && field.name === 'teacherId' && Boolean(courseSubjectId) && courseTeacherOptionsQuery.isFetching} options={optionItems} onValueChange={(nextValue) => updateField(field.name, nextValue)} />
                   ) : field.type === 'multi-select' ? (
                     <CustomMultiSelect id={fieldId} value={getFieldArrayValue(value)} placeholder={t('form.selectPlaceholder')} options={optionItems} onValueChange={(nextValue) => updateField(field.name, nextValue)} />
                   ) : (
-                    <Input id={fieldId} type={field.type === 'number' ? 'number' : field.type === 'password' ? 'password' : 'text'} value={getFieldTextValue(value)} placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined} onChange={(event) => updateField(field.name, field.type === 'number' ? Number(event.target.value) : event.target.value)} />
+                    <Input id={fieldId} type={field.type === 'number' ? 'number' : field.type === 'password' ? 'password' : 'text'} value={getFieldTextValue(value)} placeholder={field.placeholderKey ? t(field.placeholderKey) : undefined} disabled={config.key === 'courses' && field.name === 'price' && formState.values.isFree === true} onChange={(event) => updateField(field.name, field.type === 'number' ? Number(event.target.value) : event.target.value)} />
                   )}
                   {fieldError ? <p className="text-sm text-destructive">{t(fieldError)}</p> : null}
                 </div>
