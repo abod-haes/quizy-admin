@@ -123,6 +123,11 @@ export const API_ENDPOINTS = {
     remove: (id: string) => byId('/api/CourseMaterials', id),
     download: (id: string) => `/api/CourseMaterials/${id}/download`,
     stream: (id: string) => `/api/CourseMaterials/${id}/stream`,
+    playback: (id: string) => `/api/CourseMaterials/${id}/playback`,
+    offlineManifest: (id: string) => `/api/CourseMaterials/${id}/offline-download/manifest`,
+    hlsPlaylist: (id: string) => `/api/CourseMaterials/${id}/hls/index.m3u8`,
+    hlsKey: (id: string) => `/api/CourseMaterials/${id}/hls/key`,
+    hlsSegment: (id: string, fileName: string) => `/api/CourseMaterials/${id}/hls/${encodeURIComponent(fileName)}`,
   },
   courseComments: {
     detail: (id: string) => byId('/api/CourseComments', id),
