@@ -190,6 +190,7 @@ export const API_ENDPOINTS = {
     list: '/api/QrCodes',
     detail: (id: string) => byId('/api/QrCodes', id),
     create: '/api/QrCodes',
+    bulk: '/api/QrCodes/bulk',
     update: (id: string) => byId('/api/QrCodes', id),
     remove: (id: string) => byId('/api/QrCodes', id),
   },

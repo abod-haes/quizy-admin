@@ -15,6 +15,7 @@ export type QuizyPermission =
   | 'reviewQueue.manage'
   | 'settings.manage'
   | 'aiChat.settings.manage'
+  | 'aiQrCodes.manage'
 
 export const rolePermissions: Record<AppRole, readonly QuizyPermission[]> = {
   SuperAdmin: [
@@ -32,6 +33,7 @@ export const rolePermissions: Record<AppRole, readonly QuizyPermission[]> = {
     'reviewQueue.manage',
     'settings.manage',
     'aiChat.settings.manage',
+    'aiQrCodes.manage',
   ],
   Teacher: [
     'dashboard.view',

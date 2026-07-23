@@ -31,6 +31,7 @@ import DashboardPage from '@/modules/dashboard/pages/dashboard.page'
 import { NotFoundPage } from '@/modules/not-found/pages/not-found.page'
 import QuizBuilderPage from '@/modules/quiz-builder/pages/quiz-builder-v2.page'
 import AiChatSettingsPage from '@/modules/ai-chat/pages/ai-chat-settings.page'
+import AiQrCodesPage from '@/modules/ai-qr-codes/pages/ai-qr-codes.page'
 import QuizzesPage from '@/modules/quizzes/pages/quizzes.page'
 
 function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof createElement>) {
@@ -75,6 +76,7 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'notifications', element: createElement(NotificationsPage) },
   { routeKey: 'pageContents', element: createElement(PageContentsPage) },
   { routeKey: 'aiChatSettings', element: createElement(AiChatSettingsPage) },
+  { routeKey: 'aiQrCodes', element: createElement(AiQrCodesPage) },
 ]
 
 export const appRouter = createBrowserRouter([

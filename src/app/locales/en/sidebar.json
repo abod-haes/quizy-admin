@@ -20,7 +20,8 @@
     "teachers": "Teachers",
     "students": "Students",
     "settings": "Settings",
-    "aiChatSettings": "AI Settings"
+    "aiChatSettings": "AI Settings",
+    "aiQrCodes": "AI Subscription Codes"
   },
   "user": {
     "guestName": "Quizy Admin",

@@ -29,6 +29,7 @@ export const APP_ROUTES = {
   reviewQueue: { key: 'reviewQueue', path: '/review-queue', protected: true, breadcrumbKeys: [] },
   settings: { key: 'settings', path: '/settings', protected: true, breadcrumbKeys: [] },
   aiChatSettings: { key: 'aiChatSettings', path: '/ai-chat/settings', protected: true, roles: ['SuperAdmin'] as const, breadcrumbKeys: [] },
+  aiQrCodes: { key: 'aiQrCodes', path: '/ai-chat/qr-codes', protected: true, roles: ['SuperAdmin'] as const, breadcrumbKeys: [] },
 
   projects: { key: 'projects', path: '/projects', protected: true, breadcrumbKeys: [] },
   addProjects: { key: 'addProjects', path: '/projects/add', protected: true, breadcrumbKeys: [] },

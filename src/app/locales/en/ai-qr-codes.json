@@ -1,0 +1,44 @@
+{
+  "badge": "AI subscriptions",
+  "title": "Quizy AI subscription codes",
+  "description": "Create and review QR codes for Plus, Pro and Ultra plans.",
+  "create": {
+    "title": "Create subscription codes",
+    "description": "Choose a point of sale, plan and number of codes."
+  },
+  "fields": {
+    "pointOfSale": "Point of sale",
+    "plan": "Plan",
+    "count": "Code count"
+  },
+  "placeholders": {
+    "pointOfSale": "Select a point of sale"
+  },
+  "actions": {
+    "create": "Create codes"
+  },
+  "validation": {
+    "required": "Select a point of sale and enter a positive whole number."
+  },
+  "messages": {
+    "created": "AI codes created successfully.",
+    "createFailed": "Could not create AI codes."
+  },
+  "table": {
+    "summary": "Total codes: {{count}}",
+    "empty": "No AI subscription codes found.",
+    "code": "Code",
+    "plan": "Plan",
+    "pointOfSale": "Point of sale",
+    "assigned": "Assigned",
+    "active": "Active",
+    "createdAt": "Created at",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{page}}"
+  },
+  "values": {
+    "yes": "Yes",
+    "no": "No"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "badge": "اشتراكات AI",
+  "title": "أكواد اشتراك مساعد كويزي",
+  "description": "أنشئ وتابع أكواد QR الخاصة بخطط Plus وPro وUltra.",
+  "create": {
+    "title": "إنشاء أكواد اشتراك",
+    "description": "حدد نقطة البيع والخطة وعدد الأكواد المطلوبة."
+  },
+  "fields": {
+    "pointOfSale": "نقطة البيع",
+    "plan": "الخطة",
+    "count": "عدد الأكواد"
+  },
+  "placeholders": {
+    "pointOfSale": "اختر نقطة البيع"
+  },
+  "actions": {
+    "create": "إنشاء الأكواد"
+  },
+  "validation": {
+    "required": "اختر نقطة البيع وأدخل عدداً صحيحاً أكبر من صفر."
+  },
+  "messages": {
+    "created": "تم إنشاء أكواد AI بنجاح.",
+    "createFailed": "تعذر إنشاء أكواد AI."
+  },
+  "table": {
+    "summary": "إجمالي الأكواد: {{count}}",
+    "empty": "لا توجد أكواد اشتراك AI.",
+    "code": "الكود",
+    "plan": "الخطة",
+    "pointOfSale": "نقطة البيع",
+    "assigned": "مخصص",
+    "active": "فعال",
+    "createdAt": "تاريخ الإنشاء",
+    "previous": "السابق",
+    "next": "التالي",
+    "page": "الصفحة {{page}}"
+  },
+  "values": {
+    "yes": "نعم",
+    "no": "لا"
+  }
+}

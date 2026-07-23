@@ -21,7 +21,8 @@
     "teachers": "المدرسون",
     "students": "الطلاب",
     "settings": "الإعدادات",
-    "aiChatSettings": "إعدادات الذكاء الاصطناعي"
+    "aiChatSettings": "إعدادات الذكاء الاصطناعي",
+    "aiQrCodes": "أكواد اشتراك AI"
   },
   "user": {
     "guestName": "مدير Quizy",
