@@ -1,0 +1,29 @@
+{
+  "badge": "Super Admin",
+  "title": "إعدادات الذكاء الاصطناعي",
+  "description": "تحكم بالحدود اليومية وخيارات الإدخال لخدمة مساعد كويزي.",
+  "fields": {
+    "dailyTokenLimit": "الحد اليومي للـ Tokens",
+    "dailyMessageLimit": "الحد اليومي للرسائل",
+    "maxInputCharacters": "أقصى عدد أحرف في الرسالة"
+  },
+  "hints": { "positiveInteger": "أدخل عدداً صحيحاً أكبر من صفر." },
+  "global": {
+    "title": "الإعدادات العامة",
+    "description": "إعدادات مشتركة بين جميع خطط AI.",
+    "hint": "يطبق هذا الحد على جميع المستخدمين قبل إرسال الرسالة."
+  },
+  "plans": {
+    "free": { "title": "Free", "description": "حدود الخطة المجانية." },
+    "plus": { "title": "Plus", "description": "حدود خطة Plus." },
+    "pro": { "title": "Pro", "description": "حدود خطة Pro." },
+    "ultra": { "title": "Ultra", "description": "حدود خطة Ultra." }
+  },
+  "actions": { "save": "حفظ الإعدادات", "retry": "إعادة المحاولة" },
+  "states": {
+    "errorTitle": "تعذر تحميل إعدادات AI",
+    "errorDescription": "تحقق من الاتصال ثم حاول مرة أخرى."
+  },
+  "validation": { "positiveInteger": "يجب أن تكون القيمة عدداً صحيحاً أكبر من صفر." },
+  "messages": { "saved": "تم حفظ إعدادات AI بنجاح.", "saveFailed": "تعذر حفظ إعدادات AI." }
+}

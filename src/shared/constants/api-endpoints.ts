@@ -193,6 +193,9 @@ export const API_ENDPOINTS = {
     update: (id: string) => byId('/api/QrCodes', id),
     remove: (id: string) => byId('/api/QrCodes', id),
   },
+  aiChat: {
+    settings: '/api/AiChat/settings',
+  },
   statistics: {
     list: '/api/Statistics',
   },

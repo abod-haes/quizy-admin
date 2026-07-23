@@ -2,6 +2,7 @@ import {
   BookOpenCheck,
   BookText,
   BellRing,
+  BrainCircuit,
   CalendarDays,
   FileQuestion,
   FileText,
@@ -72,4 +73,13 @@ export const primarySidebarItems: SidebarItem[] = [
   },
 ]
 
-export const secondarySidebarItems: SidebarItem[] = []
+export const secondarySidebarItems: SidebarItem[] = [
+  {
+    id: 'aiChatSettings',
+    labelKey: 'sidebar.items.aiChatSettings',
+    to: APP_ROUTES.aiChatSettings.path,
+    icon: BrainCircuit,
+    roles: ['SuperAdmin'],
+    end: true,
+  },
+]

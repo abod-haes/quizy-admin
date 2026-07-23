@@ -1,0 +1,29 @@
+{
+  "badge": "Super Admin",
+  "title": "AI settings",
+  "description": "Control daily limits and input options for the Quizy AI assistant.",
+  "fields": {
+    "dailyTokenLimit": "Daily token limit",
+    "dailyMessageLimit": "Daily message limit",
+    "maxInputCharacters": "Maximum message characters"
+  },
+  "hints": { "positiveInteger": "Enter a positive whole number." },
+  "global": {
+    "title": "Global settings",
+    "description": "Settings shared by all AI plans.",
+    "hint": "This limit is applied before a message is sent to the AI service."
+  },
+  "plans": {
+    "free": { "title": "Free", "description": "Limits for the free plan." },
+    "plus": { "title": "Plus", "description": "Limits for the Plus plan." },
+    "pro": { "title": "Pro", "description": "Limits for the Pro plan." },
+    "ultra": { "title": "Ultra", "description": "Limits for the Ultra plan." }
+  },
+  "actions": { "save": "Save settings", "retry": "Retry" },
+  "states": {
+    "errorTitle": "Could not load AI settings",
+    "errorDescription": "Check the connection and try again."
+  },
+  "validation": { "positiveInteger": "The value must be a positive whole number." },
+  "messages": { "saved": "AI settings saved successfully.", "saveFailed": "Could not save AI settings." }
+}

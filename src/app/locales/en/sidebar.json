@@ -19,7 +19,8 @@
     "units": "Units",
     "teachers": "Teachers",
     "students": "Students",
-    "settings": "Settings"
+    "settings": "Settings",
+    "aiChatSettings": "AI Settings"
   },
   "user": {
     "guestName": "Quizy Admin",

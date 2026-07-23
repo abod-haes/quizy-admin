@@ -20,7 +20,8 @@
     "units": "الوحدات",
     "teachers": "المدرسون",
     "students": "الطلاب",
-    "settings": "الإعدادات"
+    "settings": "الإعدادات",
+    "aiChatSettings": "إعدادات الذكاء الاصطناعي"
   },
   "user": {
     "guestName": "مدير Quizy",
