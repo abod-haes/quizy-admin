@@ -52,6 +52,22 @@ export const primarySidebarItems: SidebarItem[] = [
     end: true,
   },
   {
+    id: 'aiChatSettings',
+    labelKey: 'sidebar.items.aiChatSettings',
+    to: APP_ROUTES.aiChatSettings.path,
+    icon: BrainCircuit,
+    roles: ['SuperAdmin'],
+    end: true,
+  },
+  {
+    id: 'aiQrCodes',
+    labelKey: 'sidebar.items.aiQrCodes',
+    to: APP_ROUTES.aiQrCodes.path,
+    icon: QrCode,
+    roles: ['SuperAdmin'],
+    end: true,
+  },
+  {
     id: 'contentManagement',
     labelKey: 'sidebar.groups.contentManagement',
     icon: FolderKanban,
@@ -74,21 +90,4 @@ export const primarySidebarItems: SidebarItem[] = [
   },
 ]
 
-export const secondarySidebarItems: SidebarItem[] = [
-  {
-    id: 'aiChatSettings',
-    labelKey: 'sidebar.items.aiChatSettings',
-    to: APP_ROUTES.aiChatSettings.path,
-    icon: BrainCircuit,
-    roles: ['SuperAdmin'],
-    end: true,
-  },
-  {
-    id: 'aiQrCodes',
-    labelKey: 'sidebar.items.aiQrCodes',
-    to: APP_ROUTES.aiQrCodes.path,
-    icon: QrCode,
-    roles: ['SuperAdmin'],
-    end: true,
-  },
-]
+export const secondarySidebarItems: SidebarItem[] = []
