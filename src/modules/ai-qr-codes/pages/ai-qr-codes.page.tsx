@@ -85,7 +85,7 @@ export default function AiQrCodesPage() {
   }))
 
   return (
-    <section className="space-y-6">
+    <section className="w-full min-w-0 space-y-6">
       <div className="rounded-3xl border border-primary/15 bg-card p-6 shadow-sm">
         <Badge variant="outline" color="primary" className="mb-3 rounded-full px-3">
           <Sparkles className="size-3.5" /> {t('badge')}

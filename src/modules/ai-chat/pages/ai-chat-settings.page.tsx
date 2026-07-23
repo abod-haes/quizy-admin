@@ -149,7 +149,7 @@ export default function AiChatSettingsPage() {
 
   if (settingsQuery.isLoading) {
     return (
-      <section className="space-y-6">
+      <section className="w-full min-w-0 space-y-6">
         <Skeleton className="h-28 w-full rounded-2xl" />
         <div className="grid gap-4 lg:grid-cols-2">
           {Array.from({ length: 4 }).map((_, index) => (
@@ -162,7 +162,7 @@ export default function AiChatSettingsPage() {
 
   if (settingsQuery.isError) {
     return (
-      <Alert variant="destructive">
+      <Alert variant="destructive" className="w-full min-w-0">
         <AlertTitle>{t('states.errorTitle')}</AlertTitle>
         <AlertDescription className="mt-2 flex flex-wrap items-center gap-3">
           <span>{t('states.errorDescription')}</span>
@@ -177,7 +177,7 @@ export default function AiChatSettingsPage() {
   const disabled = updateMutation.isPending
 
   return (
-    <section className="space-y-6">
+    <section className="w-full min-w-0 space-y-6">
       <div className="rounded-3xl border border-primary/15 bg-card p-6 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-3">
