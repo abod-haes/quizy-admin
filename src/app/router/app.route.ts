@@ -16,9 +16,7 @@ import {
   LessonsPage,
   NotificationsPage,
   PageContentsPage,
-  PointsOfSalePage,
   QuestionsPage,
-  ResourcesPage,
   StudentsPage,
   SubjectsPage,
   TeachersPage,
@@ -29,7 +27,9 @@ import CourseSessionsPage from '@/modules/courses/pages/course-sessions.page'
 import DashboardPage from '@/modules/dashboard/pages/dashboard.page'
 import EmployeesPage from '@/modules/employees/employees.page'
 import { NotFoundPage } from '@/modules/not-found/pages/not-found.page'
+import PointsOfSaleManagementPage from '@/modules/points-of-sale/points-of-sale.page'
 import QuizBuilderPage from '@/modules/quiz-builder/pages/quiz-builder-v2.page'
+import ResourcesManagementPage from '@/modules/resources/resources.page'
 import AiChatSettingsPage from '@/modules/ai-chat/pages/ai-chat-settings.page'
 import AiQrCodesPage from '@/modules/ai-qr-codes/pages/ai-qr-codes.page'
 import QuizzesPage from '@/modules/quizzes/pages/quizzes.page'
@@ -70,9 +70,9 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'courseSessions', element: createElement(CourseSessionsPage) },
   { routeKey: 'courseSessionDetail', element: createElement(CourseContentPage) },
   { routeKey: 'courseContent', element: createElement(CourseContentPage) },
-  { routeKey: 'resources', element: createElement(ResourcesPage) },
+  { routeKey: 'resources', element: createElement(ResourcesManagementPage) },
   { routeKey: 'ads', element: createElement(AdsPage) },
-  { routeKey: 'pointsOfSale', element: createElement(PointsOfSalePage) },
+  { routeKey: 'pointsOfSale', element: createElement(PointsOfSaleManagementPage) },
   { routeKey: 'qrCodes', element: createElement(AiQrCodesPage) },
   { routeKey: 'notifications', element: createElement(NotificationsPage) },
   { routeKey: 'pageContents', element: createElement(PageContentsPage) },
