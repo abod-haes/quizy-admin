@@ -36,6 +36,8 @@ export type AcademicContentItem = {
   countryCallingCode?: string | null
   role?: number | string | null
   userType?: number | string | null
+  status?: string | null
+  permissions?: string[] | null
   url?: string | null
   imageUrl?: string | null
   isImage?: boolean | null
@@ -60,6 +62,8 @@ export type AcademicContentItem = {
   teacherId?: UUID | null
   teacherName?: string | null
   questionsCount?: number | null
+  qrCodeCount?: number | null
+  location?: string | null
   classIds?: UUID[] | null
   entityIds?: UUID[] | null
   lessonIds?: UUID[] | null
@@ -102,8 +106,8 @@ export type ContentRelationConfig = {
 export type ContentCrudEndpoints = {
   list: string
   create: string
-  update: (id: string) => string
-  remove: (id: string) => string
+  update?: (id: string) => string
+  remove?: (id: string) => string
   detail?: (id: string) => string
   brief?: string
 }
