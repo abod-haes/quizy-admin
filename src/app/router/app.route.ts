@@ -14,10 +14,11 @@ import {
   ClassesPage,
   CoursesPage,
   LessonsPage,
-  ManagementUsersPage,
   NotificationsPage,
   PageContentsPage,
+  PointsOfSalePage,
   QuestionsPage,
+  ResourcesPage,
   StudentsPage,
   SubjectsPage,
   TeachersPage,
@@ -26,6 +27,7 @@ import {
 import CourseContentPage from '@/modules/courses/pages/course-content.page'
 import CourseSessionsPage from '@/modules/courses/pages/course-sessions.page'
 import DashboardPage from '@/modules/dashboard/pages/dashboard.page'
+import EmployeesPage from '@/modules/employees/employees.page'
 import { NotFoundPage } from '@/modules/not-found/pages/not-found.page'
 import QuizBuilderPage from '@/modules/quiz-builder/pages/quiz-builder-v2.page'
 import AiChatSettingsPage from '@/modules/ai-chat/pages/ai-chat-settings.page'
@@ -62,16 +64,20 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'units', element: createElement(UnitsPage) },
   { routeKey: 'teachers', element: createElement(TeachersPage) },
   { routeKey: 'students', element: createElement(StudentsPage) },
-  { routeKey: 'managementUsers', element: createElement(ManagementUsersPage) },
+  { routeKey: 'managementUsers', element: createElement(EmployeesPage) },
   { routeKey: 'courses', element: createElement(CoursesPage) },
   { routeKey: 'courseDetail', element: createElement(CourseSessionsPage) },
   { routeKey: 'courseSessions', element: createElement(CourseSessionsPage) },
   { routeKey: 'courseSessionDetail', element: createElement(CourseContentPage) },
   { routeKey: 'courseContent', element: createElement(CourseContentPage) },
+  { routeKey: 'resources', element: createElement(ResourcesPage) },
   { routeKey: 'ads', element: createElement(AdsPage) },
+  { routeKey: 'pointsOfSale', element: createElement(PointsOfSalePage) },
+  { routeKey: 'qrCodes', element: createElement(AiQrCodesPage) },
   { routeKey: 'notifications', element: createElement(NotificationsPage) },
   { routeKey: 'pageContents', element: createElement(PageContentsPage) },
   { routeKey: 'aiChatSettings', element: createElement(AiChatSettingsPage) },
+  // Old deep link kept during migration; it opens the same unified QR page.
   { routeKey: 'aiQrCodes', element: createElement(AiQrCodesPage) },
 ]
 
