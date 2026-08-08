@@ -23,7 +23,7 @@ type RefreshResponse = {
 
 let refreshPromise: Promise<string> | null = null
 
-const authEndpoints = new Set([
+const authEndpoints = new Set<string>([
   API_ENDPOINTS.auth.login,
   API_ENDPOINTS.auth.refreshToken,
   API_ENDPOINTS.auth.revokeToken,
@@ -90,8 +90,6 @@ export function attachAuthInterceptors(httpClient: AxiosInstance): void {
         authEndpoints.has(requestUrl)
       ) {
         if (status === 401 && authEndpoints.has(requestUrl)) {
-          // Auth endpoints own their error UX; do not destroy an existing session because
-          // a login/recovery request failed.
           return Promise.reject(error)
         }
         return Promise.reject(error)
