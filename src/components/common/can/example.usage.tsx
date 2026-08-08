@@ -14,9 +14,9 @@ export function CanUsageExample() {
       user: {
         roles: ['SuperAdmin'],
         permissions: [
-          'users.global.view',
-          'users.global.create',
-          'sidebar.analytics.view',
+          'employees.manage',
+          'content.manage',
+          'quizzes.manage',
         ],
       },
     })
@@ -35,8 +35,11 @@ export function CanUsageExample() {
           </Button>
         </Can>
 
-        <Can role={['SuperAdmin', 'Teacher']} fallback={<p className="text-sm text-muted-foreground">No access to finance section.</p>}>
-          <p className="text-sm font-medium text-foreground">Finance section is visible for SuperAdmin/Teacher.</p>
+        <Can
+          role={['SuperAdmin', 'AdminEmployee']}
+          fallback={<p className="text-sm text-muted-foreground">No admin access.</p>}
+        >
+          <p className="text-sm font-medium text-foreground">Admin section is visible.</p>
         </Can>
       </CardContent>
     </Card>
