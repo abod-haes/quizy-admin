@@ -78,77 +78,12 @@ export type AcademicContentItem = {
 
 export type ContentFormValue = string | number | boolean | string[] | null | undefined
 export type ContentFormValues = Record<string, ContentFormValue>
-
 export type ContentFieldType = 'text' | 'textarea' | 'number' | 'password' | 'select' | 'multi-select' | 'checkbox' | 'json' | 'image'
-
-export type ContentFieldConfig = {
-  name: string
-  labelKey: string
-  type: ContentFieldType
-  placeholderKey?: string
-  relationKey?: string
-  options?: Array<{ value: string; labelKey?: string; label?: string }>
-  required?: boolean
-}
-
-export type ContentColumnConfig = {
-  key: string
-  labelKey: string
-  relationKey?: string
-  render?: (item: AcademicContentItem, context: ContentRenderContext) => string
-}
-
-export type ContentRelationConfig = {
-  key: string
-  endpoint: string
-}
-
-export type ContentCrudEndpoints = {
-  list: string
-  create: string
-  update?: (id: string) => string
-  remove?: (id: string) => string
-  detail?: (id: string) => string
-  brief?: string
-}
-
-export type ContentRenderContext = {
-  relations: Record<string, ContentRelationOption[]>
-}
-
-export type ContentCrudKey =
-  | 'classes'
-  | 'subjects'
-  | 'units'
-  | 'lessons'
-  | 'teachers'
-  | 'students'
-  | 'managementUsers'
-  | 'quizzes'
-  | 'questions'
-  | 'courses'
-  | 'resources'
-  | 'ads'
-  | 'pointsOfSale'
-  | 'qrCodes'
-  | 'notifications'
-  | 'pageContents'
-
-export type ContentCrudConfig = {
-  key: ContentCrudKey
-  titleKey: string
-  descriptionKey: string
-  endpoints: ContentCrudEndpoints
-  columns: ContentColumnConfig[]
-  fields: ContentFieldConfig[]
-  relations?: ContentRelationConfig[]
-  emptyValues: ContentFormValues
-  updateMethod?: 'put' | 'patch'
-  allowEdit?: boolean
-  allowDelete?: boolean
-  getInitialValues: (item: AcademicContentItem) => ContentFormValues
-  validate: (values: ContentFormValues) => { success: true; data: ContentFormValues } | { success: false; errors: Record<string, string> }
-  toPayload: (values: ContentFormValues) => Record<string, unknown>
-}
-
+export type ContentFieldConfig = { name: string; labelKey: string; type: ContentFieldType; placeholderKey?: string; relationKey?: string; options?: Array<{ value: string; labelKey?: string; label?: string }>; required?: boolean }
+export type ContentColumnConfig = { key: string; labelKey: string; relationKey?: string; render?: (item: AcademicContentItem, context: ContentRenderContext) => string }
+export type ContentRelationConfig = { key: string; endpoint: string }
+export type ContentCrudEndpoints = { list: string; create: string; update: (id: string) => string; remove: (id: string) => string; detail?: (id: string) => string; brief?: string }
+export type ContentRenderContext = { relations: Record<string, ContentRelationOption[]> }
+export type ContentCrudKey = 'classes' | 'subjects' | 'units' | 'lessons' | 'teachers' | 'students' | 'managementUsers' | 'quizzes' | 'questions' | 'courses' | 'resources' | 'ads' | 'pointsOfSale' | 'qrCodes' | 'notifications' | 'pageContents'
+export type ContentCrudConfig = { key: ContentCrudKey; titleKey: string; descriptionKey: string; endpoints: ContentCrudEndpoints; columns: ContentColumnConfig[]; fields: ContentFieldConfig[]; relations?: ContentRelationConfig[]; emptyValues: ContentFormValues; updateMethod?: 'put' | 'patch'; allowEdit?: boolean; allowDelete?: boolean; getInitialValues: (item: AcademicContentItem) => ContentFormValues; validate: (values: ContentFormValues) => { success: true; data: ContentFormValues } | { success: false; errors: Record<string, string> }; toPayload: (values: ContentFormValues) => Record<string, unknown> }
 export type ContentListResponse = PagedResponse<AcademicContentItem>
