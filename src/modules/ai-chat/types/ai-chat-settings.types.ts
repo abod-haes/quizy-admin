@@ -1,23 +1,63 @@
-export type AiChatSettings = {
-  freeDailyTokenLimit: number
-  freeDailyMessageLimit: number
-  maxInputCharacters: number
-  plusDailyTokenLimit: number
-  plusDailyMessageLimit: number
-  proDailyTokenLimit: number
-  proDailyMessageLimit: number
-  ultraDailyTokenLimit: number
-  ultraDailyMessageLimit: number
+export type AiSubscriptionPlan = {
+  id: string
+  code: string
+  name: string
+  description: string | null
+  tokenLimit: number
+  tokenResetDays: number
+  subscriptionDurationDays: number | null
+  isFree: boolean
+  isActive: boolean
+  sortOrder: number
+  createdAt?: string | null
+  updatedAt?: string | null
 }
 
-export const EMPTY_AI_CHAT_SETTINGS: AiChatSettings = {
-  freeDailyTokenLimit: 1,
-  freeDailyMessageLimit: 1,
-  maxInputCharacters: 1,
-  plusDailyTokenLimit: 1,
-  plusDailyMessageLimit: 1,
-  proDailyTokenLimit: 1,
-  proDailyMessageLimit: 1,
-  ultraDailyTokenLimit: 1,
-  ultraDailyMessageLimit: 1,
+export type AiPlanInput = {
+  code?: string
+  name: string
+  description?: string
+  tokenLimit: number
+  tokenResetDays: number
+  subscriptionDurationDays?: number | null
+  isFree?: boolean
+  isActive?: boolean
+  sortOrder?: number
+}
+
+export type AiAnalytics = {
+  range: { from: string; to: string }
+  summary: {
+    activeUsers: number
+    conversations: number
+    questions: number
+    answers: number
+    failedMessages: number
+    totalTokens: number
+  }
+  feedback: {
+    helpful: number
+    notHelpful: number
+    total: number
+  }
+  daily: Array<{
+    day: string
+    questions: number
+    answers: number
+    failedMessages: number
+    totalTokens: number
+  }>
+  plans: Array<{
+    planId: string
+    code: string
+    name: string
+    isFree: boolean
+    activeSubscriptions: number
+    tokensUsedInCurrentPeriods: number
+  }>
+  topDocuments: Array<{
+    documentId: string | null
+    name: string | null
+    selectionCount: number
+  }>
 }
