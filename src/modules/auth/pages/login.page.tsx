@@ -58,8 +58,6 @@ export default function LoginPage() {
         return
       }
 
-      // Permission bootstrap is an authenticated request. Stage both rotated tokens first,
-      // then persist the complete UI session only after the server permissions arrive.
       setAuthToken(token)
       setAuthRefreshToken(refreshToken)
       stagedSession = true
@@ -95,9 +93,14 @@ export default function LoginPage() {
       title={t('title')}
       description={t('description')}
       footer={
-        <Link className="text-sm font-bold text-[#6949ff] hover:underline" to="/recover">
-          نسيت كلمة المرور؟
-        </Link>
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+          <Link className="text-sm font-bold text-[#6949ff] hover:underline" to="/recover">
+            نسيت كلمة المرور؟
+          </Link>
+          <Link className="text-sm font-bold text-[#6949ff] hover:underline" to="/accept-invitation">
+            عندي دعوة موظف
+          </Link>
+        </div>
       }
     >
       <form className="space-y-5" onSubmit={handleSubmit}>
