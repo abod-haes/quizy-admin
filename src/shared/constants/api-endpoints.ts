@@ -14,6 +14,10 @@ export const API_ENDPOINTS = {
     profile: `${ADMIN}/auth/profile`,
     permissions: `${ADMIN}/auth/permissions`,
     invitationVerify: `${ADMIN}/auth/invitation/verify`,
+    // Kept only so old, unrouted registration modules still compile during the cutover.
+    // The dashboard router does not expose public registration.
+    register: '/api/v1/auth/register',
+    verifyRegistration: '/api/v1/auth/register/verify',
   },
   dashboard: {
     summary: `${ADMIN}/dashboard/summary`,
