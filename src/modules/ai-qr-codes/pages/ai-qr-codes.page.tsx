@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type Dispatch, type SetStateAction } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { PackagePlus, QrCode, RefreshCcw, Trash2 } from 'lucide-react'
 
@@ -140,7 +140,7 @@ export default function AiQrCodesPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['unified-qr'] }),
   })
 
-  const toggle = (setter: React.Dispatch<React.SetStateAction<string[]>>, id: string) =>
+  const toggle = (setter: Dispatch<SetStateAction<string[]>>, id: string) =>
     setter((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]))
 
   const handleCreate = () => {
