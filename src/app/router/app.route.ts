@@ -6,11 +6,11 @@ import type { AppPermission } from '@/constants/permissions'
 import { AppShellLayout } from '@/app/layout/app-shell.layout'
 import { RequireAuth } from '@/app/router/require-auth.guard'
 import { APP_ROUTES, type AppRouteKey } from '@/app/router/route-object.type'
+import AdsManagementPage from '@/modules/ads/ads.page'
 import LoginPage from '@/modules/auth/pages/login.page'
 import RecoverPage from '@/modules/auth/pages/recover.page'
 import ResetPasswordPage from '@/modules/auth/pages/reset-password.page'
 import {
-  AdsPage,
   ClassesPage,
   CoursesPage,
   LessonsPage,
@@ -71,7 +71,7 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'courseSessionDetail', element: createElement(CourseContentPage) },
   { routeKey: 'courseContent', element: createElement(CourseContentPage) },
   { routeKey: 'resources', element: createElement(ResourcesManagementPage) },
-  { routeKey: 'ads', element: createElement(AdsPage) },
+  { routeKey: 'ads', element: createElement(AdsManagementPage) },
   { routeKey: 'pointsOfSale', element: createElement(PointsOfSaleManagementPage) },
   { routeKey: 'qrCodes', element: createElement(AiQrCodesPage) },
   { routeKey: 'notifications', element: createElement(NotificationsPage) },
