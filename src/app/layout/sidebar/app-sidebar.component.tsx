@@ -31,18 +31,27 @@ export function AppSidebar({ onNavigate, className, ...props }: AppSidebarProps)
     hasAnyPermission(item.permissions, item.requireAllPermissions ?? false)
 
   const filterItems = (items: SidebarItem[]): SidebarItem[] =>
-    items.flatMap((item) => {
-      if (!isSidebarGroupItem(item)) return isAllowed(item) ? [item] : []
-      if (!hasAnyRole(item.roles) || !hasAnyPermission(item.permissions, item.requireAllPermissions ?? false)) {
-        return []
+    items.reduce<SidebarItem[]>((visibleItems, item) => {
+      if (!isSidebarGroupItem(item)) {
+        if (isAllowed(item)) visibleItems.push(item)
+        return visibleItems
       }
+
+      if (
+        !hasAnyRole(item.roles) ||
+        !hasAnyPermission(item.permissions, item.requireAllPermissions ?? false)
+      ) {
+        return visibleItems
+      }
+
       const children = item.children.filter(isAllowed)
-      return children.length ? [{ ...item, children }] : []
-    })
+      if (children.length) visibleItems.push({ ...item, children })
+      return visibleItems
+    }, [])
 
   const allowedPrimaryItems = useMemo(
     () => filterItems(primarySidebarItems),
-    // AuthProvider functions are stable callbacks and update when their backing session changes.
+    // AuthProvider callbacks change when their backing session/permissions change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [hasAnyRole, hasAnyPermission],
   )
