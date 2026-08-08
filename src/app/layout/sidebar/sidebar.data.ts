@@ -59,7 +59,8 @@ export const primarySidebarItems: SidebarItem[] = [
     id: 'contentManagement',
     labelKey: 'sidebar.groups.contentManagement',
     icon: FolderKanban,
-    permissions: ['content.manage'],
+    // Group visibility is OR-based: a resource-only employee must still see the group.
+    permissions: ['content.manage', 'resources.manage'],
     children: [
       { id: 'classes', labelKey: 'sidebar.items.classes', to: APP_ROUTES.classes.path, icon: School, permissions: ['content.manage'], end: true },
       { id: 'subjects', labelKey: 'sidebar.items.subjects', to: APP_ROUTES.subjects.path, icon: BookText, permissions: ['content.manage'], end: true },
