@@ -2,6 +2,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 
+import { useAuth } from '@/app/providers/auth.provider'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { SidebarBrand } from '@/app/layout/sidebar/sidebar-brand.component'
@@ -12,6 +13,8 @@ import {
 import { SidebarNavItem } from '@/app/layout/sidebar/sidebar-nav-item.component'
 import {
   isSidebarGroupItem,
+  type SidebarItem,
+  type SidebarLinkItem,
 } from '@/app/layout/sidebar/sidebar.types'
 import { SidebarUserCard } from '@/app/layout/sidebar/sidebar-user-card.component'
 
@@ -21,14 +24,32 @@ type AppSidebarProps = ComponentPropsWithoutRef<'aside'> & {
 
 export function AppSidebar({ onNavigate, className, ...props }: AppSidebarProps) {
   const location = useLocation()
+  const { hasAnyRole, hasAnyPermission } = useAuth()
+
+  const isAllowed = (item: SidebarLinkItem) =>
+    hasAnyRole(item.roles) &&
+    hasAnyPermission(item.permissions, item.requireAllPermissions ?? false)
+
+  const filterItems = (items: SidebarItem[]): SidebarItem[] =>
+    items.flatMap((item) => {
+      if (!isSidebarGroupItem(item)) return isAllowed(item) ? [item] : []
+      if (!hasAnyRole(item.roles) || !hasAnyPermission(item.permissions, item.requireAllPermissions ?? false)) {
+        return []
+      }
+      const children = item.children.filter(isAllowed)
+      return children.length ? [{ ...item, children }] : []
+    })
 
   const allowedPrimaryItems = useMemo(
-    () => primarySidebarItems,
-    []
+    () => filterItems(primarySidebarItems),
+    // AuthProvider functions are stable callbacks and update when their backing session changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hasAnyRole, hasAnyPermission],
   )
   const allowedSecondaryItems = useMemo(
-    () => secondarySidebarItems,
-    []
+    () => filterItems(secondarySidebarItems),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hasAnyRole, hasAnyPermission],
   )
 
   return (
@@ -36,7 +57,7 @@ export function AppSidebar({ onNavigate, className, ...props }: AppSidebarProps)
       {...props}
       className={cn(
         'quizy-sidebar-shell flex h-full w-72 min-h-0 flex-col overflow-hidden border-e p-4 backdrop-blur-xl',
-        className
+        className,
       )}
     >
       <SidebarBrand />
@@ -65,7 +86,6 @@ export function AppSidebar({ onNavigate, className, ...props }: AppSidebarProps)
         </nav>
 
         <Separator className="my-3 bg-border/70" />
-
         <SidebarUserCard />
       </div>
     </aside>
