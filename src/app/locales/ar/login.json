@@ -11,5 +11,7 @@
   "submitting": "جارٍ تسجيل الدخول...",
   "invalidCredentials": "بيانات الدخول غير صحيحة.",
   "unexpectedError": "حدث خطأ غير متوقع. حاول مرة أخرى.",
-  "unknownUser": "مستخدم Quizy"
+  "unknownUser": "مستخدم Quizy",
+  "forgotPassword": "نسيت كلمة المرور؟",
+  "employeeInvitation": "عندي دعوة موظف"
 }
