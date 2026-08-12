@@ -98,9 +98,15 @@
   },
   "pointsOfSale": {
     "title": "نقاط البيع",
-    "description": "إدارة نقاط البيع المرتبطة بتوزيع رموز QR.",
+    "description": "إدارة مراكز توزيع رموز Quizy وربط رموز QR بمصدرها عند الإنشاء.",
+    "createTitle": "إضافة نقطة بيع",
+    "createDescription": "الموقع نص وصفي لأن العقد الحالي لا يتطلب إحداثيات.",
+    "editTitle": "تعديل نقطة البيع",
     "name": "الاسم",
     "location": "الموقع",
-    "qrCount": "عدد الرموز"
+    "qrCount": "عدد الرموز",
+    "searchPlaceholder": "بحث بالاسم أو الموقع",
+    "summary": "{{count}} نقطة بيع",
+    "empty": "لا توجد نقاط بيع."
   }
 }
