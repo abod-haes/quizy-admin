@@ -27,6 +27,7 @@ export type LoginResponse = {
   firstName?: string | null
   lastName?: string | null
   role?: string | null
+  permissions?: string[]
   user?: AdminLoginUser | null
 }
 
