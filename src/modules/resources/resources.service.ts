@@ -2,12 +2,14 @@ import type { PagedResponse } from '@/shared/api/api.types'
 import { api } from '@/shared/api/api-client'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 
+export type AdminResourceVisibility = 'PUBLIC' | 'PRIVATE'
+
 export type AdminResource = {
   id: string
   entityId: string | null
   role: string | null
   kind: string | null
-  visibility: 'PUBLIC' | 'PRIVATE' | string | null
+  visibility: AdminResourceVisibility | string | null
   status: string | null
   originalName: string | null
   extension: string | null
@@ -25,9 +27,9 @@ export type AdminResource = {
 export const resourcesService = {
   list: (page: number, perPage: number) =>
     api.get<PagedResponse<AdminResource>>(API_ENDPOINTS.resources.list, {
-      params: { Page: page, PerPage: perPage },
+      params: { page, perPage },
     }),
-  upload: (file: File, visibility: 'PUBLIC' | 'PRIVATE') => {
+  upload: (file: File, visibility: AdminResourceVisibility) => {
     const formData = new FormData()
     formData.append('file', file)
     formData.append('visibility', visibility)
