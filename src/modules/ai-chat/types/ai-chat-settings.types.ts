@@ -13,14 +13,24 @@ export type AiSubscriptionPlan = {
   updatedAt?: string | null
 }
 
-export type AiPlanInput = {
-  code?: string
+export type CreateAiPlanInput = {
+  code: string
   name: string
   description?: string
   tokenLimit: number
   tokenResetDays: number
-  subscriptionDurationDays?: number | null
+  subscriptionDurationDays?: number
   isFree?: boolean
+  isActive?: boolean
+  sortOrder?: number
+}
+
+export type UpdateAiPlanInput = {
+  name?: string
+  description?: string
+  tokenLimit?: number
+  tokenResetDays?: number
+  subscriptionDurationDays?: number
   isActive?: boolean
   sortOrder?: number
 }
