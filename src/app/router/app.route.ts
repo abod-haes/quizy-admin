@@ -7,16 +7,15 @@ import { AppShellLayout } from '@/app/layout/app-shell.layout'
 import { RequireAuth } from '@/app/router/require-auth.guard'
 import { APP_ROUTES, type AppRouteKey } from '@/app/router/route-object.type'
 import LoginPage from '@/modules/auth/pages/login.page'
-import RegisterPage from '@/modules/auth/pages/register.page'
 import RecoverPage from '@/modules/auth/pages/recover.page'
 import ResetPasswordPage from '@/modules/auth/pages/reset-password.page'
 import VerifyCodePage from '@/modules/auth/pages/verify-code.page'
+import AdminEmployeesPage from '@/modules/admin-employees/pages/admin-employees.page'
 import {
   AdsPage,
   ClassesPage,
   CoursesPage,
   LessonsPage,
-  ManagementUsersPage,
   NotificationsPage,
   PageContentsPage,
   QuestionsPage,
@@ -66,11 +65,11 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'units', element: createElement(UnitsPage) },
   { routeKey: 'teachers', element: createElement(TeachersPage) },
   { routeKey: 'students', element: createElement(StudentsPage) },
-  { routeKey: 'managementUsers', element: createElement(ManagementUsersPage) },
+  { routeKey: 'managementUsers', element: createElement(AdminEmployeesPage) },
   { routeKey: 'courses', element: createElement(CoursesPage) },
   { routeKey: 'courseDetail', element: createElement(CourseSessionsPage) },
   { routeKey: 'courseSessions', element: createElement(CourseSessionsPage) },
-  { routeKey: 'courseSessionDetail', element: createElement(CourseContentPage) },
+  { routeKey: 'courseSessionDetail', element: createElement(CourseSessionsPage) },
   { routeKey: 'courseContent', element: createElement(CourseContentPage) },
   { routeKey: 'ads', element: createElement(AdsPage) },
   { routeKey: 'notifications', element: createElement(NotificationsPage) },
@@ -84,7 +83,7 @@ export const appRouter = createBrowserRouter([
     path: APP_ROUTES.login.path,
     element: createElement(LoginPage),
   },
-  { path: '/register', element: createElement(RegisterPage) },
+  { path: '/register', element: createElement(Navigate, { to: APP_ROUTES.login.path, replace: true }) },
   { path: '/recover', element: createElement(RecoverPage) },
   { path: '/reset-password', element: createElement(ResetPasswordPage) },
   { path: '/verify-code', element: createElement(VerifyCodePage) },
