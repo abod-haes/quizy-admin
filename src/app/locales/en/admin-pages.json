@@ -98,9 +98,15 @@
   },
   "pointsOfSale": {
     "title": "Points of sale",
-    "description": "Manage points of sale used for QR distribution.",
+    "description": "Manage Quizy QR distribution locations and associate generated codes with their source.",
+    "createTitle": "Add point of sale",
+    "createDescription": "Location is descriptive text because the current API contract does not require coordinates.",
+    "editTitle": "Edit point of sale",
     "name": "Name",
     "location": "Location",
-    "qrCount": "QR codes"
+    "qrCount": "QR codes",
+    "searchPlaceholder": "Search by name or location",
+    "summary": "{{count}} points of sale",
+    "empty": "No points of sale found."
   }
 }
