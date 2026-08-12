@@ -6,6 +6,7 @@ import { normalizeAppRole } from '@/app/auth/access-control.types'
 import { useAuth } from '@/app/providers/auth.provider'
 import { APP_ROUTES } from '@/app/router/route-object.type'
 import { CountryCodeSelect } from '@/components/ui/country-code-select'
+import type { AppPermission } from '@/constants/permissions'
 import type { ApiError } from '@/core/api/api-error.type'
 import { AuthVisualLayout } from '@/modules/auth/components/auth-visual-layout.component'
 import { loginAdmin } from '@/modules/auth/services/login.services'
@@ -39,8 +40,7 @@ export default function LoginPage() {
         return
       }
 
-      // Never promote an unknown backend role to SuperAdmin. AdminEmployee support
-      // needs explicit permission hydration before that role can enter the dashboard.
+      // Never promote an unknown backend role to SuperAdmin.
       const role = normalizeAppRole(result.role)
       if (!role || role === 'Teacher' || role === 'Student') {
         setErrorMessage('This account is not allowed to use the admin dashboard.')
@@ -49,7 +49,11 @@ export default function LoginPage() {
 
       const displayName = [result.firstName, result.lastName].filter(Boolean).join(' ').trim()
       const roles = [role]
-      login(result.token, roles, getPermissionsForRoles(roles), {
+      const permissions: AppPermission[] = role === 'AdminEmployee'
+        ? (result.permissions ?? []).filter((permission): permission is string => typeof permission === 'string')
+        : getPermissionsForRoles(roles)
+
+      login(result.token, roles, permissions, {
         id: result.userId,
         name: displayName || result.phoneNumber || t('unknownUser'),
         email: '',
