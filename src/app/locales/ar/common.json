@@ -1,5 +1,134 @@
 {
+  "labels": {
+    "important": "مهم",
+    "urgent": "عاجل",
+    "vip": "VIP",
+    "followUp": "متابعة",
+    "pending": "قيد الانتظار"
+  },
+  "actions": {
+    "add": "إضافة",
+    "edit": "تعديل",
+    "create": "إنشاء",
+    "createSuccess": "تمت الإضافة بنجاح",
+    "createError": "تعذرت الإضافة",
+    "update": "تحديث",
+    "updateSuccess": "تم التحديث بنجاح",
+    "updateError": "تعذر التحديث",
+    "apply": "تطبيق",
+    "reset": "إعادة تعيين",
+    "cancel": "إلغاء",
+    "back": "رجوع",
+    "view": "عرض",
+    "delete": "حذف",
+    "deleteSuccess": "تم الحذف بنجاح",
+    "deleteError": "تعذر الحذف",
+    "deleting": "جارٍ الحذف...",
+    "confirmDeleteTitle": "تأكيد الحذف",
+    "confirmDeleteDescription": "هل أنت متأكد من حذف هذا العنصر؟",
+    "save": "حفظ",
+    "saving": "جارٍ الحفظ...",
+    "displayOrdering": "ترتيب العرض",
+    "saveOrdering": "حفظ الترتيب"
+  },
+  "filters": {
+    "title": "الفلاتر",
+    "any": "الكل"
+  },
+  "table": {
+    "columns": "الأعمدة",
+    "actions": "الإجراءات",
+    "empty": "لا توجد نتائج",
+    "noColumns": "لا توجد أعمدة متاحة",
+    "summary": "عرض {{from}}-{{to}} من {{total}}",
+    "sortNone": "بدون ترتيب",
+    "sortLabel": "الترتيب",
+    "sortPlaceholder": "مثال: -created_at",
+    "sortDirection": {
+      "asc": "تصاعدي",
+      "desc": "تنازلي"
+    },
+    "sortFields": {
+      "id": "المعرّف",
+      "slug": "المعرّف النصي",
+      "email": "البريد الإلكتروني",
+      "status": "الحالة",
+      "full_name": "الاسم الكامل",
+      "category": "التصنيف",
+      "created_at": "تاريخ الإنشاء",
+      "updated_at": "تاريخ التحديث",
+      "handled_at": "تاريخ المعالجة",
+      "sort_order": "ترتيب العرض",
+      "section_type": "نوع القسم",
+      "section_key": "مفتاح القسم",
+      "item_type": "نوع العنصر",
+      "value": "القيمة",
+      "is_published": "منشور",
+      "is_featured": "مميز",
+      "svg_element_id": "معرّف عنصر SVG"
+    }
+  },
+  "boolean": {
+    "yes": "نعم",
+    "no": "لا"
+  },
+  "form": {
+    "noEditableFields": "لم يتم العثور على حقول قابلة للتعديل في جسم الطلب.",
+    "basicInfo": "المعلومات الأساسية",
+    "createDescription": "أدخل البيانات المطلوبة ثم احفظها لإضافة العنصر إلى النظام.",
+    "updateDescription": "راجع البيانات الحالية ثم احفظ التغييرات عند الانتهاء."
+  },
   "validation": {
-    "duplicateLanguage": "Duplicate Language"
+    "required": "هذا الحقل مطلوب",
+    "invalid": "القيمة غير صحيحة",
+    "invalidType": "نوع القيمة غير صحيح",
+    "invalidValue": "القيمة المختارة غير صحيحة",
+    "invalidFormat": "صيغة القيمة غير صحيحة",
+    "invalidNumber": "أدخل رقمًا صحيحًا",
+    "invalidFile": "اختر ملفًا صحيحًا",
+    "duplicateLanguage": "لا يمكن تكرار لغة الترجمة",
+    "duplicateTabKey": "مفتاح هذا التبويب مستخدم مسبقًا",
+    "duplicateTabKeyHint": "استخدم مفتاحًا فريدًا لهذا التبويب.",
+    "tooSmall": "القيمة أصغر من الحد المسموح",
+    "tooBig": "القيمة أكبر من الحد المسموح"
+  },
+  "pagination": {
+    "previous": "الصفحة السابقة",
+    "next": "الصفحة التالية",
+    "pageOf": "الصفحة {{current}} من {{total}}",
+    "pageLabel": "الانتقال إلى الصفحة {{page}}",
+    "pageSize": "عدد الصفوف"
+  },
+  "media": {
+    "uploadTitle": "رفع ملف وسائط",
+    "uploadHint": "اختر صورة لمعاينتها قبل الرفع",
+    "choosePreviewBeforeUpload": "اختر صورة لمعاينتها قبل الرفع",
+    "upload": "رفع",
+    "uploading": "جارٍ الرفع..."
+  },
+  "enums": {
+    "pageSectionTypes": {
+      "hero": "القسم الرئيسي",
+      "marquee": "الشريط المتحرك",
+      "about": "حول",
+      "stats": "الإحصائيات",
+      "membership-benefits": "مزايا العضوية",
+      "featured-projects": "المشاريع المميزة",
+      "board-preview": "معاينة مجلس الإدارة",
+      "gallery-preview": "معاينة المعرض",
+      "faq-preview": "معاينة الأسئلة الشائعة",
+      "contact-info": "معلومات التواصل",
+      "footer-links": "روابط التذييل",
+      "vision": "الرؤية",
+      "mission": "الرسالة",
+      "values": "القيم",
+      "services-list": "قائمة الخدمات",
+      "projects-list": "قائمة المشاريع",
+      "projects-map": "خريطة المشاريع",
+      "board-members": "أعضاء مجلس الإدارة",
+      "gallery-grid": "شبكة المعرض",
+      "faq-list": "قائمة الأسئلة الشائعة",
+      "contact-form": "نموذج التواصل"
+    }
   }
 }
