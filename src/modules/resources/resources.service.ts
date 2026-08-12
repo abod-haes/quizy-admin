@@ -1,4 +1,4 @@
-import type { PagedResponse } from '@/shared/api/api.types'
+import type { LegacyPaginationQuery, PagedResponse } from '@/shared/api/api.types'
 import { api } from '@/shared/api/api-client'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 
@@ -25,10 +25,10 @@ export type AdminResource = {
 }
 
 export const resourcesService = {
-  list: (page: number, perPage: number) =>
-    api.get<PagedResponse<AdminResource>>(API_ENDPOINTS.resources.list, {
-      params: { page, perPage },
-    }),
+  list: (page: number, perPage: number) => {
+    const params: LegacyPaginationQuery = { Page: page, PerPage: perPage }
+    return api.get<PagedResponse<AdminResource>>(API_ENDPOINTS.resources.list, { params })
+  },
   upload: (file: File, visibility: AdminResourceVisibility) => {
     const formData = new FormData()
     formData.append('file', file)
