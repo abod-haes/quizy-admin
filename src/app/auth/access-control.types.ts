@@ -1,4 +1,4 @@
-export const APP_ROLES = ['Teacher', 'Student', 'SuperAdmin'] as const
+export const APP_ROLES = ['Teacher', 'Student', 'SuperAdmin', 'AdminEmployee'] as const
 
 export type AppRole = (typeof APP_ROLES)[number]
 
@@ -7,7 +7,7 @@ export type CrudAction = 'list' | 'view' | 'create' | 'update' | 'delete'
 export type CrudAccessMatrix = Record<CrudAction, readonly AppRole[]>
 
 export const SUPER_ADMIN_ROLES: readonly AppRole[] = ['SuperAdmin']
-export const CONTENT_MANAGER_ROLES: readonly AppRole[] = ['Teacher', 'SuperAdmin']
+export const CONTENT_MANAGER_ROLES: readonly AppRole[] = ['Teacher', 'SuperAdmin', 'AdminEmployee']
 export const AUTHENTICATED_ROLES: readonly AppRole[] = APP_ROLES
 
 export const DEFAULT_CRUD_ACCESS: CrudAccessMatrix = {
@@ -28,6 +28,9 @@ export function normalizeAppRole(value: unknown): AppRole | null {
   if (normalized === 'student') return 'Student'
   if (normalized === 'superadmin' || normalized === 'super_admin' || normalized === 'super-admin') {
     return 'SuperAdmin'
+  }
+  if (normalized === 'adminemployee' || normalized === 'admin_employee' || normalized === 'admin-employee') {
+    return 'AdminEmployee'
   }
 
   return null
