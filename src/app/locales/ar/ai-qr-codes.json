@@ -1,44 +1,67 @@
 {
-  "badge": "اشتراكات AI",
-  "title": "أكواد اشتراك مساعد كويزي",
-  "description": "أنشئ وتابع أكواد QR الخاصة بخطط Plus وPro وUltra.",
+  "badge": "Unified QR",
+  "title": "رموز Quizy",
+  "description": "رمز واحد يمكن أن يفتح كورسات واختبارات واشتراك AI معاً بأي تركيبة.",
+  "actions": {
+    "refresh": "تحديث",
+    "create": "إنشاء الرموز",
+    "delete": "حذف"
+  },
   "create": {
-    "title": "إنشاء أكواد اشتراك",
-    "description": "حدد نقطة البيع والخطة وعدد الأكواد المطلوبة."
+    "title": "إنشاء حزمة QR",
+    "description": "اختر نوعاً واحداً أو عدة أنواع. يمكن توليد حتى 500 رمز بنفس الحزمة."
   },
   "fields": {
-    "pointOfSale": "نقطة البيع",
+    "courses": "الكورسات",
+    "quizzes": "الاختبارات",
+    "aiSubscription": "اشتراك Quizy AI",
     "plan": "الخطة",
-    "count": "عدد الأكواد"
+    "count": "عدد الرموز",
+    "validDays": "مدة الصلاحية بالأيام",
+    "pointOfSale": "نقطة البيع"
+  },
+  "modes": {
+    "selected": "عناصر محددة",
+    "all": "كل الموجود وقت إنشاء الرمز",
+    "snapshot": "سيتم أخذ Snapshot لكل {{title}} المنشورة حالياً، لذلك أي محتوى يضاف لاحقاً لن يدخل في هذا الرمز تلقائياً."
   },
   "placeholders": {
-    "pointOfSale": "اختر نقطة البيع"
-  },
-  "actions": {
-    "create": "إنشاء الأكواد"
+    "plan": "اختر الخطة",
+    "noPointOfSale": "بدون نقطة بيع",
+    "emptyOptions": "لا يوجد محتوى متاح."
   },
   "validation": {
-    "required": "اختر نقطة البيع وأدخل عدداً صحيحاً أكبر من صفر."
+    "courseRequired": "اختر كورساً واحداً على الأقل أو اختر كل الكورسات.",
+    "quizRequired": "اختر اختباراً واحداً على الأقل أو اختر كل الاختبارات.",
+    "planRequired": "اختر خطة Quizy AI.",
+    "grantRequired": "اختر كورسات أو اختبارات أو اشتراك AI على الأقل.",
+    "countRange": "عدد الرموز يجب أن يكون بين 1 و500.",
+    "validDaysRange": "مدة الصلاحية يجب أن تكون بين يوم و3650 يوم."
   },
   "messages": {
-    "created": "تم إنشاء أكواد AI بنجاح.",
-    "createFailed": "تعذر إنشاء أكواد AI."
+    "createFailed": "فشل إنشاء رموز QR."
+  },
+  "summary": {
+    "allCourses": "كل الكورسات",
+    "courses": "{{count}} كورس",
+    "allQuizzes": "كل الاختبارات",
+    "quizzes": "{{count}} اختبار",
+    "aiPlan": "AI: {{name}}",
+    "aiSubscription": "اشتراك AI",
+    "bundle": "حزمة محتوى"
   },
   "table": {
-    "summary": "إجمالي الأكواد: {{count}}",
-    "empty": "لا توجد أكواد اشتراك AI.",
+    "summary": "{{count}} رمز",
+    "empty": "لا توجد رموز QR موحدة بعد.",
     "code": "الكود",
-    "plan": "الخطة",
-    "pointOfSale": "نقطة البيع",
-    "assigned": "مخصص",
-    "active": "فعال",
-    "createdAt": "تاريخ الإنشاء",
+    "content": "المحتوى",
+    "usage": "الاستخدام",
+    "validUntil": "الصلاحية",
+    "redeemed": "مستخدم",
+    "available": "متاح",
+    "noExpiry": "بدون انتهاء",
     "previous": "السابق",
     "next": "التالي",
-    "page": "الصفحة {{page}}"
-  },
-  "values": {
-    "yes": "نعم",
-    "no": "لا"
+    "page": "صفحة {{page}}"
   }
 }
