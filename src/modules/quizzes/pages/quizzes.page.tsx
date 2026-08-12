@@ -1,22 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  ChevronLeft,
-  ChevronRight,
-  Edit3,
-  FileQuestion,
-  Loader2,
-  Plus,
-  RefreshCcw,
-  Search,
-  Trash2,
-  X,
-} from 'lucide-react'
+import { Edit3, FileQuestion, Loader2, Plus, RefreshCcw, Search, Trash2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { api } from '@/shared/api/api-client'
-import type { PagedResponse } from '@/shared/api/api.types'
+import type { LegacyPaginationQuery, PagedResponse } from '@/shared/api/api.types'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 import { toast } from '@/shared/lib/toast'
 import {
@@ -31,13 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
   Input,
-  Skeleton,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  PaginatedDataTable,
 } from '@/shared/ui'
 
 type QuizRow = {
@@ -72,20 +55,7 @@ function quizTeacher(quiz: QuizRow, teachers: TeacherOption[]) {
 
 function questionsCount(quiz: QuizRow) {
   if (typeof quiz.questionsCount === 'number') return quiz.questionsCount
-  if (Array.isArray(quiz.questions)) return quiz.questions.length
-  return 0
-}
-
-function paginationItems(page: number, totalPages: number) {
-  if (totalPages <= 7) return Array.from({ length: totalPages }, (_, index) => index + 1)
-  const items: Array<number | 'dots-left' | 'dots-right'> = [1]
-  const start = Math.max(2, page - 1)
-  const end = Math.min(totalPages - 1, page + 1)
-  if (start > 2) items.push('dots-left')
-  for (let current = start; current <= end; current += 1) items.push(current)
-  if (end < totalPages - 1) items.push('dots-right')
-  items.push(totalPages)
-  return items
+  return Array.isArray(quiz.questions) ? quiz.questions.length : 0
 }
 
 export default function QuizzesPage() {
@@ -100,14 +70,14 @@ export default function QuizzesPage() {
   const teachersQuery = useQuery({
     queryKey: ['quizzes-page', 'teachers'],
     queryFn: () => api.get<TeacherOption[]>(API_ENDPOINTS.teachers.brief),
-    staleTime: 1000 * 60 * 5,
+    staleTime: 5 * 60 * 1000,
   })
   const quizzesQuery = useQuery({
     queryKey: ['quizzes-page', page],
-    queryFn: () =>
-      api.get<PagedResponse<QuizRow>>(API_ENDPOINTS.quizzes.list, {
-        params: { page, perPage: PAGE_SIZE },
-      }),
+    queryFn: () => {
+      const params: LegacyPaginationQuery = { Page: page, PerPage: PAGE_SIZE }
+      return api.get<PagedResponse<QuizRow>>(API_ENDPOINTS.quizzes.list, { params })
+    },
   })
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(API_ENDPOINTS.quizzes.remove(id)),
@@ -127,230 +97,55 @@ export default function QuizzesPage() {
     ],
     [teachers, t],
   )
-
   const normalizedSearch = search.trim().toLowerCase()
   const rows = (quizzesQuery.data?.items ?? []).filter((quiz) => {
     if (teacherId !== ALL_VALUE && quiz.teacherId !== teacherId) return false
     if (!normalizedSearch) return true
     const title = quiz.title?.trim() || t('quizzes.untitled')
-    return [title, quizTeacher(quiz, teachers)].some((value) =>
-      value.toLowerCase().includes(normalizedSearch),
-    )
+    return [title, quizTeacher(quiz, teachers)].some((value) => value.toLowerCase().includes(normalizedSearch))
   })
 
-  const quizTitle = (quiz: QuizRow) => quiz.title?.trim() || t('quizzes.untitled')
   const totalCount = quizzesQuery.data?.totalCount ?? 0
-  const pageSize = quizzesQuery.data?.pageSize ?? PAGE_SIZE
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
-  const hasActiveFilters = Boolean(search.trim()) || teacherId !== ALL_VALUE
-  const goToPage = (nextPage: number) => setPage(Math.min(totalPages, Math.max(1, nextPage)))
-  const clearFilters = () => {
-    setPage(1)
-    setSearch('')
-    setTeacherId(ALL_VALUE)
-  }
+  const totalPages = Math.max(1, Math.ceil(totalCount / (quizzesQuery.data?.pageSize ?? PAGE_SIZE)))
+  const quizTitle = (quiz: QuizRow) => quiz.title?.trim() || t('quizzes.untitled')
+  const hasFilters = Boolean(search.trim()) || teacherId !== ALL_VALUE
 
   return (
-    <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
-      <div className="flex shrink-0 flex-col gap-3 rounded-3xl border border-primary/10 bg-card/90 p-4 shadow-sm xl:flex-row xl:items-center xl:justify-between">
-        <div className="flex items-center gap-2">
-          <FileQuestion className="size-5 text-primary" />
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t('quizzes.title')}</h1>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-11 px-5 text-sm font-semibold"
-            onClick={() => quizzesQuery.refetch()}
-            disabled={quizzesQuery.isFetching}
-          >
-            <RefreshCcw className="size-4" /> {t('quizzes.refresh')}
-          </Button>
-          <Button
-            type="button"
-            className="h-11 px-5 text-sm font-semibold"
-            onClick={() => navigate('/quiz-builder')}
-          >
-            <Plus className="size-4" /> {t('quizzes.add')}
-          </Button>
+    <section className="space-y-5">
+      <div className="flex flex-col gap-4 rounded-3xl border border-primary/10 bg-card p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-3"><FileQuestion className="size-5 text-primary" /><h1 className="text-2xl font-bold">{t('quizzes.title')}</h1></div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => void quizzesQuery.refetch()} disabled={quizzesQuery.isFetching}><RefreshCcw className="size-4" />{t('quizzes.refresh')}</Button>
+          <Button onClick={() => navigate('/quiz-builder')}><Plus className="size-4" />{t('quizzes.add')}</Button>
         </div>
       </div>
 
-      <Card className="flex min-h-0 flex-1 flex-col rounded-3xl shadow-sm">
-        <CardContent className="flex min-h-0 flex-1 flex-col gap-3 p-4">
-          <div className="grid shrink-0 gap-2 lg:grid-cols-[minmax(0,1fr)_16rem_auto]">
-            <label className="relative block">
-              <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="h-11 ps-10"
-                value={search}
-                placeholder={t('quizzes.searchPlaceholder')}
-                onChange={(event) => {
-                  setPage(1)
-                  setSearch(event.target.value)
-                }}
-              />
-            </label>
-            <CustomSelect
-              value={teacherId}
-              variant="filter"
-              options={teacherOptions}
-              onValueChange={(value) => {
-                setPage(1)
-                setTeacherId(String(value))
-              }}
-              placeholder={t('quizzes.allTeachers')}
-            />
-            {hasActiveFilters ? (
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11 px-4 text-sm font-semibold"
-                onClick={clearFilters}
-              >
-                <X className="size-4" /> {t('quizzes.clearFilters')}
-              </Button>
-            ) : null}
-          </div>
+      <div className="grid gap-2 md:grid-cols-[1fr_16rem_auto]">
+        <label className="relative block"><Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input className="ps-10" value={search} placeholder={t('quizzes.searchPlaceholder')} onChange={(event) => { setSearch(event.target.value); setPage(1) }} /></label>
+        <CustomSelect value={teacherId} variant="filter" options={teacherOptions} onValueChange={(value) => { setTeacherId(String(value)); setPage(1) }} />
+        {hasFilters ? <Button variant="outline" onClick={() => { setSearch(''); setTeacherId(ALL_VALUE); setPage(1) }}><X className="size-4" />{t('quizzes.clearFilters')}</Button> : null}
+      </div>
 
-          <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-border bg-background/70">
-            <div className="h-full min-h-0 overflow-auto">
-              <Table className="min-w-[920px]">
-                <TableHeader className="sticky top-0 z-10 bg-card/95 backdrop-blur">
-                  <TableRow>
-                    <TableHead>{t('quizzes.quizName')}</TableHead>
-                    <TableHead>{t('quizzes.teacher')}</TableHead>
-                    <TableHead>{t('quizzes.questionsCount')}</TableHead>
-                    <TableHead>{t('quizzes.status')}</TableHead>
-                    <TableHead className="w-32 text-center">{t('common.actions')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {quizzesQuery.isLoading ? (
-                    [0, 1, 2, 3, 4].map((index) => (
-                      <TableRow key={index}>
-                        <TableCell colSpan={5}><Skeleton className="h-10 w-full rounded-xl" /></TableCell>
-                      </TableRow>
-                    ))
-                  ) : rows.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
-                        {t('quizzes.empty')}
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    rows.map((quiz) => (
-                      <TableRow key={quiz.id}>
-                        <TableCell className="max-w-[24rem] truncate font-medium">{quizTitle(quiz)}</TableCell>
-                        <TableCell>{quizTeacher(quiz, teachers)}</TableCell>
-                        <TableCell>{questionsCount(quiz)}</TableCell>
-                        <TableCell>{quiz.isFree ? t('quizzes.free') : t('quizzes.paid')}</TableCell>
-                        <TableCell>
-                          <div className="flex justify-center gap-2">
-                            <Button
-                              type="button"
-                              size="icon-sm"
-                              variant="outline"
-                              onClick={() => navigate(`/quiz-builder?quizId=${encodeURIComponent(quiz.id)}`)}
-                            >
-                              <Edit3 className="size-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              size="icon-sm"
-                              variant="outline"
-                              className="text-destructive hover:text-destructive"
-                              disabled={deleteMutation.isPending}
-                              onClick={() => setDeleteTarget(quiz)}
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
+      <Card className="rounded-3xl"><CardContent className="p-4">
+        <PaginatedDataTable<QuizRow>
+          rows={rows}
+          loading={quizzesQuery.isLoading || quizzesQuery.isFetching}
+          getRowId={(row) => row.id}
+          summaryText={t('quizzes.title') + `: ${totalCount}`}
+          emptyMessage={t('quizzes.empty')}
+          pagination={{ currentPage: page, totalPages, pageSize: PAGE_SIZE, onPageChange: setPage, previousLabel: t('common.previous'), nextLabel: t('common.next'), getPageLabel: (pageNumber) => t('common.page', { page: pageNumber }) }}
+          columns={[
+            { id: 'title', header: t('quizzes.quizName'), renderCell: (row) => <span className="font-semibold">{quizTitle(row)}</span> },
+            { id: 'teacher', header: t('quizzes.teacher'), renderCell: (row) => quizTeacher(row, teachers) },
+            { id: 'questions', header: t('quizzes.questionsCount'), renderCell: questionsCount },
+            { id: 'status', header: t('quizzes.status'), renderCell: (row) => row.isFree ? t('quizzes.free') : t('quizzes.paid') },
+            { id: 'actions', header: '', renderCell: (row) => <div className="flex justify-end gap-2"><Button size="sm" variant="outline" onClick={() => navigate(`/quiz-builder?quizId=${encodeURIComponent(row.id)}`)}><Edit3 className="size-4" />{t('common.edit')}</Button><Button size="sm" variant="outline" className="text-destructive" onClick={() => setDeleteTarget(row)}><Trash2 className="size-4" />{t('common.delete')}</Button></div> },
+          ]}
+        />
+      </CardContent></Card>
 
-          <div className="flex shrink-0 justify-end border-t border-border/70 pt-3">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <Button
-                type="button"
-                size="icon-sm"
-                variant="outline"
-                disabled={page <= 1 || quizzesQuery.isFetching}
-                onClick={() => goToPage(page - 1)}
-              >
-                <ChevronRight className="size-4" />
-              </Button>
-              {paginationItems(page, totalPages).map((item) =>
-                typeof item === 'number' ? (
-                  <Button
-                    key={item}
-                    type="button"
-                    size="sm"
-                    variant={item === page ? 'default' : 'outline'}
-                    className="min-w-9 px-3"
-                    disabled={quizzesQuery.isFetching}
-                    onClick={() => goToPage(item)}
-                  >
-                    {item}
-                  </Button>
-                ) : (
-                  <span key={item} className="px-2 text-sm text-muted-foreground">…</span>
-                ),
-              )}
-              <Button
-                type="button"
-                size="icon-sm"
-                variant="outline"
-                disabled={page >= totalPages || quizzesQuery.isFetching}
-                onClick={() => goToPage(page + 1)}
-              >
-                <ChevronLeft className="size-4" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Dialog
-        open={Boolean(deleteTarget)}
-        onOpenChange={(open) => {
-          if (!open && !deleteMutation.isPending) setDeleteTarget(null)
-        }}
-      >
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t('quizzes.deleteTitle')}</DialogTitle>
-            <DialogDescription>
-              {deleteTarget ? t('quizzes.deleteConfirm', { name: quizTitle(deleteTarget) }) : ''}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={deleteMutation.isPending}
-              onClick={() => setDeleteTarget(null)}
-            >
-              {t('common.cancel')}
-            </Button>
-            <Button
-              type="button"
-              disabled={deleteMutation.isPending}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
-            >
-              {deleteMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
-              {t('common.delete')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
+      <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteTarget(null) }}>
+        <DialogContent className="max-w-md"><DialogHeader><DialogTitle>{t('quizzes.deleteTitle')}</DialogTitle><DialogDescription>{deleteTarget ? t('quizzes.deleteConfirm', { name: quizTitle(deleteTarget) }) : ''}</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" disabled={deleteMutation.isPending} onClick={() => setDeleteTarget(null)}>{t('common.cancel')}</Button><Button className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={deleteMutation.isPending} onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}>{deleteMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('common.delete')}</Button></DialogFooter></DialogContent>
       </Dialog>
     </section>
   )
