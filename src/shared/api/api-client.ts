@@ -4,69 +4,76 @@ import { httpClient } from '@/core/api/http.services'
 
 export type RequestOptions = Omit<AxiosRequestConfig, 'url' | 'method' | 'data'>
 
-const emptyPagedResponse = {
-  items: [],
-  totalCount: 0,
-  pageNumber: 1,
-  pageSize: 0,
-}
+type QueryParams = Record<string, unknown>
 
-function isUnsupportedResourcesList(url: string, options?: RequestOptions) {
-  return url === '/api/Resources' && Boolean(options?.params)
+function normalizeNestRequestOptions(options?: RequestOptions): RequestOptions | undefined {
+  if (!options?.params || typeof options.params !== 'object' || Array.isArray(options.params)) {
+    return options
+  }
+
+  const params = options.params as QueryParams
+  const { Page, PerPage, ...rest } = params
+  const normalizedParams: QueryParams = { ...rest }
+
+  // Keep one compatibility boundary while the last generic CRUD screen is being migrated.
+  // Nest admin list DTOs use lower-case page/perPage everywhere.
+  if (normalizedParams.page === undefined && Page !== undefined) normalizedParams.page = Page
+  if (normalizedParams.perPage === undefined && PerPage !== undefined) normalizedParams.perPage = PerPage
+
+  return { ...options, params: normalizedParams }
 }
 
 export const api = {
   async get<TResponse>(url: string, options?: RequestOptions): Promise<TResponse> {
-    // Backend currently supports Resources upload/delete, but not listing.
-    // Do not call GET /api/Resources because it returns 405 Method Not Allowed.
-    if (isUnsupportedResourcesList(url, options)) {
-      return emptyPagedResponse as TResponse
-    }
-
-    const response = await httpClient.get<TResponse>(url, options)
+    const response = await httpClient.get<TResponse>(url, normalizeNestRequestOptions(options))
     return response.data
   },
 
   async post<TResponse, TBody = unknown>(
     url: string,
     body?: TBody,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<TResponse> {
-    const response = await httpClient.post<TResponse>(url, body, options)
+    const response = await httpClient.post<TResponse>(url, body, normalizeNestRequestOptions(options))
     return response.data
   },
 
   async put<TResponse, TBody = unknown>(
     url: string,
     body?: TBody,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<TResponse> {
-    const response = await httpClient.put<TResponse>(url, body, options)
+    const response = await httpClient.put<TResponse>(url, body, normalizeNestRequestOptions(options))
     return response.data
   },
 
   async patch<TResponse, TBody = unknown>(
     url: string,
     body?: TBody,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<TResponse> {
-    const response = await httpClient.patch<TResponse>(url, body, options)
+    const response = await httpClient.patch<TResponse>(url, body, normalizeNestRequestOptions(options))
     return response.data
   },
 
   async delete<TResponse>(url: string, options?: RequestOptions): Promise<TResponse> {
-    const response = await httpClient.delete<TResponse>(url, options)
+    const response = await httpClient.delete<TResponse>(url, normalizeNestRequestOptions(options))
     return response.data
   },
 
-  async upload<TResponse>(url: string, formData: FormData, options?: RequestOptions): Promise<TResponse> {
-    const response = await httpClient.post<TResponse>(url, formData, options)
+  async upload<TResponse>(
+    url: string,
+    formData: FormData,
+    options?: RequestOptions,
+  ): Promise<TResponse> {
+    const response = await httpClient.post<TResponse>(url, formData, normalizeNestRequestOptions(options))
     return response.data
   },
 
   async downloadBlob(url: string, options?: RequestOptions): Promise<Blob> {
+    const normalizedOptions = normalizeNestRequestOptions(options)
     const response = await httpClient.get<Blob>(url, {
-      ...options,
+      ...normalizedOptions,
       responseType: 'blob',
     })
 
