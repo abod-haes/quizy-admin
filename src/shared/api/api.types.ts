@@ -1,8 +1,8 @@
 export type UUID = string
 
 export type PaginationQuery = {
-  Page?: number
-  PerPage?: number
+  page?: number
+  perPage?: number
 }
 
 export type PagedResponse<TItem> = {
