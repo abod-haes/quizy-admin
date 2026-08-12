@@ -13,5 +13,30 @@
   "unexpectedError": "Something went wrong. Please try again.",
   "unknownUser": "Quizy user",
   "forgotPassword": "Forgot your password?",
-  "employeeInvitation": "I have an employee invitation"
+  "employeeInvitation": "I have an employee invitation",
+  "backToLogin": "Back to sign in",
+  "otpCode": "Verification code",
+  "whatsappCode": "WhatsApp code",
+  "newPassword": "New password",
+  "confirmPassword": "Confirm password",
+  "passwordMismatch": "The passwords do not match.",
+  "invitation": {
+    "title": "Activate employee account",
+    "description": "Use the phone number assigned to your employee account and the WhatsApp code, then choose your password.",
+    "error": "Could not activate the invitation. Check the code and try again.",
+    "submit": "Activate account"
+  },
+  "recover": {
+    "title": "Recover password",
+    "description": "Enter the admin account phone number and we will send a verification code through WhatsApp.",
+    "privacyMessage": "If the account exists, a recovery code will be sent through WhatsApp.",
+    "sent": "Recovery code sent through WhatsApp",
+    "submit": "Send code"
+  },
+  "reset": {
+    "title": "Set a new password",
+    "description": "Enter the 6-digit WhatsApp code, then choose a new password for the account.",
+    "success": "Password updated successfully",
+    "submit": "Save password"
+  }
 }
