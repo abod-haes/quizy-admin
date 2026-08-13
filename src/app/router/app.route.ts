@@ -34,6 +34,7 @@ import ResourcesManagementPage from '@/modules/resources/resources.page'
 import AiChatSettingsPage from '@/modules/ai-chat/pages/ai-chat-settings.page'
 import AiQrCodesPage from '@/modules/ai-qr-codes/pages/ai-qr-codes.page'
 import QuizzesPage from '@/modules/quizzes/pages/quizzes.page'
+import WhatsAppManagementPage from '@/modules/whatsapp/whatsapp.page'
 
 function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof createElement>) {
   const route = APP_ROUTES[routeKey]
@@ -77,6 +78,7 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'qrCodes', element: createElement(AiQrCodesPage) },
   { routeKey: 'notifications', element: createElement(NotificationsPage) },
   { routeKey: 'pageContents', element: createElement(PageContentsPage) },
+  { routeKey: 'whatsapp', element: createElement(WhatsAppManagementPage) },
   { routeKey: 'aiChatSettings', element: createElement(AiChatSettingsPage) },
   // Old deep link kept during migration; it opens the same unified QR page.
   { routeKey: 'aiQrCodes', element: createElement(AiQrCodesPage) },
