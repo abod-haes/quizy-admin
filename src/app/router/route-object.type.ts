@@ -27,6 +27,7 @@ export const APP_ROUTES = {
   courses: { key: 'courses', path: '/courses', protected: true, permissions: COURSES, breadcrumbKeys: [] },
   courseDetail: { key: 'courseDetail', path: '/courses/:courseId', protected: true, permissions: COURSES, breadcrumbKeys: [] },
   courseSessions: { key: 'courseSessions', path: '/courses/sessions', protected: true, permissions: COURSES, breadcrumbKeys: [] },
+  coursePurchases: { key: 'coursePurchases', path: '/courses/purchases', protected: true, permissions: COURSES, breadcrumbKeys: [] },
   courseSessionDetail: { key: 'courseSessionDetail', path: '/courses/:courseId/sessions/:sessionId/:contentTab?', protected: true, permissions: COURSES, breadcrumbKeys: [] },
   courseContent: { key: 'courseContent', path: '/courses/content', protected: true, permissions: COURSES, breadcrumbKeys: [] },
   resources: { key: 'resources', path: '/resources', protected: true, permissions: RESOURCES, breadcrumbKeys: [] },
@@ -42,8 +43,6 @@ export const APP_ROUTES = {
   aiSubscriptions: { key: 'aiSubscriptions', path: '/ai-chat/subscriptions', protected: true, permissions: AI, breadcrumbKeys: [] },
   aiDocuments: { key: 'aiDocuments', path: '/ai-chat/documents', protected: true, permissions: AI, breadcrumbKeys: [] },
   aiQrCodes: { key: 'aiQrCodes', path: '/ai-chat/qr-codes', protected: true, permissions: QR, breadcrumbKeys: [] },
-
-  // Legacy template routes remain defined but are not exposed in the Quizy sidebar/cutover.
   projects: { key: 'projects', path: '/projects', protected: true, breadcrumbKeys: [] },
   addProjects: { key: 'addProjects', path: '/projects/add', protected: true, breadcrumbKeys: [] },
   editProjects: { key: 'editProjects', path: '/projects/edit/:id', protected: true, breadcrumbKeys: [] },
@@ -61,12 +60,4 @@ export const APP_ROUTES = {
 
 export type AppRouteKey = keyof typeof APP_ROUTES
 export type AppRoutes = (typeof APP_ROUTES)[AppRouteKey]['path']
-export type AppRouteConfig = {
-  key: AppRouteKey
-  path: AppRoutes
-  protected: boolean
-  roles?: readonly AppRole[]
-  permissions?: readonly AppPermission[]
-  requireAllPermissions?: boolean
-  breadcrumbKeys: readonly string[]
-}
+export type AppRouteConfig = { key: AppRouteKey; path: AppRoutes; protected: boolean; roles?: readonly AppRole[]; permissions?: readonly AppPermission[]; requireAllPermissions?: boolean; breadcrumbKeys: readonly string[] }
