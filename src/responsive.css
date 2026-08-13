@@ -39,6 +39,10 @@
   display: block;
 }
 
+.app-shell-frame main > div > section.flex.h-full > div:first-child:not(.quiz-builder-hero) p {
+  display: block;
+}
+
 html,
 body,
 #root {
