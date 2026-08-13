@@ -1,0 +1,122 @@
+/* Quizy admin control system: one professional visual language across forms and dialogs. */
+
+.app-shell-root [data-slot='input'],
+.app-shell-root [data-slot='select-trigger'],
+[data-slot='dialog-content'] [data-slot='input'],
+[data-slot='dialog-content'] [data-slot='select-trigger'] {
+  height: 2.75rem !important;
+  min-height: 2.75rem;
+  width: 100%;
+  min-width: 0;
+  border-radius: 0.75rem !important;
+  border-color: color-mix(in srgb, var(--primary) 10%, var(--border)) !important;
+  background: var(--quizy-surface-strong) !important;
+  padding-inline: 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  box-shadow: var(--quizy-control-shadow);
+  transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.app-shell-root [data-slot='input']::placeholder,
+[data-slot='dialog-content'] [data-slot='input']::placeholder {
+  color: color-mix(in srgb, var(--muted-foreground) 76%, transparent);
+}
+
+.app-shell-root [data-slot='input']:hover:not(:disabled),
+.app-shell-root [data-slot='select-trigger']:hover:not(:disabled),
+[data-slot='dialog-content'] [data-slot='input']:hover:not(:disabled),
+[data-slot='dialog-content'] [data-slot='select-trigger']:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--primary) 26%, var(--border)) !important;
+}
+
+.app-shell-root [data-slot='input']:focus-visible,
+.app-shell-root [data-slot='select-trigger']:focus-visible,
+[data-slot='dialog-content'] [data-slot='input']:focus-visible,
+[data-slot='dialog-content'] [data-slot='select-trigger']:focus-visible,
+.app-shell-root [data-slot='select-trigger'][data-state='open'],
+[data-slot='dialog-content'] [data-slot='select-trigger'][data-state='open'] {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--primary) 52%, var(--border)) !important;
+  outline: none;
+  box-shadow: var(--quizy-control-focus-shadow) !important;
+}
+
+.app-shell-root [data-slot='textarea'],
+[data-slot='dialog-content'] [data-slot='textarea'] {
+  min-height: 7rem;
+  width: 100%;
+  min-width: 0;
+  resize: vertical;
+  border-radius: 0.75rem !important;
+  border-color: color-mix(in srgb, var(--primary) 10%, var(--border)) !important;
+  background: var(--quizy-surface-strong) !important;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--foreground);
+  box-shadow: var(--quizy-control-shadow);
+  transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.app-shell-root [data-slot='textarea']:hover:not(:disabled),
+[data-slot='dialog-content'] [data-slot='textarea']:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--primary) 26%, var(--border)) !important;
+}
+
+.app-shell-root [data-slot='textarea']:focus-visible,
+[data-slot='dialog-content'] [data-slot='textarea']:focus-visible {
+  border-color: color-mix(in srgb, var(--primary) 52%, var(--border)) !important;
+  outline: none;
+  box-shadow: var(--quizy-control-focus-shadow) !important;
+}
+
+[data-slot='select-content'],
+[data-slot='dropdown-menu-content'] {
+  z-index: 1000 !important;
+  border-radius: 0.875rem !important;
+  border-color: color-mix(in srgb, var(--primary) 12%, var(--border)) !important;
+  background: var(--popover) !important;
+  box-shadow: 0 20px 60px rgba(45, 27, 90, 0.2) !important;
+}
+
+[data-slot='select-content'] [data-position='popper'] {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: min(20rem, var(--radix-select-content-available-height)) !important;
+  min-width: var(--radix-select-trigger-width);
+  width: 100%;
+}
+
+[data-slot='select-item'],
+[data-slot='dropdown-menu-item'],
+[data-slot='dropdown-menu-checkbox-item'] {
+  min-height: 2.5rem;
+  border-radius: 0.625rem !important;
+  padding-block: 0.5rem;
+}
+
+[data-slot='select-item']:focus,
+[data-slot='dropdown-menu-item']:focus,
+[data-slot='dropdown-menu-checkbox-item']:focus,
+[data-slot='dropdown-menu-checkbox-item'][data-state='checked'] {
+  background: color-mix(in srgb, var(--primary) 9%, var(--muted)) !important;
+}
+
+button[data-slot='dropdown-menu-trigger'][class*='w-full'] {
+  min-height: 2.75rem !important;
+  border-radius: 0.75rem !important;
+  border-color: color-mix(in srgb, var(--primary) 10%, var(--border)) !important;
+  background: var(--quizy-surface-strong) !important;
+  padding-inline: 0.875rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 500;
+  box-shadow: var(--quizy-control-shadow) !important;
+}
+
+button[data-slot='dropdown-menu-trigger'][class*='w-full']:hover,
+button[data-slot='dropdown-menu-trigger'][class*='w-full'][data-state='open'] {
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--border)) !important;
+  box-shadow: var(--quizy-control-focus-shadow) !important;
+}
