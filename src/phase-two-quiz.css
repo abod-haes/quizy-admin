@@ -1,3 +1,5 @@
+@import './phase-two-refinement.css';
+
 /* Phase 2 polish for rich builder pages that use a badge-led hero. */
 .app-shell-frame main section > div:first-child:has([data-slot='badge']) {
   border-color: color-mix(in srgb, var(--primary) 10%, var(--border));
