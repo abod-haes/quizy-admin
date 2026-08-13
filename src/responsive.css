@@ -1,0 +1,11 @@
+.app-shell-frame,
+.app-shell-frame > *,
+.app-shell-frame main,
+.app-shell-frame main > * {
+  min-width: 0;
+}
+
+.app-shell-frame main > * {
+  width: 100%;
+  max-width: none;
+}
