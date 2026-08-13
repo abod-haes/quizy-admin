@@ -126,7 +126,7 @@ function DialogContent({
               <motion.div
                 ref={setPortalContainer}
                 className={cn(
-                  "fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100dvh-1rem)] w-full max-w-[calc(100%-1rem)] gap-4 overflow-y-auto rounded-[1.5rem] border border-primary/10 bg-popover p-4 text-sm text-popover-foreground shadow-[var(--quizy-card-shadow)] outline-none sm:max-h-[calc(100dvh-2rem)] sm:max-w-5xl",
+                  "fixed top-1/2 left-1/2 z-50 w-full max-w-[calc(100%-1rem)] overflow-visible rounded-[1.5rem] border border-primary/10 bg-popover p-4 text-sm text-popover-foreground shadow-[var(--quizy-card-shadow)] outline-none sm:max-w-5xl",
                   className
                 )}
                 initial={{ opacity: 0, x: "-50%", y: "calc(-50% + 8px)", scale: 0.985 }}
@@ -135,12 +135,14 @@ function DialogContent({
                 transition={dialogMotionTransition}
               >
                 <DialogPortalContainerContext.Provider value={portalContainer}>
-                  {children}
+                  <div className="grid max-h-[calc(100dvh-1.5rem)] min-h-0 gap-4 overflow-y-auto overscroll-contain pe-0.5 sm:max-h-[calc(100dvh-2.5rem)]">
+                    {children}
+                  </div>
                   {showCloseButton && (
                     <DialogPrimitive.Close data-slot="dialog-close" asChild>
                       <Button
                         variant="ghost"
-                        className="absolute top-2 end-2"
+                        className="absolute top-2 end-2 z-10"
                         size="icon-sm"
                       >
                         <XIcon />
