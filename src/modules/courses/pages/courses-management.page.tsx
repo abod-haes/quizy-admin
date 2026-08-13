@@ -1,0 +1,267 @@
+import { useMemo, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { BookOpen, Eye, Loader2, Pencil, Plus, RefreshCcw, Search, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
+
+import { api } from '@/shared/api/api-client'
+import type { PagedResponse } from '@/shared/api/api.types'
+import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
+import { toast } from '@/shared/lib/toast'
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CustomSelect,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+  PaginatedDataTable,
+  Textarea,
+  ToggleSwitch,
+} from '@/shared/ui'
+
+type CourseStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
+
+type CourseRow = {
+  id: string
+  subjectId: string
+  subjectName?: string | null
+  teacherId: string
+  teacherName?: string | null
+  title: string
+  description?: string | null
+  isFree: boolean
+  price?: number | null
+  currency?: string | null
+  status: CourseStatus
+  sessionsCount?: number | null
+}
+
+type RelationOption = {
+  id: string
+  name?: string | null
+  title?: string | null
+  firstName?: string | null
+  lastName?: string | null
+}
+
+type CourseForm = {
+  subjectId: string
+  teacherId: string
+  title: string
+  description: string
+  isFree: boolean
+  price: string
+  currency: string
+  status: CourseStatus
+}
+
+type CoursePayload = {
+  subjectId: string
+  teacherId: string
+  title: string
+  description?: string | null
+  isFree: boolean
+  price?: number | null
+  currency?: string | null
+  status?: CourseStatus
+}
+
+const PAGE_SIZE = 20
+const EMPTY_FORM: CourseForm = {
+  subjectId: '',
+  teacherId: '',
+  title: '',
+  description: '',
+  isFree: true,
+  price: '0',
+  currency: 'SYP',
+  status: 'DRAFT',
+}
+
+function optionLabel(option: RelationOption) {
+  return option.name?.trim()
+    || option.title?.trim()
+    || [option.firstName, option.lastName].filter(Boolean).join(' ').trim()
+    || option.id
+}
+
+export default function CoursesManagementPage() {
+  const { t } = useTranslation('admin-pages')
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+  const [formOpen, setFormOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [form, setForm] = useState<CourseForm>(EMPTY_FORM)
+  const [deleteTarget, setDeleteTarget] = useState<CourseRow | null>(null)
+
+  const coursesQuery = useQuery({
+    queryKey: ['courses-management', page, search.trim()],
+    queryFn: () => api.get<PagedResponse<CourseRow>>(API_ENDPOINTS.courses.list, {
+      params: { page, perPage: PAGE_SIZE, ...(search.trim() ? { search: search.trim() } : {}) },
+    }),
+  })
+  const subjectsQuery = useQuery({
+    queryKey: ['courses-management', 'subjects'],
+    queryFn: () => api.get<RelationOption[]>(API_ENDPOINTS.subjects.brief),
+    staleTime: 5 * 60 * 1000,
+  })
+  const teachersQuery = useQuery({
+    queryKey: ['courses-management', 'teachers'],
+    queryFn: () => api.get<RelationOption[]>(API_ENDPOINTS.teachers.brief),
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const subjectOptions = useMemo(() => (subjectsQuery.data ?? []).map((item) => ({ value: item.id, label: optionLabel(item) })), [subjectsQuery.data])
+  const teacherOptions = useMemo(() => (teachersQuery.data ?? []).map((item) => ({ value: item.id, label: optionLabel(item) })), [teachersQuery.data])
+
+  const closeForm = () => {
+    setFormOpen(false)
+    setEditingId(null)
+    setForm(EMPTY_FORM)
+  }
+  const openCreate = () => {
+    setEditingId(null)
+    setForm(EMPTY_FORM)
+    setFormOpen(true)
+  }
+  const openEdit = async (row: CourseRow) => {
+    try {
+      const detail = await api.get<CourseRow>(API_ENDPOINTS.courses.detail(row.id))
+      setEditingId(row.id)
+      setForm({
+        subjectId: detail.subjectId ?? '',
+        teacherId: detail.teacherId ?? '',
+        title: detail.title ?? '',
+        description: detail.description ?? '',
+        isFree: detail.isFree === true,
+        price: String(detail.price ?? 0),
+        currency: detail.currency ?? 'SYP',
+        status: detail.status ?? 'DRAFT',
+      })
+      setFormOpen(true)
+    } catch {
+      toast.error(t('courses.loadError'))
+    }
+  }
+
+  const saveMutation = useMutation({
+    mutationFn: () => {
+      const payload: CoursePayload = {
+        subjectId: form.subjectId,
+        teacherId: form.teacherId,
+        title: form.title.trim(),
+        description: form.description.trim() || null,
+        isFree: form.isFree,
+        price: form.isFree ? null : Number(form.price || 0),
+        currency: form.isFree ? null : form.currency.trim().toUpperCase(),
+        status: form.status,
+      }
+      return editingId
+        ? api.patch<CourseRow, CoursePayload>(API_ENDPOINTS.courses.update(editingId), payload)
+        : api.post<CourseRow, CoursePayload>(API_ENDPOINTS.courses.create, payload)
+    },
+    onSuccess: async () => {
+      toast.success(t(editingId ? 'courses.updated' : 'courses.created'))
+      closeForm()
+      await queryClient.invalidateQueries({ queryKey: ['courses-management'] })
+    },
+    onError: () => toast.error(t('courses.saveError')),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.delete(API_ENDPOINTS.courses.remove(id)),
+    onSuccess: async () => {
+      toast.success(t('courses.deleted'))
+      setDeleteTarget(null)
+      await queryClient.invalidateQueries({ queryKey: ['courses-management'] })
+    },
+    onError: () => toast.error(t('courses.deleteError')),
+  })
+
+  const rows = coursesQuery.data?.items ?? []
+  const totalCount = coursesQuery.data?.totalCount ?? 0
+  const pageSize = coursesQuery.data?.pageSize ?? PAGE_SIZE
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
+  const canSave = Boolean(
+    form.subjectId
+    && form.teacherId
+    && form.title.trim().length >= 2
+    && (form.isFree || (Number(form.price) >= 0 && form.currency.trim().length >= 3)),
+  ) && !saveMutation.isPending
+
+  const statusOptions = [
+    { value: 'DRAFT', label: t('courses.status.DRAFT') },
+    { value: 'PUBLISHED', label: t('courses.status.PUBLISHED') },
+    { value: 'ARCHIVED', label: t('courses.status.ARCHIVED') },
+  ]
+
+  return (
+    <section className="space-y-5">
+      <div className="flex flex-col gap-4 rounded-3xl border border-primary/10 bg-card p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-start gap-3">
+          <BookOpen className="mt-1 size-5 text-primary" />
+          <div><h1 className="text-2xl font-bold">{t('courses.title')}</h1><p className="mt-1 text-sm text-muted-foreground">{t('courses.description')}</p></div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" disabled={coursesQuery.isFetching} onClick={() => void coursesQuery.refetch()}><RefreshCcw className="size-4" />{t('common.refresh')}</Button>
+          <Button onClick={openCreate}><Plus className="size-4" />{t('courses.add')}</Button>
+        </div>
+      </div>
+
+      <label className="relative block max-w-xl">
+        <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input className="ps-10" value={search} placeholder={t('courses.searchPlaceholder')} onChange={(event) => { setSearch(event.target.value); setPage(1) }} />
+      </label>
+
+      <Card className="rounded-3xl"><CardContent className="p-4">
+        <PaginatedDataTable<CourseRow>
+          rows={rows}
+          loading={coursesQuery.isLoading || coursesQuery.isFetching}
+          getRowId={(row) => row.id}
+          summaryText={t('courses.summary', { count: totalCount })}
+          emptyMessage={t('courses.empty')}
+          pagination={{ currentPage: page, totalPages, pageSize, onPageChange: setPage, previousLabel: t('common.previous'), nextLabel: t('common.next'), getPageLabel: (pageNumber) => t('common.page', { page: pageNumber }) }}
+          columns={[
+            { id: 'title', header: t('courses.course'), renderCell: (row) => <span className="font-semibold">{row.title}</span> },
+            { id: 'subject', header: t('courses.subject'), renderCell: (row) => row.subjectName || '-' },
+            { id: 'teacher', header: t('courses.teacher'), renderCell: (row) => row.teacherName || '-' },
+            { id: 'status', header: t('courses.statusLabel'), renderCell: (row) => <Badge variant="outline" color={row.status === 'PUBLISHED' ? 'emerald' : 'slate'}>{t(`courses.status.${row.status}`)}</Badge> },
+            { id: 'price', header: t('courses.price'), renderCell: (row) => row.isFree ? t('courses.free') : `${row.price ?? 0} ${row.currency ?? ''}` },
+            { id: 'sessions', header: t('courses.sessions'), renderCell: (row) => row.sessionsCount ?? 0 },
+            { id: 'actions', header: '', renderCell: (row) => <div className="flex justify-end gap-2"><Button size="sm" variant="outline" onClick={() => navigate(`/courses/${row.id}`)}><Eye className="size-4" />{t('courses.manageSessions')}</Button><Button size="sm" variant="outline" onClick={() => void openEdit(row)}><Pencil className="size-4" />{t('common.edit')}</Button><Button size="sm" variant="outline" className="text-destructive" onClick={() => setDeleteTarget(row)}><Trash2 className="size-4" />{t('common.delete')}</Button></div> },
+          ]}
+        />
+      </CardContent></Card>
+
+      <Dialog open={formOpen} onOpenChange={(open) => { if (!open && !saveMutation.isPending) closeForm() }}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader><DialogTitle>{t(editingId ? 'courses.editTitle' : 'courses.createTitle')}</DialogTitle><DialogDescription>{t('courses.formDescription')}</DialogDescription></DialogHeader>
+          <div className="grid gap-4 py-2 md:grid-cols-2">
+            <div className="space-y-2"><Label>{t('courses.subject')}</Label><CustomSelect value={form.subjectId || undefined} placeholder={t('courses.selectSubject')} options={subjectOptions} onValueChange={(value) => setForm((current) => ({ ...current, subjectId: String(value) }))} /></div>
+            <div className="space-y-2"><Label>{t('courses.teacher')}</Label><CustomSelect value={form.teacherId || undefined} placeholder={t('courses.selectTeacher')} options={teacherOptions} onValueChange={(value) => setForm((current) => ({ ...current, teacherId: String(value) }))} /></div>
+            <div className="space-y-2 md:col-span-2"><Label>{t('courses.course')}</Label><Input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} /></div>
+            <div className="space-y-2 md:col-span-2"><Label>{t('courses.descriptionField')}</Label><Textarea value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} /></div>
+            <div className="space-y-2"><Label>{t('courses.statusLabel')}</Label><CustomSelect value={form.status} options={statusOptions} onValueChange={(value) => setForm((current) => ({ ...current, status: String(value) as CourseStatus }))} /></div>
+            <div className="flex items-center justify-between rounded-2xl border border-border px-4 py-3"><span className="text-sm font-medium">{t('courses.free')}</span><ToggleSwitch checked={form.isFree} onCheckedChange={(isFree) => setForm((current) => ({ ...current, isFree }))} /></div>
+            {!form.isFree ? <><div className="space-y-2"><Label>{t('courses.price')}</Label><Input type="number" min={0} step="0.01" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} /></div><div className="space-y-2"><Label>{t('courses.currency')}</Label><Input value={form.currency} maxLength={10} onChange={(event) => setForm((current) => ({ ...current, currency: event.target.value.toUpperCase() }))} /></div></> : null}
+          </div>
+          <DialogFooter><Button variant="outline" disabled={saveMutation.isPending} onClick={closeForm}>{t('common.cancel')}</Button><Button disabled={!canSave} onClick={() => saveMutation.mutate()}>{saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('common.save')}</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteTarget(null) }}>
+        <DialogContent className="max-w-md"><DialogHeader><DialogTitle>{t('courses.deleteTitle')}</DialogTitle><DialogDescription>{deleteTarget ? t('courses.deleteConfirm', { name: deleteTarget.title }) : ''}</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" disabled={deleteMutation.isPending} onClick={() => setDeleteTarget(null)}>{t('common.cancel')}</Button><Button className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={deleteMutation.isPending} onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}>{deleteMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('common.delete')}</Button></DialogFooter></DialogContent>
+      </Dialog>
+    </section>
+  )
+}
