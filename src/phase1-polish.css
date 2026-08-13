@@ -1,0 +1,28 @@
+[data-slot='badge'] {
+  min-height: 1.5rem;
+  border-radius: 999px !important;
+  padding-inline: 0.625rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: none;
+}
+
+[data-slot='alert'] {
+  backdrop-filter: blur(10px);
+}
+
+[data-slot='table-container'] {
+  scrollbar-gutter: stable;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot='button'],
+  [data-slot='input'],
+  [data-slot='select-trigger'],
+  [data-slot='textarea'],
+  [data-slot='table-row'] {
+    transition-duration: 0.01ms !important;
+    transform: none !important;
+  }
+}
