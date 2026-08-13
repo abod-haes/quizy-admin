@@ -1,6 +1,7 @@
 import { RouterProvider } from 'react-router-dom'
 
 import { appRouter } from '@/app/router/app.route'
+import '@/design-tokens.css'
 import '@/responsive.css'
 import '@/control-system.css'
 
