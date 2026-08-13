@@ -4,7 +4,8 @@
     "quizManagement": "إدارة الاختبارات",
     "courseManagement": "إدارة الكورسات",
     "contentManagement": "المحتوى التعليمي",
-    "peopleManagement": "المستخدمون"
+    "peopleManagement": "المستخدمون",
+    "aiManagement": "إدارة الذكاء الاصطناعي"
   },
   "items": {
     "dashboard": "لوحة التحكم",
@@ -21,7 +22,9 @@
     "teachers": "المدرسون",
     "students": "الطلاب",
     "settings": "الإعدادات",
-    "aiChatSettings": "إعدادات الذكاء الاصطناعي",
+    "aiChatSettings": "خطط وإحصائيات AI",
+    "aiSubscriptions": "اشتراكات AI للمستخدمين",
+    "aiDocuments": "مستندات AI",
     "aiQrCodes": "أكواد اشتراك AI"
   },
   "user": {

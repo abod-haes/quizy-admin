@@ -39,6 +39,8 @@ export const APP_ROUTES = {
   settings: { key: 'settings', path: '/settings', protected: true, breadcrumbKeys: [] },
   whatsapp: { key: 'whatsapp', path: '/whatsapp', protected: true, roles: ['SuperAdmin'], breadcrumbKeys: [] },
   aiChatSettings: { key: 'aiChatSettings', path: '/ai-chat/settings', protected: true, permissions: AI, breadcrumbKeys: [] },
+  aiSubscriptions: { key: 'aiSubscriptions', path: '/ai-chat/subscriptions', protected: true, permissions: AI, breadcrumbKeys: [] },
+  aiDocuments: { key: 'aiDocuments', path: '/ai-chat/documents', protected: true, permissions: AI, breadcrumbKeys: [] },
   aiQrCodes: { key: 'aiQrCodes', path: '/ai-chat/qr-codes', protected: true, permissions: QR, breadcrumbKeys: [] },
 
   // Legacy template routes remain defined but are not exposed in the Quizy sidebar/cutover.

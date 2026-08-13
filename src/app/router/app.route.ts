@@ -32,6 +32,8 @@ import QuizBuilderPage from '@/modules/quiz-builder/pages/quiz-builder-v2.page'
 import QuestionsManagementPage from '@/modules/questions/questions.page'
 import ResourcesManagementPage from '@/modules/resources/resources.page'
 import AiChatSettingsPage from '@/modules/ai-chat/pages/ai-chat-settings.page'
+import AiSubscriptionsPage from '@/modules/ai-chat/pages/ai-subscriptions.page'
+import AiDocumentsPage from '@/modules/ai-chat/pages/ai-documents.page'
 import AiQrCodesPage from '@/modules/ai-qr-codes/pages/ai-qr-codes.page'
 import QuizzesPage from '@/modules/quizzes/pages/quizzes.page'
 import WhatsAppManagementPage from '@/modules/whatsapp/whatsapp.page'
@@ -80,7 +82,8 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'pageContents', element: createElement(PageContentsPage) },
   { routeKey: 'whatsapp', element: createElement(WhatsAppManagementPage) },
   { routeKey: 'aiChatSettings', element: createElement(AiChatSettingsPage) },
-  // Old deep link kept during migration; it opens the same unified QR page.
+  { routeKey: 'aiSubscriptions', element: createElement(AiSubscriptionsPage) },
+  { routeKey: 'aiDocuments', element: createElement(AiDocumentsPage) },
   { routeKey: 'aiQrCodes', element: createElement(AiQrCodesPage) },
 ]
 

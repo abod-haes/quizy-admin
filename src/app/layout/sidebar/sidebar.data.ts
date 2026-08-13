@@ -60,7 +60,6 @@ export const primarySidebarItems: SidebarItem[] = [
     id: 'contentManagement',
     labelKey: 'sidebar.groups.contentManagement',
     icon: FolderKanban,
-    // Group visibility is OR-based: a resource-only employee must still see the group.
     permissions: ['content.manage', 'resources.manage'],
     children: [
       { id: 'classes', labelKey: 'sidebar.items.classes', to: APP_ROUTES.classes.path, icon: School, permissions: ['content.manage'], end: true },
@@ -90,6 +89,17 @@ export const primarySidebarItems: SidebarItem[] = [
       { id: 'unifiedQrCodes', labelKey: 'sidebar.items.aiQrCodes', to: APP_ROUTES.qrCodes.path, icon: QrCode, permissions: ['qr.manage'], end: true },
     ],
   },
+  {
+    id: 'aiManagement',
+    labelKey: 'sidebar.groups.aiManagement',
+    icon: BrainCircuit,
+    permissions: ['ai.manage'],
+    children: [
+      { id: 'aiChatSettings', labelKey: 'sidebar.items.aiChatSettings', to: APP_ROUTES.aiChatSettings.path, icon: BrainCircuit, permissions: ['ai.manage'], end: true },
+      { id: 'aiSubscriptions', labelKey: 'sidebar.items.aiSubscriptions', to: APP_ROUTES.aiSubscriptions.path, icon: UsersRound, permissions: ['ai.manage'], end: true },
+      { id: 'aiDocuments', labelKey: 'sidebar.items.aiDocuments', to: APP_ROUTES.aiDocuments.path, icon: FileText, permissions: ['ai.manage'], end: true },
+    ],
+  },
 ]
 
 export const secondarySidebarItems: SidebarItem[] = [
@@ -99,14 +109,6 @@ export const secondarySidebarItems: SidebarItem[] = [
     to: APP_ROUTES.whatsapp.path,
     icon: MessageCircle,
     roles: ['SuperAdmin'],
-    end: true,
-  },
-  {
-    id: 'aiChatSettings',
-    labelKey: 'sidebar.items.aiChatSettings',
-    to: APP_ROUTES.aiChatSettings.path,
-    icon: BrainCircuit,
-    permissions: ['ai.manage'],
     end: true,
   },
 ]

@@ -4,7 +4,8 @@
     "quizManagement": "Quiz Management",
     "courseManagement": "Course Management",
     "contentManagement": "Learning Content",
-    "peopleManagement": "Users"
+    "peopleManagement": "Users",
+    "aiManagement": "AI Management"
   },
   "items": {
     "dashboard": "Dashboard",
@@ -13,6 +14,7 @@
     "questions": "Question Bank",
     "courses": "Courses",
     "courseSessions": "Sessions",
+    "courseContent": "Course Content",
     "classes": "Classes",
     "subjects": "Subjects",
     "lessons": "Lessons",
@@ -20,7 +22,9 @@
     "teachers": "Teachers",
     "students": "Students",
     "settings": "Settings",
-    "aiChatSettings": "AI Settings",
+    "aiChatSettings": "AI Plans & Analytics",
+    "aiSubscriptions": "User AI Subscriptions",
+    "aiDocuments": "AI Documents",
     "aiQrCodes": "AI Subscription Codes"
   },
   "user": {
