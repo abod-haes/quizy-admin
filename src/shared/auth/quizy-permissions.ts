@@ -16,11 +16,6 @@ export type QuizyPermission =
   | 'settings.manage'
   | 'aiChat.settings.manage'
   | 'aiQrCodes.manage'
-  | 'employees.manage'
-  | 'content.manage'
-  | 'ai.manage'
-  | 'qr.manage'
-  | 'notifications.manage'
 
 export const rolePermissions: Record<AppRole, readonly QuizyPermission[]> = {
   SuperAdmin: [
@@ -39,23 +34,10 @@ export const rolePermissions: Record<AppRole, readonly QuizyPermission[]> = {
     'settings.manage',
     'aiChat.settings.manage',
     'aiQrCodes.manage',
-    'employees.manage',
-    'content.manage',
-    'ai.manage',
-    'qr.manage',
-    'notifications.manage',
   ],
+  // Real employee permissions are loaded from `/api/v1/admin/auth/permissions`.
+  // Keep this empty so a stale/local fallback can never grant more than the server.
   AdminEmployee: [],
-  Teacher: [
-    'dashboard.view',
-    'lessons.manage',
-    'quizzes.manage',
-    'questions.manage',
-    'resources.manage',
-    'courses.manage',
-    'reviewQueue.manage',
-  ],
-  Student: ['dashboard.view'],
 }
 
 export function getPermissionsForRoles(roles: readonly AppRole[]): QuizyPermission[] {

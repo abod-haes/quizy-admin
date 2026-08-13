@@ -1,14 +1,16 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { toast } from '@/shared/lib/toast'
+import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 import { CountryCodeSelect } from '@/components/ui/country-code-select'
 import { AuthVisualLayout } from '@/modules/auth/components/auth-visual-layout.component'
 import { requestRecoverQuizy } from '@/modules/auth/services/quizy-auth-flow.services'
 import { DEFAULT_COUNTRY_CALLING_CODE } from '@/modules/auth/utils/quizy-auth-flow.utils'
+import { toast } from '@/shared/lib/toast'
 import { Button, FormField, Input } from '@/shared/ui'
 
 export default function RecoverPage() {
+  const { t } = useTranslation('login')
   const navigate = useNavigate()
   const [phoneNumber, setPhoneNumber] = useState('')
   const [countryCallingCode, setCountryCallingCode] = useState(DEFAULT_COUNTRY_CALLING_CODE)
@@ -18,22 +20,65 @@ export default function RecoverPage() {
     event.preventDefault()
     setIsSubmitting(true)
     try {
-      await requestRecoverQuizy({ phoneNumber })
-      toast.success('Code sent')
-      navigate({ pathname: '/reset-password', search: new URLSearchParams({ phoneNumber, countryCallingCode }).toString() })
+      const result = await requestRecoverQuizy({ phoneNumber, countryCallingCode })
+      if (!result.requestId) {
+        toast.info(t('recover.privacyMessage'))
+        return
+      }
+
+      toast.success(t('recover.sent'))
+      navigate({
+        pathname: '/reset-password',
+        search: new URLSearchParams({
+          requestId: result.requestId,
+          phoneNumber,
+          countryCallingCode,
+        }).toString(),
+      })
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <AuthVisualLayout title="Recover account" description="Enter your phone number to receive a code.">
+    <AuthVisualLayout
+      title={t('recover.title')}
+      description={t('recover.description')}
+      footer={
+        <Link className="text-sm font-bold text-[#6949ff] hover:underline" to="/login">
+          {t('backToLogin')}
+        </Link>
+      }
+    >
       <form className="space-y-5" onSubmit={handleSubmit}>
-        <div className="grid grid-cols-[8.25rem_1fr] gap-3">
-          <FormField htmlFor="country" label="Code"><CountryCodeSelect id="country" value={countryCallingCode} onValueChange={setCountryCallingCode} /></FormField>
-          <FormField htmlFor="phone" label="Phone"><Input id="phone" inputMode="tel" value={phoneNumber} onChange={(event) => setPhoneNumber(event.target.value)} /></FormField>
+        <div className="grid grid-cols-[8.25rem_1fr] gap-3 max-[430px]:grid-cols-1">
+          <FormField htmlFor="country" label={t('countryCallingCode')}>
+            <CountryCodeSelect
+              id="country"
+              value={countryCallingCode}
+              disabled={isSubmitting}
+              onValueChange={setCountryCallingCode}
+            />
+          </FormField>
+          <FormField htmlFor="phone" label={t('phoneNumber')}>
+            <Input
+              id="phone"
+              inputMode="tel"
+              autoComplete="tel"
+              value={phoneNumber}
+              disabled={isSubmitting}
+              onChange={(event) => setPhoneNumber(event.target.value)}
+            />
+          </FormField>
         </div>
-        <Button type="submit" loading={isSubmitting} disabled={isSubmitting || !phoneNumber.trim()} className="h-12 w-full rounded-2xl bg-[#6949ff] text-white">Send code</Button>
+        <Button
+          type="submit"
+          loading={isSubmitting}
+          disabled={isSubmitting || !phoneNumber.trim() || !countryCallingCode.trim()}
+          className="h-12 w-full rounded-2xl bg-[#6949ff] text-white hover:bg-[#5d3ef0]"
+        >
+          {t('recover.submit')}
+        </Button>
       </form>
     </AuthVisualLayout>
   )

@@ -1,43 +1,67 @@
 import type { PagedResponse, UUID } from '@/shared/api/api.types'
 
-export const AiSubscriptionPlan = {
-  Plus: 1,
-  Pro: 2,
-  Ultra: 3,
-} as const
+export type QrGrantKind = 'COURSE' | 'QUIZ' | 'AI_SUBSCRIPTION'
+export type QrGrantMode = 'SELECTED' | 'ALL'
 
-export type AiSubscriptionPlan =
-  (typeof AiSubscriptionPlan)[keyof typeof AiSubscriptionPlan]
-
-export type AiQrCode = {
-  id: UUID
-  code?: string | null
-  qrCode?: string | null
-  aiSubscriptionPlan?: AiSubscriptionPlan | null
-  pointOfSaleId?: UUID | null
-  pointOfSaleName?: string | null
-  pointOfSale?: { id?: UUID; name?: string | null } | null
-  studentId?: UUID | null
-  studentName?: string | null
-  isAssigned?: boolean | null
-  isActive?: boolean | null
-  createdAt?: string | null
+export type UnifiedQrGrant = {
+  kind: QrGrantKind
+  mode?: QrGrantMode
+  entityIds?: UUID[]
+  planId?: UUID
 }
+
+export type CreateUnifiedQrRequest = {
+  grants: UnifiedQrGrant[]
+  count?: number
+  pointOfSaleId?: UUID
+  validDays?: number
+}
+
+export type UnifiedQrItem = {
+  id: UUID
+  code: string
+  qrType?: number
+  qrPayload?: string | null
+  validUntil?: string | null
+  createdAt?: string | null
+  redeemed?: boolean | null
+  pointOfSaleId?: UUID | null
+  type?: { key?: string; label?: string } | null
+  grants?: Array<{
+    kind: QrGrantKind
+    mode: QrGrantMode
+    items?: Array<{ id: UUID; name?: string | null; title?: string | null }>
+    plan?: { id: UUID; code?: string | null; name?: string | null } | null
+  }>
+  activation?: {
+    kinds?: QrGrantKind[]
+  } | null
+}
+
+export type CreateUnifiedQrResponse = {
+  count: number
+  items: UnifiedQrItem[]
+}
+
+export type UnifiedQrListResponse = PagedResponse<UnifiedQrItem>
 
 export type PointOfSaleOption = {
   id: UUID
   name?: string | null
+  location?: string | null
+  qrCodeCount?: number | null
+}
+
+export type CatalogOption = {
+  id: UUID
+  name?: string | null
   title?: string | null
-  code?: string | null
 }
 
-export type CreateAiQrCodesRequest = {
-  count: number
-  subjectId: UUID
-  pointOfSaleId: UUID
-  qrType: 8
-  aiSubscriptionPlan: AiSubscriptionPlan
+export type AiPlanOption = {
+  id: UUID
+  code: string
+  name: string
+  isActive?: boolean
+  isFree?: boolean
 }
-
-export type AiQrCodesResponse = PagedResponse<AiQrCode>
-export type PointsOfSaleResponse = PagedResponse<PointOfSaleOption>

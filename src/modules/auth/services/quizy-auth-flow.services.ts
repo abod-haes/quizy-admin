@@ -8,7 +8,10 @@ import type {
   QuizyResetRequest,
   QuizyVerifyRequest,
 } from '@/modules/auth/types/quizy-auth-flow.type'
-import { normalizeCountryCallingCode, trimCountryCode } from '@/modules/auth/utils/quizy-auth-flow.utils'
+import {
+  normalizeCountryCallingCode,
+  trimCountryCode,
+} from '@/modules/auth/utils/quizy-auth-flow.utils'
 
 function withPhone<T extends { phoneNumber: string; countryCallingCode?: string }>(payload: T): T {
   const countryCallingCode = normalizeCountryCallingCode(payload.countryCallingCode)
@@ -19,20 +22,34 @@ function withPhone<T extends { phoneNumber: string; countryCallingCode?: string 
   }
 }
 
+// Kept temporarily for the old, unrouted application registration files.
 export async function registerQuizy(payload: QuizyRegisterRequest): Promise<QuizyAuthResponse> {
-  return api.post<QuizyAuthResponse, QuizyRegisterRequest>(API_ENDPOINTS.auth.register, withPhone(payload))
+  return api.post<QuizyAuthResponse, QuizyRegisterRequest>(
+    API_ENDPOINTS.auth.register,
+    withPhone(payload),
+  )
 }
 
 export async function verifyQuizy(payload: QuizyVerifyRequest): Promise<QuizyAuthResponse> {
-  return api.post<QuizyAuthResponse, QuizyVerifyRequest>(API_ENDPOINTS.auth.verifyRegistration, withPhone(payload))
+  return api.post<QuizyAuthResponse, QuizyVerifyRequest>(
+    API_ENDPOINTS.auth.verifyRegistration,
+    withPhone(payload),
+  )
 }
 
-export async function requestRecoverQuizy(payload: QuizyRecoverRequest): Promise<QuizyMessageResponse> {
-  return api.post<QuizyMessageResponse, QuizyRecoverRequest>(API_ENDPOINTS.auth.forgotPassword, {
-    phoneNumber: trimCountryCode(payload.phoneNumber),
-  })
+export async function requestRecoverQuizy(
+  payload: QuizyRecoverRequest,
+): Promise<QuizyMessageResponse> {
+  const normalized = withPhone(payload)
+  return api.post<QuizyMessageResponse, QuizyRecoverRequest>(
+    API_ENDPOINTS.auth.forgotPassword,
+    normalized,
+  )
 }
 
 export async function resetQuizy(payload: QuizyResetRequest): Promise<QuizyMessageResponse> {
-  return api.post<QuizyMessageResponse, QuizyResetRequest>(API_ENDPOINTS.auth.resetPassword, payload)
+  return api.post<QuizyMessageResponse, QuizyResetRequest>(
+    API_ENDPOINTS.auth.resetPassword,
+    withPhone(payload),
+  )
 }

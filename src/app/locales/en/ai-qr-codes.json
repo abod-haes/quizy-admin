@@ -1,44 +1,67 @@
 {
-  "badge": "AI subscriptions",
-  "title": "Quizy AI subscription codes",
-  "description": "Create and review QR codes for Plus, Pro and Ultra plans.",
+  "badge": "Unified QR",
+  "title": "Quizy QR codes",
+  "description": "A single code can unlock courses, quizzes, and an AI subscription in any combination.",
+  "actions": {
+    "refresh": "Refresh",
+    "create": "Create codes",
+    "delete": "Delete"
+  },
   "create": {
-    "title": "Create subscription codes",
-    "description": "Choose a point of sale, plan and number of codes."
+    "title": "Create QR bundle",
+    "description": "Choose one or more grant types. You can generate up to 500 codes for the same bundle."
   },
   "fields": {
-    "pointOfSale": "Point of sale",
+    "courses": "Courses",
+    "quizzes": "Quizzes",
+    "aiSubscription": "Quizy AI subscription",
     "plan": "Plan",
-    "count": "Code count"
+    "count": "Code count",
+    "validDays": "Validity in days",
+    "pointOfSale": "Point of sale"
+  },
+  "modes": {
+    "selected": "Selected items",
+    "all": "Everything available when the code is created",
+    "snapshot": "A snapshot of all currently published {{title}} will be stored, so content added later will not be included automatically."
   },
   "placeholders": {
-    "pointOfSale": "Select a point of sale"
-  },
-  "actions": {
-    "create": "Create codes"
+    "plan": "Select a plan",
+    "noPointOfSale": "No point of sale",
+    "emptyOptions": "No content is available."
   },
   "validation": {
-    "required": "Select a point of sale and enter a positive whole number."
+    "courseRequired": "Select at least one course or choose all courses.",
+    "quizRequired": "Select at least one quiz or choose all quizzes.",
+    "planRequired": "Select a Quizy AI plan.",
+    "grantRequired": "Select at least one course, quiz, or AI subscription grant.",
+    "countRange": "The code count must be between 1 and 500.",
+    "validDaysRange": "Validity must be between 1 and 3650 days."
   },
   "messages": {
-    "created": "AI codes created successfully.",
-    "createFailed": "Could not create AI codes."
+    "createFailed": "Could not create QR codes."
+  },
+  "summary": {
+    "allCourses": "All courses",
+    "courses": "{{count}} courses",
+    "allQuizzes": "All quizzes",
+    "quizzes": "{{count}} quizzes",
+    "aiPlan": "AI: {{name}}",
+    "aiSubscription": "AI subscription",
+    "bundle": "Content bundle"
   },
   "table": {
-    "summary": "Total codes: {{count}}",
-    "empty": "No AI subscription codes found.",
+    "summary": "{{count}} codes",
+    "empty": "No unified QR codes yet.",
     "code": "Code",
-    "plan": "Plan",
-    "pointOfSale": "Point of sale",
-    "assigned": "Assigned",
-    "active": "Active",
-    "createdAt": "Created at",
+    "content": "Content",
+    "usage": "Usage",
+    "validUntil": "Valid until",
+    "redeemed": "Redeemed",
+    "available": "Available",
+    "noExpiry": "No expiry",
     "previous": "Previous",
     "next": "Next",
     "page": "Page {{page}}"
-  },
-  "values": {
-    "yes": "Yes",
-    "no": "No"
   }
 }

@@ -1,0 +1,45 @@
+{
+  "sidebar": "واتساب و OTP",
+  "title": "إدارة واتساب OTP",
+  "description": "مراقبة اتصال واتساب الفعلي والتحكم بجلسة الإرسال المستخدمة في رموز التحقق.",
+  "connection": { "live": "متصل فعلياً", "offline": "غير متصل" },
+  "services": { "database": "قاعدة البيانات", "redis": "Redis", "worker": "OTP Worker", "whatsappSocket": "WhatsApp Socket" },
+  "states": { "up": "يعمل", "down": "متوقف", "ready": "جاهز", "READY": "جاهز", "degraded": "متدهور" },
+  "warnings": {
+    "staleReadyTitle": "الحالة المحفوظة READY لكن اتصال واتساب الفعلي مقطوع",
+    "staleReadyDescription": "هذا يفسر عدم وصول رسائل التسجيل. استخدم إعادة الاتصال ثم تأكد أن WhatsApp Socket أصبح يعمل."
+  },
+  "session": {
+    "title": "جلسة واتساب",
+    "description": "الحالة المحفوظة في قاعدة البيانات مع حالة الاتصال الحية من health endpoint.",
+    "persistedStatus": "حالة الجلسة المحفوظة",
+    "persistedHint": "لا تعني وحدها أن socket متصل",
+    "liveSocket": "الاتصال الفعلي",
+    "displayName": "اسم الحساب",
+    "phone": "رقم واتساب",
+    "lastConnected": "آخر اتصال",
+    "lastDisconnected": "آخر انقطاع",
+    "updatedAt": "آخر تحديث للجلسة",
+    "healthTime": "وقت فحص الصحة",
+    "disconnectReason": "سبب الانقطاع",
+    "lastError": "آخر خطأ"
+  },
+  "controls": { "title": "التحكم بالجلسة", "description": "الأوامر تُرسل إلى OTP worker وتظهر نتيجتها عبر التحديث التلقائي." },
+  "actions": {
+    "refresh": "تحديث",
+    "start": "بدء الجلسة",
+    "reconnect": "إعادة الاتصال",
+    "stop": "إيقاف الجلسة",
+    "logout": "تسجيل خروج واتساب",
+    "logoutConfirm": "تسجيل الخروج يمسح جلسة واتساب الحالية وسيتطلب ربط الجهاز مجدداً. هل تريد المتابعة؟",
+    "accepted": "تم قبول الأمر. ستتحدث الحالة تلقائياً."
+  },
+  "qr": {
+    "title": "ربط واتساب",
+    "description": "امسح QR عندما تكون الجلسة بانتظار الربط.",
+    "alt": "رمز QR لربط واتساب",
+    "instructions": "من واتساب افتح الأجهزة المرتبطة ثم اختر ربط جهاز وامسح هذا الرمز.",
+    "waiting": "بانتظار توليد QR من الـ worker."
+  },
+  "errors": { "load": "تعذر تحميل حالة واتساب أو فحص الصحة.", "action": "تعذر تنفيذ الأمر. تحقق من حالة الـ worker ثم حاول مجدداً." }
+}

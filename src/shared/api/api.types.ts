@@ -1,6 +1,13 @@
 export type UUID = string
 
+/** Modern Nest admin DTOs (employees, courses, QR, management endpoints). */
 export type PaginationQuery = {
+  page?: number
+  perPage?: number
+}
+
+/** Legacy-backed Nest services still expose the historical query casing. */
+export type LegacyPaginationQuery = {
   Page?: number
   PerPage?: number
 }
