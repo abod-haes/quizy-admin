@@ -17,7 +17,6 @@ import {
   LessonsPage,
   NotificationsPage,
   PageContentsPage,
-  QuestionsPage,
   StudentsPage,
   SubjectsPage,
   TeachersPage,
@@ -30,6 +29,7 @@ import EmployeesPage from '@/modules/employees/employees.page'
 import { NotFoundPage } from '@/modules/not-found/pages/not-found.page'
 import PointsOfSaleManagementPage from '@/modules/points-of-sale/points-of-sale.page'
 import QuizBuilderPage from '@/modules/quiz-builder/pages/quiz-builder-v2.page'
+import QuestionsManagementPage from '@/modules/questions/questions.page'
 import ResourcesManagementPage from '@/modules/resources/resources.page'
 import AiChatSettingsPage from '@/modules/ai-chat/pages/ai-chat-settings.page'
 import AiQrCodesPage from '@/modules/ai-qr-codes/pages/ai-qr-codes.page'
@@ -59,7 +59,7 @@ function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof creat
 const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<typeof createElement> }> = [
   { routeKey: 'quizBuilder', element: createElement(QuizBuilderPage) },
   { routeKey: 'quizzes', element: createElement(QuizzesPage) },
-  { routeKey: 'questions', element: createElement(QuestionsPage) },
+  { routeKey: 'questions', element: createElement(QuestionsManagementPage) },
   { routeKey: 'classes', element: createElement(ClassesPage) },
   { routeKey: 'subjects', element: createElement(SubjectsPage) },
   { routeKey: 'lessons', element: createElement(LessonsPage) },
