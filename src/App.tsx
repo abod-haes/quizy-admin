@@ -5,6 +5,7 @@ import '@/design-tokens.css'
 import '@/responsive.css'
 import '@/control-system.css'
 import '@/phase-two.css'
+import '@/phase-two-compat.css'
 
 function App() {
   return <RouterProvider router={appRouter} />
