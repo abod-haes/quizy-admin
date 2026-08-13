@@ -62,7 +62,7 @@ export function AppShellHeader({ onOpenMobileMenu }: AppShellHeaderProps) {
       </Button>
 
       <div className="min-w-0 flex-1">
-        <p className="hidden text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-primary xs:block sm:text-xs sm:tracking-[0.18em]">
+        <p className="hidden text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:block">
           {t('layout.brand.name')}
         </p>
         <h2 className="truncate text-sm font-bold text-foreground sm:text-lg">
