@@ -37,6 +37,7 @@ export const APP_ROUTES = {
   pageContents: { key: 'pageContents', path: '/page-contents', protected: true, permissions: CONTENT, breadcrumbKeys: [] },
   reviewQueue: { key: 'reviewQueue', path: '/review-queue', protected: true, permissions: QUIZZES, breadcrumbKeys: [] },
   settings: { key: 'settings', path: '/settings', protected: true, breadcrumbKeys: [] },
+  whatsapp: { key: 'whatsapp', path: '/whatsapp', protected: true, roles: ['SuperAdmin'], breadcrumbKeys: [] },
   aiChatSettings: { key: 'aiChatSettings', path: '/ai-chat/settings', protected: true, permissions: AI, breadcrumbKeys: [] },
   aiQrCodes: { key: 'aiQrCodes', path: '/ai-chat/qr-codes', protected: true, permissions: QR, breadcrumbKeys: [] },
 
