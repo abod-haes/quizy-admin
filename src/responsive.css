@@ -43,6 +43,14 @@
   display: block;
 }
 
+.app-shell-frame main > div > section.flex.h-full [data-slot='card-header'] .grid {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  align-items: center;
+}
+
 html,
 body,
 #root {
