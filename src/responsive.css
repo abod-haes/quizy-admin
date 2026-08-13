@@ -35,6 +35,10 @@
   overscroll-behavior-inline: contain;
 }
 
+.app-shell-frame [data-slot='card-title'] {
+  display: block;
+}
+
 html,
 body,
 #root {
