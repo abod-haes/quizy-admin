@@ -1,5 +1,6 @@
 import { api } from '@/shared/api/api-client'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
+import type { AdminPermissionCode } from '@/shared/auth/admin-permissions'
 import {
   normalizeCountryCallingCode,
   trimCountryCode,
@@ -35,7 +36,7 @@ export type LoginResponse = {
 
 export type AdminPermissionsResponse = {
   role: 'SuperAdmin' | 'AdminEmployee'
-  permissions: string[]
+  permissions: AdminPermissionCode[]
 }
 
 export type AdminLoginResponse = LoginResponse

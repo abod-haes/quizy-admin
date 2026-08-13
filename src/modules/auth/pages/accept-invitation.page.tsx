@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 import { APP_ROUTES } from '@/app/router/route-object.type'
 import { CountryCodeSelect } from '@/components/ui/country-code-select'
@@ -11,6 +12,7 @@ import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 import { Button, FormField, Input } from '@/shared/ui'
 
 export default function AcceptInvitationPage() {
+  const { t } = useTranslation('login')
   const navigate = useNavigate()
   const [countryCallingCode, setCountryCallingCode] = useState('+963')
   const [phoneNumber, setPhoneNumber] = useState('')
@@ -23,7 +25,7 @@ export default function AcceptInvitationPage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (newPassword !== confirmPassword) {
-      setErrorMessage('كلمتا المرور غير متطابقتين.')
+      setErrorMessage(t('passwordMismatch'))
       return
     }
 
@@ -42,7 +44,7 @@ export default function AcceptInvitationPage() {
         state: { invitationActivated: true },
       })
     } catch (error) {
-      setErrorMessage((error as ApiError)?.message || 'تعذر تفعيل الدعوة. تحقق من الرمز وحاول مجدداً.')
+      setErrorMessage((error as ApiError)?.message || t('invitation.error'))
     } finally {
       setIsSubmitting(false)
     }
@@ -50,17 +52,17 @@ export default function AcceptInvitationPage() {
 
   return (
     <AuthVisualLayout
-      title="تفعيل حساب الموظف"
-      description="استخدم رقم الهاتف الذي أضيف به حسابك ورمز واتساب، ثم اختر كلمة مرور خاصة بك."
+      title={t('invitation.title')}
+      description={t('invitation.description')}
       footer={
         <Link className="text-sm font-bold text-[#6949ff] hover:underline" to={APP_ROUTES.login.path}>
-          العودة لتسجيل الدخول
+          {t('backToLogin')}
         </Link>
       }
     >
       <form className="space-y-5" onSubmit={handleSubmit}>
         <div className="grid grid-cols-[8.25rem_1fr] gap-3 max-[430px]:grid-cols-1">
-          <FormField htmlFor="invite-country" label="رمز الدولة">
+          <FormField htmlFor="invite-country" label={t('countryCallingCode')}>
             <CountryCodeSelect
               id="invite-country"
               value={countryCallingCode}
@@ -68,7 +70,7 @@ export default function AcceptInvitationPage() {
               onValueChange={setCountryCallingCode}
             />
           </FormField>
-          <FormField htmlFor="invite-phone" label="رقم الهاتف">
+          <FormField htmlFor="invite-phone" label={t('phoneNumber')}>
             <Input
               id="invite-phone"
               inputMode="tel"
@@ -80,7 +82,7 @@ export default function AcceptInvitationPage() {
           </FormField>
         </div>
 
-        <FormField htmlFor="invite-code" label="رمز واتساب">
+        <FormField htmlFor="invite-code" label={t('whatsappCode')}>
           <Input
             id="invite-code"
             inputMode="numeric"
@@ -94,7 +96,7 @@ export default function AcceptInvitationPage() {
           />
         </FormField>
 
-        <FormField htmlFor="invite-password" label="كلمة المرور الجديدة">
+        <FormField htmlFor="invite-password" label={t('newPassword')}>
           <Input
             id="invite-password"
             type="password"
@@ -105,7 +107,7 @@ export default function AcceptInvitationPage() {
           />
         </FormField>
 
-        <FormField htmlFor="invite-confirm-password" label="تأكيد كلمة المرور">
+        <FormField htmlFor="invite-confirm-password" label={t('confirmPassword')}>
           <Input
             id="invite-confirm-password"
             type="password"
@@ -134,7 +136,7 @@ export default function AcceptInvitationPage() {
           }
           className="h-12 w-full rounded-2xl bg-[#6949ff] text-white hover:bg-[#5d3ef0]"
         >
-          تفعيل الحساب
+          {t('invitation.submit')}
         </Button>
       </form>
     </AuthVisualLayout>

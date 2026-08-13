@@ -1,29 +1,42 @@
 {
-  "badge": "Super Admin",
-  "title": "إعدادات الذكاء الاصطناعي",
-  "description": "تحكم بالحدود اليومية وخيارات الإدخال لخدمة مساعد كويزي.",
-  "fields": {
-    "dailyTokenLimit": "الحد اليومي للـ Tokens",
-    "dailyMessageLimit": "الحد اليومي للرسائل",
-    "maxInputCharacters": "أقصى عدد أحرف في الرسالة"
+  "title": "Quizy AI",
+  "description": "إدارة خطط الاشتراك ومراقبة الاستخدام الحقيقي من Nest.",
+  "actions": {
+    "refresh": "تحديث",
+    "addPlan": "إضافة خطة",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "cancel": "إلغاء",
+    "save": "حفظ"
   },
-  "hints": { "positiveInteger": "أدخل عدداً صحيحاً أكبر من صفر." },
-  "global": {
-    "title": "الإعدادات العامة",
-    "description": "إعدادات مشتركة بين جميع خطط AI.",
-    "hint": "يطبق هذا الحد على جميع المستخدمين قبل إرسال الرسالة."
+  "form": {
+    "createTitle": "إضافة خطة جديدة",
+    "editTitle": "تعديل خطة الذكاء الاصطناعي",
+    "description": "الخطة محفوظة في Nest وتظهر مباشرة في الاشتراكات والـ QR الموحد.",
+    "code": "رمز الخطة",
+    "name": "اسم الخطة",
+    "tokenLimit": "حد التوكنات",
+    "tokenResetDays": "إعادة التوكنات كل (يوم)",
+    "subscriptionDurationDays": "مدة الاشتراك بالأيام",
+    "sortOrder": "ترتيب العرض",
+    "descriptionField": "الوصف",
+    "active": "فعالة",
+    "free": "خطة مجانية"
+  },
+  "metrics": {
+    "activeUsers": "المستخدمون النشطون",
+    "conversations": "المحادثات",
+    "questions": "الأسئلة",
+    "totalTokens": "إجمالي التوكنات"
   },
   "plans": {
-    "free": { "title": "Free", "description": "حدود الخطة المجانية." },
-    "plus": { "title": "Plus", "description": "حدود خطة Plus." },
-    "pro": { "title": "Pro", "description": "حدود خطة Pro." },
-    "ultra": { "title": "Ultra", "description": "حدود خطة Ultra." }
+    "title": "خطط الاشتراك",
+    "description": "لا يوجد enum ثابت في الواجهة؛ كل الخطط تأتي من قاعدة البيانات.",
+    "free": "مجانية",
+    "inactive": "موقفة",
+    "usage": "{{tokens}} توكن / {{days}} يوم • {{subscriptions}} اشتراك فعال"
   },
-  "actions": { "save": "حفظ الإعدادات", "retry": "إعادة المحاولة" },
   "states": {
-    "errorTitle": "تعذر تحميل إعدادات AI",
-    "errorDescription": "تحقق من الاتصال ثم حاول مرة أخرى."
-  },
-  "validation": { "positiveInteger": "يجب أن تكون القيمة عدداً صحيحاً أكبر من صفر." },
-  "messages": { "saved": "تم حفظ إعدادات AI بنجاح.", "saveFailed": "تعذر حفظ إعدادات AI." }
+    "errorTitle": "تعذر تحميل بيانات الذكاء الاصطناعي."
+  }
 }

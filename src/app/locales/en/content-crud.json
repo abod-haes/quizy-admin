@@ -3,70 +3,23 @@
     "connected": "API connected"
   },
   "modules": {
-    "classes": {
-      "title": "Classes",
-      "description": "Manage class records and connect them with subjects."
-    },
-    "subjects": {
-      "title": "Subjects",
-      "description": "Manage subjects and assign them to the right classes."
-    },
-    "units": {
-      "title": "Units",
-      "description": "Manage subject units before linking lessons and quizzes."
-    },
-    "lessons": {
-      "title": "Lessons",
-      "description": "Manage lessons and their order inside units."
-    },
-    "teachers": {
-      "title": "Teachers",
-      "description": "Manage teacher profiles and educational accounts."
-    },
-    "students": {
-      "title": "Students",
-      "description": "Manage student accounts and contact details."
-    },
-    "quizzes": {
-      "title": "Quizzes",
-      "description": "Manage quizzes and connect them with teachers and content."
-    },
-    "questions": {
-      "title": "Question Bank",
-      "description": "Manage questions, answers, and hints."
-    },
-    "courses": {
-      "title": "Courses",
-      "description": "Manage courses, sessions, and prices."
-    },
-    "resources": {
-      "title": "Resources",
-      "description": "Upload and manage platform files and images."
-    },
-    "ads": {
-      "title": "Ads",
-      "description": "Manage platform ads."
-    },
-    "pointsOfSale": {
-      "title": "Points of Sale",
-      "description": "Manage sales points and related codes."
-    },
-    "qrCodes": {
-      "title": "QR Codes",
-      "description": "Manage quick access codes."
-    },
-    "notifications": {
-      "title": "Notifications",
-      "description": "Send push notifications and review sent notifications."
-    },
-    "pageContents": {
-      "title": "Page Contents",
-      "description": "Manage the mobile app pages for privacy, support, and about."
-    },
-    "managementUsers": {
-      "title": "Management Users",
-      "description": "Manage admin and management accounts with role 3 and user type 3."
-    }
+    "classes": { "title": "Classes", "description": "Manage class records and connect them with subjects." },
+    "subjects": { "title": "Subjects", "description": "Manage subjects and assign them to the right classes." },
+    "units": { "title": "Units", "description": "Manage subject units before linking lessons and quizzes." },
+    "lessons": { "title": "Lessons", "description": "Manage lessons and their order inside units." },
+    "teachers": { "title": "Teachers", "description": "Manage teacher profiles and educational accounts." },
+    "students": { "title": "Students", "description": "Manage student accounts and contact details." },
+    "quizzes": { "title": "Quizzes", "description": "Manage quizzes and connect them with teachers and content." },
+    "questions": { "title": "Question Bank", "description": "Manage questions, answers, and hints." },
+    "courses": { "title": "Courses", "description": "Manage courses, sessions, and prices." },
+    "courseSessions": { "title": "Course sessions", "description": "Manage course sessions, ordering, and content." },
+    "resources": { "title": "Resources", "description": "Upload and manage platform files and images." },
+    "ads": { "title": "Ads", "description": "Manage platform ads." },
+    "pointsOfSale": { "title": "Points of Sale", "description": "Manage sales points and related codes." },
+    "qrCodes": { "title": "QR Codes", "description": "Manage quick access codes." },
+    "notifications": { "title": "Notifications", "description": "Send push notifications and review sent notifications." },
+    "pageContents": { "title": "Page Contents", "description": "Manage the mobile app pages for privacy, support, and about." },
+    "managementUsers": { "title": "Management users", "description": "Manage admin dashboard employees and their permissions." }
   },
   "fields": {
     "id": "ID",
@@ -74,6 +27,7 @@
     "title": "Title",
     "description": "Description",
     "content": "Content JSON",
+    "course": "Course",
     "pageType": "Page type",
     "styles": "Styles",
     "links": "Links",
@@ -122,6 +76,7 @@
     "retry": "Retry",
     "cancel": "Cancel",
     "save": "Save",
+    "delete": "Delete",
     "send": "Send",
     "upload": "Upload",
     "chooseImage": "Choose image",
@@ -166,13 +121,8 @@
     "imageEditHint": "Choosing a new image uploads it immediately using the Resources endpoint."
   },
   "states": {
-    "empty": {
-      "title": "No data yet",
-      "description": "Create the first item or check the API connection."
-    },
-    "error": {
-      "title": "Could not load data"
-    }
+    "empty": { "title": "No data yet", "description": "Create the first item or check the API connection." },
+    "error": { "title": "Could not load data" }
   },
   "messages": {
     "created": "Created successfully.",
@@ -181,13 +131,16 @@
     "uploaded": "Uploaded successfully.",
     "sent": "Notification sent successfully.",
     "imageDeleted": "Image deleted successfully.",
+    "deleteTitle": "Confirm deletion",
     "deleteConfirm": "Delete {{name}}?",
     "item": "item"
   },
   "validation": {
     "required": "This field is required.",
     "fileRequired": "Select a file first.",
-    "nonNegativeInt": "The number must be zero or greater.",
+    "nonNegativeInt": "The number must be an integer that is zero or greater.",
+    "titleLength": "The title must be between 2 and 200 characters.",
+    "descriptionMax": "The description must not exceed 1000 characters.",
     "uuid": "The selected value is invalid.",
     "jsonObject": "Enter a valid JSON object.",
     "jsonContent": "Enter valid JSON content.",
@@ -199,5 +152,11 @@
   "errors": {
     "generic": "Unexpected error occurred.",
     "imageUploadRequiresEntity": "The item was saved, but the image could not be uploaded because the API did not return an item ID."
+  },
+  "sessions": {
+    "selectCourseFirst": "Select a course first.",
+    "coursePlaceholder": "Select a course",
+    "emptySelectTitle": "Select a course to view its sessions",
+    "emptySelectDescription": "The course sessions will appear here after you select a course."
   }
 }

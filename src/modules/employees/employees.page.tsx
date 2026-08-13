@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { KeyRound, Pencil, RefreshCcw, Send, ShieldCheck, Trash2, UserPlus, UserRoundCheck, UserRoundX } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { employeesService } from '@/modules/employees/employees.service'
 import type {
@@ -8,6 +9,7 @@ import type {
   AdminEmployeeStatus,
   CreateAdminEmployeeInput,
 } from '@/modules/employees/employees.types'
+import type { AdminPermissionCode } from '@/shared/auth/admin-permissions'
 import {
   Alert,
   AlertTitle,
@@ -34,13 +36,8 @@ const EMPTY_FORM: CreateAdminEmployeeInput = {
   sendInvitation: true,
 }
 
-const STATUS_LABEL: Record<AdminEmployeeStatus, string> = {
-  INVITED: 'بانتظار التفعيل',
-  ACTIVE: 'فعال',
-  DISABLED: 'معطل',
-}
-
 export default function EmployeesPage() {
+  const { t } = useTranslation('admin-pages')
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
   const [status, setStatus] = useState<AdminEmployeeStatus | 'ALL'>('ALL')
@@ -74,7 +71,7 @@ export default function EmployeesPage() {
     },
   })
   const updateMutation = useMutation({
-    mutationFn: ({ id, firstName, lastName, permissions }: { id: string; firstName: string; lastName: string; permissions: string[] }) =>
+    mutationFn: ({ id, firstName, lastName, permissions }: { id: string; firstName: string; lastName: string; permissions: AdminPermissionCode[] }) =>
       employeesService.update(id, { firstName, lastName, permissions }),
     onSuccess: async () => {
       setEditing(null)
@@ -86,7 +83,7 @@ export default function EmployeesPage() {
   const resendMutation = useMutation({ mutationFn: employeesService.resendInvitation, onSuccess: invalidate })
   const deleteMutation = useMutation({ mutationFn: employeesService.remove, onSuccess: invalidate })
 
-  const togglePermission = (code: string, edit = false) => {
+  const togglePermission = (code: AdminPermissionCode, edit = false) => {
     if (edit && editing) {
       setEditing({
         ...editing,
@@ -106,7 +103,7 @@ export default function EmployeesPage() {
 
   const submitCreate = () => {
     if (!form.firstName.trim() || !form.phoneNumber.trim() || !form.countryCallingCode.trim()) {
-      setFormError('الاسم ورقم الهاتف ورمز الدولة مطلوبة.')
+      setFormError(t('employees.requiredError'))
       return
     }
     setFormError('')
@@ -122,11 +119,12 @@ export default function EmployeesPage() {
   const rows = employeesQuery.data?.items ?? []
   const totalCount = employeesQuery.data?.totalCount ?? 0
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
+  const statusLabel = (value: AdminEmployeeStatus) => t(`employees.statuses.${value}`)
   const statusOptions = [
-    { value: 'ALL', label: 'كل الحالات' },
-    { value: 'ACTIVE', label: STATUS_LABEL.ACTIVE },
-    { value: 'INVITED', label: STATUS_LABEL.INVITED },
-    { value: 'DISABLED', label: STATUS_LABEL.DISABLED },
+    { value: 'ALL', label: t('employees.allStatuses') },
+    { value: 'ACTIVE', label: statusLabel('ACTIVE') },
+    { value: 'INVITED', label: statusLabel('INVITED') },
+    { value: 'DISABLED', label: statusLabel('DISABLED') },
   ]
   const permissions = permissionsQuery.data ?? []
   const anyActionPending =
@@ -138,26 +136,26 @@ export default function EmployeesPage() {
   )
 
   return (
-    <section className="space-y-6" dir="rtl">
+    <section className="space-y-6">
       <div className="flex flex-col gap-4 rounded-3xl border border-primary/15 bg-card p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-start gap-4">
           <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"><ShieldCheck className="size-6" /></div>
-          <div><h1 className="text-2xl font-bold">موظفو الإدارة</h1><p className="mt-1 text-sm text-muted-foreground">إدارة دعوات الموظفين وصلاحياتهم وجلساتهم من Nest مباشرة.</p></div>
+          <div><h1 className="text-2xl font-bold">{t('employees.title')}</h1><p className="mt-1 text-sm text-muted-foreground">{t('employees.description')}</p></div>
         </div>
-        <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void employeesQuery.refetch()}>تحديث</Button>
+        <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void employeesQuery.refetch()}>{t('common.refresh')}</Button>
       </div>
 
       <Card className="rounded-3xl">
-        <CardHeader><CardTitle className="flex items-center gap-2"><UserPlus className="size-5" />إضافة موظف</CardTitle><CardDescription>سيتم إرسال دعوة واتساب افتراضياً، ولا يوجد تسجيل Admin عام.</CardDescription></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2"><UserPlus className="size-5" />{t('employees.createTitle')}</CardTitle><CardDescription>{t('employees.createDescription')}</CardDescription></CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <FormField label="الاسم"><Input value={form.firstName} onChange={(e) => setForm((c) => ({ ...c, firstName: e.target.value }))} /></FormField>
-            <FormField label="الكنية"><Input value={form.lastName ?? ''} onChange={(e) => setForm((c) => ({ ...c, lastName: e.target.value }))} /></FormField>
-            <FormField label="رمز الدولة"><Input value={form.countryCallingCode} onChange={(e) => setForm((c) => ({ ...c, countryCallingCode: e.target.value }))} /></FormField>
-            <FormField label="رقم الهاتف"><Input inputMode="tel" value={form.phoneNumber} onChange={(e) => setForm((c) => ({ ...c, phoneNumber: e.target.value }))} /></FormField>
+            <FormField label={t('employees.firstName')}><Input value={form.firstName} onChange={(e) => setForm((c) => ({ ...c, firstName: e.target.value }))} /></FormField>
+            <FormField label={t('employees.lastName')}><Input value={form.lastName ?? ''} onChange={(e) => setForm((c) => ({ ...c, lastName: e.target.value }))} /></FormField>
+            <FormField label={t('employees.countryCode')}><Input value={form.countryCallingCode} onChange={(e) => setForm((c) => ({ ...c, countryCallingCode: e.target.value }))} /></FormField>
+            <FormField label={t('employees.phone')}><Input inputMode="tel" value={form.phoneNumber} onChange={(e) => setForm((c) => ({ ...c, phoneNumber: e.target.value }))} /></FormField>
           </div>
           <div>
-            <p className="mb-2 text-sm font-bold">الصلاحيات</p>
+            <p className="mb-2 text-sm font-bold">{t('employees.permissions')}</p>
             <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
               {permissions.map((permission) => (
                 <label key={permission.code} className="flex cursor-pointer items-start gap-2 rounded-2xl border border-border p-3 text-sm">
@@ -167,42 +165,42 @@ export default function EmployeesPage() {
               ))}
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.sendInvitation !== false} onChange={(e) => setForm((c) => ({ ...c, sendInvitation: e.target.checked }))} />إرسال دعوة واتساب مباشرة</label>
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.sendInvitation !== false} onChange={(e) => setForm((c) => ({ ...c, sendInvitation: e.target.checked }))} />{t('employees.sendInvitation')}</label>
           {formError ? <Alert variant="destructive"><AlertTitle>{formError}</AlertTitle></Alert> : null}
-          {createMutation.isError ? <Alert variant="destructive"><AlertTitle>تعذر إنشاء الموظف.</AlertTitle></Alert> : null}
-          <div className="flex justify-end"><Button loading={createMutation.isPending} icon={<UserPlus className="size-4" />} onClick={submitCreate}>إضافة الموظف</Button></div>
+          {createMutation.isError ? <Alert variant="destructive"><AlertTitle>{t('employees.createError')}</AlertTitle></Alert> : null}
+          <div className="flex justify-end"><Button loading={createMutation.isPending} icon={<UserPlus className="size-4" />} onClick={submitCreate}>{t('employees.add')}</Button></div>
         </CardContent>
       </Card>
 
       {editing ? (
         <Card className="rounded-3xl border-primary/20">
-          <CardHeader><CardTitle>تعديل {editing.firstName} {editing.lastName ?? ''}</CardTitle><CardDescription>يمكن تعديل الاسم والصلاحيات فقط. تغيير رقم الهاتف يحتاج مسار هوية منفصل.</CardDescription></CardHeader>
+          <CardHeader><CardTitle>{t('employees.editTitle', { name: `${editing.firstName} ${editing.lastName ?? ''}`.trim() })}</CardTitle><CardDescription>{t('employees.editDescription')}</CardDescription></CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2"><FormField label="الاسم"><Input value={editing.firstName} onChange={(e) => setEditing({ ...editing, firstName: e.target.value })} /></FormField><FormField label="الكنية"><Input value={editing.lastName ?? ''} onChange={(e) => setEditing({ ...editing, lastName: e.target.value })} /></FormField></div>
+            <div className="grid gap-4 md:grid-cols-2"><FormField label={t('employees.firstName')}><Input value={editing.firstName} onChange={(e) => setEditing({ ...editing, firstName: e.target.value })} /></FormField><FormField label={t('employees.lastName')}><Input value={editing.lastName ?? ''} onChange={(e) => setEditing({ ...editing, lastName: e.target.value })} /></FormField></div>
             <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">{permissions.map((permission) => <label key={permission.code} className="flex items-center gap-2 rounded-xl border border-border p-3 text-sm"><input type="checkbox" checked={editing.permissions.includes(permission.code)} onChange={() => togglePermission(permission.code, true)} />{permission.name}</label>)}</div>
-            <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => setEditing(null)}>إلغاء</Button><Button loading={updateMutation.isPending} onClick={() => updateMutation.mutate({ id: editing.id, firstName: editing.firstName, lastName: editing.lastName ?? '', permissions: editing.permissions })}>حفظ</Button></div>
+            <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => setEditing(null)}>{t('common.cancel')}</Button><Button loading={updateMutation.isPending} onClick={() => updateMutation.mutate({ id: editing.id, firstName: editing.firstName, lastName: editing.lastName ?? '', permissions: editing.permissions })}>{t('common.save')}</Button></div>
           </CardContent>
         </Card>
       ) : null}
 
-      <div className="grid gap-3 md:grid-cols-[1fr_14rem]"><Input value={search} placeholder="بحث بالاسم أو الرقم" onChange={(e) => { setSearch(e.target.value); setPage(1) }} /><CustomSelect value={status} options={statusOptions} onValueChange={(value) => { setStatus(value as AdminEmployeeStatus | 'ALL'); setPage(1) }} /></div>
+      <div className="grid gap-3 md:grid-cols-[1fr_14rem]"><Input value={search} placeholder={t('employees.searchPlaceholder')} onChange={(e) => { setSearch(e.target.value); setPage(1) }} /><CustomSelect value={status} options={statusOptions} onValueChange={(value) => { setStatus(value as AdminEmployeeStatus | 'ALL'); setPage(1) }} /></div>
 
       <PaginatedDataTable<AdminEmployee>
         rows={rows}
         loading={employeesQuery.isLoading || employeesQuery.isFetching}
         getRowId={(row) => row.id}
-        summaryText={`${totalCount} موظف`}
-        emptyMessage="لا يوجد موظفون مطابقون."
-        pagination={{ currentPage: page, totalPages, pageSize: PAGE_SIZE, onPageChange: setPage, previousLabel: 'السابق', nextLabel: 'التالي', getPageLabel: (pageNumber) => `صفحة ${pageNumber}` }}
+        summaryText={t('employees.summary', { count: totalCount })}
+        emptyMessage={t('employees.empty')}
+        pagination={{ currentPage: page, totalPages, pageSize: PAGE_SIZE, onPageChange: setPage, previousLabel: t('common.previous'), nextLabel: t('common.next'), getPageLabel: (pageNumber) => t('common.page', { page: pageNumber }) }}
         columns={[
-          { id: 'name', header: 'الموظف', renderCell: (row) => <div><p className="font-semibold">{row.firstName} {row.lastName ?? ''}</p><p className="text-xs text-muted-foreground">{row.countryCallingCode ?? ''} {row.phoneNumber}</p></div> },
-          { id: 'status', header: 'الحالة', renderCell: (row) => <Badge variant="outline" color={row.status === 'ACTIVE' ? 'emerald' : row.status === 'DISABLED' ? 'slate' : 'amber'}>{STATUS_LABEL[row.status]}</Badge> },
-          { id: 'permissions', header: 'الصلاحيات', renderCell: (row) => <div className="flex max-w-md flex-wrap gap-1">{row.permissions.length ? row.permissions.map((code) => <Badge key={code} variant="outline">{permissionNames.get(code) ?? code}</Badge>) : <span className="text-xs text-muted-foreground">بدون صلاحيات</span>}</div> },
-          { id: 'actions', header: '', renderCell: (row) => <div className="flex flex-wrap justify-end gap-1"><Button size="sm" variant="outline" icon={<Pencil className="size-3.5" />} onClick={() => setEditing({ ...row })}>تعديل</Button>{row.status === 'DISABLED' ? <Button size="sm" variant="outline" icon={<UserRoundCheck className="size-3.5" />} disabled={anyActionPending} onClick={() => enableMutation.mutate(row.id)}>تفعيل</Button> : <Button size="sm" variant="outline" icon={<UserRoundX className="size-3.5" />} disabled={anyActionPending} onClick={() => disableMutation.mutate(row.id)}>تعطيل</Button>}{row.status === 'INVITED' ? <Button size="sm" variant="outline" icon={<Send className="size-3.5" />} disabled={anyActionPending} onClick={() => resendMutation.mutate(row.id)}>إعادة الدعوة</Button> : null}<Button size="sm" variant="outline" icon={<Trash2 className="size-3.5" />} disabled={anyActionPending} onClick={() => deleteMutation.mutate(row.id)}>حذف</Button></div> },
+          { id: 'name', header: t('employees.employee'), renderCell: (row) => <div><p className="font-semibold">{row.firstName} {row.lastName ?? ''}</p><p className="text-xs text-muted-foreground">{row.countryCallingCode ?? ''} {row.phoneNumber}</p></div> },
+          { id: 'status', header: t('employees.status'), renderCell: (row) => <Badge variant="outline" color={row.status === 'ACTIVE' ? 'emerald' : row.status === 'DISABLED' ? 'slate' : 'amber'}>{statusLabel(row.status)}</Badge> },
+          { id: 'permissions', header: t('employees.permissions'), renderCell: (row) => <div className="flex max-w-md flex-wrap gap-1">{row.permissions.length ? row.permissions.map((code) => <Badge key={code} variant="outline">{permissionNames.get(code) ?? code}</Badge>) : <span className="text-xs text-muted-foreground">{t('employees.noPermissions')}</span>}</div> },
+          { id: 'actions', header: '', renderCell: (row) => <div className="flex flex-wrap justify-end gap-1"><Button size="sm" variant="outline" icon={<Pencil className="size-3.5" />} onClick={() => setEditing({ ...row })}>{t('common.edit')}</Button>{row.status === 'DISABLED' ? <Button size="sm" variant="outline" icon={<UserRoundCheck className="size-3.5" />} disabled={anyActionPending} onClick={() => enableMutation.mutate(row.id)}>{t('employees.enable')}</Button> : <Button size="sm" variant="outline" icon={<UserRoundX className="size-3.5" />} disabled={anyActionPending} onClick={() => disableMutation.mutate(row.id)}>{t('employees.disable')}</Button>}{row.status === 'INVITED' ? <Button size="sm" variant="outline" icon={<Send className="size-3.5" />} disabled={anyActionPending} onClick={() => resendMutation.mutate(row.id)}>{t('employees.resendInvitation')}</Button> : null}<Button size="sm" variant="outline" icon={<Trash2 className="size-3.5" />} disabled={anyActionPending} onClick={() => deleteMutation.mutate(row.id)}>{t('common.delete')}</Button></div> },
         ]}
       />
 
-      <div className="rounded-2xl border border-border bg-muted/30 p-4 text-xs text-muted-foreground"><KeyRound className="me-2 inline size-4" />تعطيل الموظف يلغي Refresh Tokens من السيرفر، لذلك لا يكفي إخفاء الواجهة فقط.</div>
+      <div className="rounded-2xl border border-border bg-muted/30 p-4 text-xs text-muted-foreground"><KeyRound className="me-2 inline size-4" />{t('employees.tokenHint')}</div>
     </section>
   )
 }

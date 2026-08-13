@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 import { APP_ROUTES } from '@/app/router/route-object.type'
 import { AuthVisualLayout } from '@/modules/auth/components/auth-visual-layout.component'
@@ -8,6 +9,7 @@ import { toast } from '@/shared/lib/toast'
 import { Button, FormField, Input } from '@/shared/ui'
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation('login')
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const requestId = searchParams.get('requestId')?.trim() ?? ''
@@ -25,7 +27,7 @@ export default function ResetPasswordPage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (newPassword !== confirmPassword) {
-      toast.error('كلمتا المرور غير متطابقتين')
+      toast.error(t('passwordMismatch'))
       return
     }
 
@@ -38,7 +40,7 @@ export default function ResetPasswordPage() {
         otpCode,
         newPassword,
       })
-      toast.success('تم تحديث كلمة المرور بنجاح')
+      toast.success(t('reset.success'))
       navigate(APP_ROUTES.login.path, { replace: true })
     } finally {
       setIsSubmitting(false)
@@ -47,11 +49,11 @@ export default function ResetPasswordPage() {
 
   return (
     <AuthVisualLayout
-      title="تعيين كلمة مرور جديدة"
-      description="أدخل رمز واتساب المكوّن من 6 أرقام ثم اختر كلمة مرور جديدة للحساب."
+      title={t('reset.title')}
+      description={t('reset.description')}
     >
       <form className="space-y-5" onSubmit={handleSubmit}>
-        <FormField htmlFor="code" label="رمز التحقق">
+        <FormField htmlFor="code" label={t('otpCode')}>
           <Input
             id="code"
             inputMode="numeric"
@@ -64,7 +66,7 @@ export default function ResetPasswordPage() {
           />
         </FormField>
 
-        <FormField htmlFor="new-password" label="كلمة المرور الجديدة">
+        <FormField htmlFor="new-password" label={t('newPassword')}>
           <Input
             id="new-password"
             type="password"
@@ -74,7 +76,7 @@ export default function ResetPasswordPage() {
           />
         </FormField>
 
-        <FormField htmlFor="confirm-password" label="تأكيد كلمة المرور">
+        <FormField htmlFor="confirm-password" label={t('confirmPassword')}>
           <Input
             id="confirm-password"
             type="password"
@@ -95,7 +97,7 @@ export default function ResetPasswordPage() {
           }
           className="h-12 w-full rounded-2xl bg-[#6949ff] text-white hover:bg-[#5d3ef0]"
         >
-          حفظ كلمة المرور
+          {t('reset.submit')}
         </Button>
       </form>
     </AuthVisualLayout>

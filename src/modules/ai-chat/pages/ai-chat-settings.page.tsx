@@ -1,9 +1,14 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { BrainCircuit, Pencil, Plus, RefreshCcw, Save, Trash2, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { aiChatSettingsService } from '@/modules/ai-chat/services/ai-chat-settings.service'
-import type { AiPlanInput, AiSubscriptionPlan } from '@/modules/ai-chat/types/ai-chat-settings.types'
+import type {
+  AiSubscriptionPlan,
+  CreateAiPlanInput,
+  UpdateAiPlanInput,
+} from '@/modules/ai-chat/types/ai-chat-settings.types'
 import {
   Alert,
   AlertTitle,
@@ -19,7 +24,19 @@ import {
   Skeleton,
 } from '@/shared/ui'
 
-const EMPTY_FORM: AiPlanInput & { code: string } = {
+type AiPlanFormValue = {
+  code: string
+  name: string
+  description: string
+  tokenLimit: number
+  tokenResetDays: number
+  subscriptionDurationDays: number | ''
+  isFree: boolean
+  isActive: boolean
+  sortOrder: number
+}
+
+const EMPTY_FORM: AiPlanFormValue = {
   code: '',
   name: '',
   description: '',
@@ -39,52 +56,72 @@ function PlanForm({
   onCancel,
   onSubmit,
 }: {
-  value: AiPlanInput & { code: string }
+  value: AiPlanFormValue
   editing: boolean
   pending: boolean
-  onChange: (patch: Partial<AiPlanInput & { code: string }>) => void
+  onChange: (patch: Partial<AiPlanFormValue>) => void
   onCancel: () => void
   onSubmit: () => void
 }) {
+  const { t } = useTranslation('ai-chat')
+
   return (
     <Card className="rounded-3xl border-primary/20">
       <CardHeader>
-        <CardTitle>{editing ? 'تعديل خطة الذكاء الاصطناعي' : 'إضافة خطة جديدة'}</CardTitle>
-        <CardDescription>الخطة محفوظة في Nest وتظهر مباشرة في الاشتراكات والـQR الموحد.</CardDescription>
+        <CardTitle>{t(editing ? 'form.editTitle' : 'form.createTitle')}</CardTitle>
+        <CardDescription>{t('form.description')}</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <FormField label="رمز الخطة">
-          <Input value={value.code} disabled={editing || pending} onChange={(e) => onChange({ code: e.target.value.toUpperCase() })} placeholder="PLUS" />
+        <FormField label={t('form.code')}>
+          <Input
+            value={value.code}
+            disabled={editing || pending}
+            onChange={(event) => onChange({ code: event.target.value.toUpperCase() })}
+            placeholder="PLUS"
+          />
         </FormField>
-        <FormField label="اسم الخطة">
-          <Input value={value.name} disabled={pending} onChange={(e) => onChange({ name: e.target.value })} />
+        <FormField label={t('form.name')}>
+          <Input value={value.name} disabled={pending} onChange={(event) => onChange({ name: event.target.value })} />
         </FormField>
-        <FormField label="حد التوكنات">
-          <Input type="number" min={1} value={value.tokenLimit} disabled={pending} onChange={(e) => onChange({ tokenLimit: Number(e.target.value) })} />
+        <FormField label={t('form.tokenLimit')}>
+          <Input type="number" min={1} value={value.tokenLimit} disabled={pending} onChange={(event) => onChange({ tokenLimit: Number(event.target.value) })} />
         </FormField>
-        <FormField label="إعادة التوكنات كل (يوم)">
-          <Input type="number" min={1} max={3650} value={value.tokenResetDays} disabled={pending} onChange={(e) => onChange({ tokenResetDays: Number(e.target.value) })} />
+        <FormField label={t('form.tokenResetDays')}>
+          <Input type="number" min={1} max={3650} value={value.tokenResetDays} disabled={pending} onChange={(event) => onChange({ tokenResetDays: Number(event.target.value) })} />
         </FormField>
-        <FormField label="مدة الاشتراك بالأيام">
-          <Input type="number" min={1} max={3650} value={value.subscriptionDurationDays ?? ''} disabled={pending} onChange={(e) => onChange({ subscriptionDurationDays: e.target.value ? Number(e.target.value) : null })} />
+        <FormField label={t('form.subscriptionDurationDays')}>
+          <Input
+            type="number"
+            min={1}
+            max={3650}
+            value={value.subscriptionDurationDays}
+            disabled={pending}
+            onChange={(event) => onChange({ subscriptionDurationDays: event.target.value ? Number(event.target.value) : '' })}
+          />
         </FormField>
-        <FormField label="ترتيب العرض">
-          <Input type="number" value={value.sortOrder ?? 0} disabled={pending} onChange={(e) => onChange({ sortOrder: Number(e.target.value) })} />
+        <FormField label={t('form.sortOrder')}>
+          <Input type="number" value={value.sortOrder} disabled={pending} onChange={(event) => onChange({ sortOrder: Number(event.target.value) })} />
         </FormField>
-        <FormField label="الوصف" className="md:col-span-2 xl:col-span-3">
-          <Input value={value.description ?? ''} disabled={pending} onChange={(e) => onChange({ description: e.target.value })} />
+        <FormField label={t('form.descriptionField')} className="md:col-span-2 xl:col-span-3">
+          <Input value={value.description} disabled={pending} onChange={(event) => onChange({ description: event.target.value })} />
         </FormField>
         <label className="flex items-center gap-2 text-sm font-medium">
-          <input type="checkbox" checked={Boolean(value.isActive)} disabled={pending} onChange={(e) => onChange({ isActive: e.target.checked })} /> فعالة
+          <input type="checkbox" checked={value.isActive} disabled={pending} onChange={(event) => onChange({ isActive: event.target.checked })} />
+          {t('form.active')}
         </label>
         {!editing ? (
           <label className="flex items-center gap-2 text-sm font-medium">
-            <input type="checkbox" checked={Boolean(value.isFree)} disabled={pending} onChange={(e) => onChange({ isFree: e.target.checked })} /> خطة مجانية
+            <input type="checkbox" checked={value.isFree} disabled={pending} onChange={(event) => onChange({ isFree: event.target.checked })} />
+            {t('form.free')}
           </label>
         ) : null}
         <div className="flex items-center justify-end gap-2 md:col-span-2 xl:col-span-3">
-          <Button variant="outline" disabled={pending} onClick={onCancel} icon={<X className="size-4" />}>إلغاء</Button>
-          <Button loading={pending} onClick={onSubmit} icon={<Save className="size-4" />}>حفظ</Button>
+          <Button variant="outline" disabled={pending} onClick={onCancel} icon={<X className="size-4" />}>
+            {t('actions.cancel')}
+          </Button>
+          <Button loading={pending} onClick={onSubmit} icon={<Save className="size-4" />}>
+            {t('actions.save')}
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -92,19 +129,39 @@ function PlanForm({
 }
 
 export default function AiChatSettingsPage() {
+  const { t } = useTranslation('ai-chat')
   const queryClient = useQueryClient()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState(EMPTY_FORM)
+  const [form, setForm] = useState<AiPlanFormValue>(EMPTY_FORM)
 
   const plansQuery = useQuery({ queryKey: ['admin-ai', 'plans'], queryFn: aiChatSettingsService.plans })
   const analyticsQuery = useQuery({ queryKey: ['admin-ai', 'analytics'], queryFn: aiChatSettingsService.analytics })
 
   const saveMutation = useMutation({
-    mutationFn: () =>
-      editingId
-        ? aiChatSettingsService.updatePlan(editingId, form)
-        : aiChatSettingsService.createPlan(form),
+    mutationFn: () => {
+      const sharedPayload = {
+        name: form.name.trim(),
+        description: form.description.trim(),
+        tokenLimit: form.tokenLimit,
+        tokenResetDays: form.tokenResetDays,
+        ...(form.subscriptionDurationDays === '' ? {} : { subscriptionDurationDays: form.subscriptionDurationDays }),
+        isActive: form.isActive,
+        sortOrder: form.sortOrder,
+      }
+
+      if (editingId) {
+        const payload: UpdateAiPlanInput = sharedPayload
+        return aiChatSettingsService.updatePlan(editingId, payload)
+      }
+
+      const payload: CreateAiPlanInput = {
+        ...sharedPayload,
+        code: form.code.trim().toUpperCase(),
+        isFree: form.isFree,
+      }
+      return aiChatSettingsService.createPlan(payload)
+    },
     onSuccess: async () => {
       setShowForm(false)
       setEditingId(null)
@@ -120,12 +177,12 @@ export default function AiChatSettingsPage() {
   const analytics = analyticsQuery.data
   const metricCards = useMemo(
     () => [
-      ['المستخدمون النشطون', analytics?.summary.activeUsers ?? 0],
-      ['المحادثات', analytics?.summary.conversations ?? 0],
-      ['الأسئلة', analytics?.summary.questions ?? 0],
-      ['إجمالي التوكنات', analytics?.summary.totalTokens ?? 0],
+      [t('metrics.activeUsers'), analytics?.summary.activeUsers ?? 0],
+      [t('metrics.conversations'), analytics?.summary.conversations ?? 0],
+      [t('metrics.questions'), analytics?.summary.questions ?? 0],
+      [t('metrics.totalTokens'), analytics?.summary.totalTokens ?? 0],
     ],
-    [analytics],
+    [analytics, t],
   )
 
   const startCreate = () => {
@@ -141,7 +198,7 @@ export default function AiChatSettingsPage() {
       description: plan.description ?? '',
       tokenLimit: plan.tokenLimit,
       tokenResetDays: plan.tokenResetDays,
-      subscriptionDurationDays: plan.subscriptionDurationDays,
+      subscriptionDurationDays: plan.subscriptionDurationDays ?? '',
       isFree: plan.isFree,
       isActive: plan.isActive,
       sortOrder: plan.sortOrder,
@@ -158,19 +215,19 @@ export default function AiChatSettingsPage() {
   }
 
   return (
-    <section className="space-y-6" dir="rtl">
+    <section className="space-y-6">
       <div className="flex flex-col gap-4 rounded-3xl border border-primary/15 bg-card p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-start gap-4">
           <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"><BrainCircuit className="size-6" /></div>
-          <div><h1 className="text-2xl font-bold">Quizy AI</h1><p className="mt-1 text-sm text-muted-foreground">إدارة خطط الاشتراك ومراقبة الاستخدام الحقيقي من Nest.</p></div>
+          <div><h1 className="text-2xl font-bold">{t('title')}</h1><p className="mt-1 text-sm text-muted-foreground">{t('description')}</p></div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => { void plansQuery.refetch(); void analyticsQuery.refetch() }}>تحديث</Button>
-          <Button icon={<Plus className="size-4" />} onClick={startCreate}>إضافة خطة</Button>
+          <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => { void plansQuery.refetch(); void analyticsQuery.refetch() }}>{t('actions.refresh')}</Button>
+          <Button icon={<Plus className="size-4" />} onClick={startCreate}>{t('actions.addPlan')}</Button>
         </div>
       </div>
 
-      {(plansQuery.isError || analyticsQuery.isError) ? <Alert variant="destructive"><AlertTitle>تعذر تحميل بيانات الذكاء الاصطناعي.</AlertTitle></Alert> : null}
+      {(plansQuery.isError || analyticsQuery.isError) ? <Alert variant="destructive"><AlertTitle>{t('states.errorTitle')}</AlertTitle></Alert> : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {metricCards.map(([label, value]) => (
@@ -181,14 +238,14 @@ export default function AiChatSettingsPage() {
       {showForm ? <PlanForm value={form} editing={Boolean(editingId)} pending={saveMutation.isPending} onChange={(patch) => setForm((current) => ({ ...current, ...patch }))} onCancel={() => setShowForm(false)} onSubmit={submit} /> : null}
 
       <Card className="rounded-3xl">
-        <CardHeader><CardTitle>خطط الاشتراك</CardTitle><CardDescription>لا يوجد enum ثابت في الواجهة؛ كل الخطط تأتي من قاعدة البيانات.</CardDescription></CardHeader>
+        <CardHeader><CardTitle>{t('plans.title')}</CardTitle><CardDescription>{t('plans.description')}</CardDescription></CardHeader>
         <CardContent className="space-y-3">
           {(plansQuery.data ?? []).map((plan) => {
             const usage = analytics?.plans.find((item) => item.planId === plan.id)
             return (
               <div key={plan.id} className="flex flex-col gap-3 rounded-2xl border border-border p-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="font-bold">{plan.name}</p><Badge variant="outline" color="primary">{plan.code}</Badge>{plan.isFree ? <Badge variant="outline" color="emerald">مجانية</Badge> : null}{!plan.isActive ? <Badge variant="outline" color="slate">موقفة</Badge> : null}</div><p className="mt-1 text-sm text-muted-foreground">{new Intl.NumberFormat().format(plan.tokenLimit)} توكن / {plan.tokenResetDays} يوم • {usage?.activeSubscriptions ?? 0} اشتراك فعال</p></div>
-                <div className="flex gap-2"><Button size="sm" variant="outline" icon={<Pencil className="size-4" />} onClick={() => startEdit(plan)}>تعديل</Button>{!plan.isFree ? <Button size="sm" variant="outline" icon={<Trash2 className="size-4" />} disabled={removeMutation.isPending} onClick={() => removeMutation.mutate(plan.id)}>حذف</Button> : null}</div>
+                <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="font-bold">{plan.name}</p><Badge variant="outline" color="primary">{plan.code}</Badge>{plan.isFree ? <Badge variant="outline" color="emerald">{t('plans.free')}</Badge> : null}{!plan.isActive ? <Badge variant="outline" color="slate">{t('plans.inactive')}</Badge> : null}</div><p className="mt-1 text-sm text-muted-foreground">{t('plans.usage', { tokens: new Intl.NumberFormat().format(plan.tokenLimit), days: plan.tokenResetDays, subscriptions: usage?.activeSubscriptions ?? 0 })}</p></div>
+                <div className="flex gap-2"><Button size="sm" variant="outline" icon={<Pencil className="size-4" />} onClick={() => startEdit(plan)}>{t('actions.edit')}</Button>{!plan.isFree ? <Button size="sm" variant="outline" icon={<Trash2 className="size-4" />} disabled={removeMutation.isPending} onClick={() => removeMutation.mutate(plan.id)}>{t('actions.delete')}</Button> : null}</div>
               </div>
             )
           })}

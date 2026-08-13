@@ -1,12 +1,42 @@
 {
   "title": "Sign in to Quizy",
-  "description": "Continue to the quiz operations dashboard.",
-  "email": "Email",
+  "description": "Enter your phone number and password to continue to the admin dashboard.",
+  "countryCallingCode": "Country code",
+  "countryCallingCodePlaceholder": "+963",
+  "phoneNumber": "Phone number",
+  "phoneNumberPlaceholder": "987654321",
   "password": "Password",
-  "emailPlaceholder": "admin@example.com",
   "passwordPlaceholder": "••••••••",
   "submit": "Open dashboard",
   "submitting": "Signing in...",
   "invalidCredentials": "The provided details are not correct.",
-  "unexpectedError": "Something went wrong. Please try again."
+  "unexpectedError": "Something went wrong. Please try again.",
+  "unknownUser": "Quizy user",
+  "forgotPassword": "Forgot your password?",
+  "employeeInvitation": "I have an employee invitation",
+  "backToLogin": "Back to sign in",
+  "otpCode": "Verification code",
+  "whatsappCode": "WhatsApp code",
+  "newPassword": "New password",
+  "confirmPassword": "Confirm password",
+  "passwordMismatch": "The passwords do not match.",
+  "invitation": {
+    "title": "Activate employee account",
+    "description": "Use the phone number assigned to your employee account and the WhatsApp code, then choose your password.",
+    "error": "Could not activate the invitation. Check the code and try again.",
+    "submit": "Activate account"
+  },
+  "recover": {
+    "title": "Recover password",
+    "description": "Enter the admin account phone number and we will send a verification code through WhatsApp.",
+    "privacyMessage": "If the account exists, a recovery code will be sent through WhatsApp.",
+    "sent": "Recovery code sent through WhatsApp",
+    "submit": "Send code"
+  },
+  "reset": {
+    "title": "Set a new password",
+    "description": "Enter the 6-digit WhatsApp code, then choose a new password for the account.",
+    "success": "Password updated successfully",
+    "submit": "Save password"
+  }
 }

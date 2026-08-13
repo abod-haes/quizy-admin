@@ -29,6 +29,7 @@ export {
   CustomMultiSelect,
   type CustomMultiSelectOption,
 } from '@/components/ui/custom-multi-select'
+export { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select'
 export {
   ColumnsVisibilityMenu,
   type ColumnVisibilityItem,

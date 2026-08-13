@@ -95,10 +95,10 @@ export default function LoginPage() {
       footer={
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
           <Link className="text-sm font-bold text-[#6949ff] hover:underline" to="/recover">
-            نسيت كلمة المرور؟
+            {t('forgotPassword')}
           </Link>
           <Link className="text-sm font-bold text-[#6949ff] hover:underline" to="/accept-invitation">
-            عندي دعوة موظف
+            {t('employeeInvitation')}
           </Link>
         </div>
       }

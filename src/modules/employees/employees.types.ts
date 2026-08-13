@@ -1,4 +1,5 @@
 import type { PagedResponse } from '@/shared/api/api.types'
+import type { AdminPermissionCode } from '@/shared/auth/admin-permissions'
 
 export type AdminEmployeeStatus = 'INVITED' | 'ACTIVE' | 'DISABLED'
 
@@ -9,7 +10,7 @@ export type AdminEmployee = {
   phoneNumber: string
   countryCallingCode: string | null
   status: AdminEmployeeStatus
-  permissions: string[]
+  permissions: AdminPermissionCode[]
   invitedAt: string | null
   activatedAt: string | null
   disabledAt: string | null
@@ -19,10 +20,20 @@ export type AdminEmployee = {
 export type AdminEmployeePage = PagedResponse<AdminEmployee>
 
 export type AdminPermissionOption = {
-  id: string
-  code: string
+  code: AdminPermissionCode
   name: string
   description: string | null
+}
+
+export type AdminInvitationResult = {
+  sent?: boolean
+  requestId?: string
+  expiresAt?: string
+  [key: string]: unknown
+}
+
+export type CreateAdminEmployeeResponse = AdminEmployee & {
+  invitation?: AdminInvitationResult | null
 }
 
 export type CreateAdminEmployeeInput = {
@@ -30,12 +41,12 @@ export type CreateAdminEmployeeInput = {
   lastName?: string
   phoneNumber: string
   countryCallingCode: string
-  permissions: string[]
+  permissions: AdminPermissionCode[]
   sendInvitation?: boolean
 }
 
 export type UpdateAdminEmployeeInput = {
   firstName?: string
   lastName?: string
-  permissions?: string[]
+  permissions?: AdminPermissionCode[]
 }

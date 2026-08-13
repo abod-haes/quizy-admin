@@ -1,0 +1,80 @@
+{
+  "title": "محرر الاختبارات",
+  "createDescription": "أنشئ الاختبار واربطه بالمادة والمدرس والمحتوى ثم أضف الأسئلة والإجابات.",
+  "editDescription": "عدّل بيانات الاختبار والأسئلة الحالية مع الحفاظ على الروابط غير المعدلة.",
+  "back": "العودة إلى الاختبارات",
+  "fields": {
+    "quizTitle": "عنوان الاختبار",
+    "subject": "المادة",
+    "teacher": "المدرس",
+    "timeExpiration": "مدة الاختبار بالدقائق",
+    "isFree": "اختبار مجاني",
+    "linkedContent": "المحتوى المرتبط",
+    "question": "السؤال",
+    "hint": "التلميح",
+    "lessons": "الدروس",
+    "files": "الملفات",
+    "answers": "الإجابات",
+    "correct": "صحيحة"
+  },
+  "placeholders": {
+    "quizTitle": "مثال: اختبار الوحدة الأولى",
+    "subject": "اختر المادة",
+    "teacher": "اختر المدرس",
+    "linkedContent": "اختر مواد أو وحدات أو دروس",
+    "lessons": "اختر الدروس",
+    "files": "اختر الملفات",
+    "question": "اكتب نص السؤال",
+    "hint": "تلميح اختياري",
+    "answer": "نص الإجابة"
+  },
+  "entityTypes": {
+    "subject": "مادة",
+    "unit": "وحدة",
+    "lesson": "درس"
+  },
+  "actions": {
+    "addQuestion": "إضافة سؤال",
+    "removeQuestion": "حذف السؤال",
+    "addAnswer": "إضافة إجابة",
+    "removeAnswer": "حذف الإجابة",
+    "save": "حفظ الاختبار",
+    "saving": "جارٍ الحفظ...",
+    "formatJson": "تنسيق JSON",
+    "visualMode": "النموذج المرئي",
+    "jsonMode": "JSON"
+  },
+  "questions": {
+    "title": "الأسئلة",
+    "count": "{{count}} سؤال",
+    "item": "السؤال {{index}}",
+    "existingLessons": "الدروس الحالية: {{names}}",
+    "existingLessonsHint": "اترك حقل الدروس دون تغيير للحفاظ على الربط الحالي، أو اختر دروساً جديدة لاستبداله."
+  },
+  "answers": {
+    "item": "الإجابة {{index}}",
+    "default": "إجابة {{index}}"
+  },
+  "validation": {
+    "titleRequired": "أدخل عنوان الاختبار.",
+    "subjectRequired": "اختر المادة.",
+    "teacherRequired": "اختر المدرس.",
+    "timeExpiration": "مدة الاختبار يجب أن تكون عدداً صحيحاً أكبر من صفر.",
+    "questionRequired": "كل سؤال يحتاج نصاً.",
+    "lessonRequired": "السؤال الجديد يحتاج درساً واحداً على الأقل.",
+    "answersRequired": "كل سؤال يحتاج إجابتين على الأقل.",
+    "answerRequired": "كل إجابة تحتاج نصاً.",
+    "correctAnswerRequired": "كل سؤال يحتاج إجابة صحيحة واحدة على الأقل.",
+    "jsonInvalid": "JSON غير صالح أو لا يطابق عقد الاختبار.",
+    "loadFailed": "تعذر تحميل بيانات الاختبار.",
+    "saveFailed": "تعذر حفظ الاختبار."
+  },
+  "messages": {
+    "created": "تم إنشاء الاختبار بنجاح.",
+    "updated": "تم تحديث الاختبار بنجاح."
+  },
+  "json": {
+    "title": "بيانات الاختبار بصيغة JSON",
+    "description": "هذا الوضع مخصص للتعديل المتقدم. عند الحفظ يتم التحقق من نفس عقد Nest المستخدم في النموذج المرئي."
+  }
+}

@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Download, FileUp, HardDrive, RefreshCcw, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import {
   resourcesService,
   type AdminResource,
+  type AdminResourceVisibility,
 } from '@/modules/resources/resources.service'
 import {
   Badge,
@@ -31,11 +33,12 @@ function humanSize(bytes: number | null | undefined) {
 }
 
 export default function ResourcesManagementPage() {
+  const { t } = useTranslation('admin-pages')
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [page, setPage] = useState(1)
   const [file, setFile] = useState<File | null>(null)
-  const [visibility, setVisibility] = useState<'PUBLIC' | 'PRIVATE'>('PUBLIC')
+  const [visibility, setVisibility] = useState<AdminResourceVisibility>('PUBLIC')
 
   const listQuery = useQuery({
     queryKey: ['admin-resources', page],
@@ -43,7 +46,7 @@ export default function ResourcesManagementPage() {
   })
   const uploadMutation = useMutation({
     mutationFn: () => {
-      if (!file) throw new Error('Missing file')
+      if (!file) throw new Error(t('resources.missingFile'))
       return resourcesService.upload(file, visibility)
     },
     onSuccess: async () => {
@@ -75,25 +78,25 @@ export default function ResourcesManagementPage() {
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
 
   return (
-    <section className="space-y-6" dir="rtl">
+    <section className="space-y-6">
       <div className="flex flex-col gap-4 rounded-3xl border border-primary/15 bg-card p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-start gap-4">
           <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"><HardDrive className="size-6" /></div>
           <div>
-            <h1 className="text-2xl font-bold">مكتبة الملفات</h1>
-            <p className="mt-1 text-sm text-muted-foreground">رفع وإدارة الملفات العامة والخاصة من نظام Resources الموحد.</p>
+            <h1 className="text-2xl font-bold">{t('resources.title')}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{t('resources.description')}</p>
           </div>
         </div>
-        <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void listQuery.refetch()}>تحديث</Button>
+        <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void listQuery.refetch()}>{t('common.refresh')}</Button>
       </div>
 
       <Card className="rounded-3xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><FileUp className="size-5" />رفع ملف</CardTitle>
-          <CardDescription>الملفات الخاصة لا تُعرض عبر `/uploads` العام، ويتم تنزيلها من endpoint محمي.</CardDescription>
+          <CardTitle className="flex items-center gap-2"><FileUp className="size-5" />{t('resources.uploadTitle')}</CardTitle>
+          <CardDescription>{t('resources.uploadDescription')}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-[1fr_12rem_auto] md:items-end">
-          <FormField label="الملف">
+          <FormField label={t('resources.file')}>
             <input
               ref={fileInputRef}
               type="file"
@@ -101,14 +104,14 @@ export default function ResourcesManagementPage() {
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
             />
           </FormField>
-          <FormField label="الظهور">
+          <FormField label={t('resources.visibility')}>
             <CustomSelect
               value={visibility}
               options={[
-                { value: 'PUBLIC', label: 'عام' },
-                { value: 'PRIVATE', label: 'خاص' },
+                { value: 'PUBLIC', label: t('common.public') },
+                { value: 'PRIVATE', label: t('common.private') },
               ]}
-              onValueChange={(value) => setVisibility(value as 'PUBLIC' | 'PRIVATE')}
+              onValueChange={(value) => setVisibility(value as AdminResourceVisibility)}
             />
           </FormField>
           <Button
@@ -117,7 +120,7 @@ export default function ResourcesManagementPage() {
             icon={<FileUp className="size-4" />}
             onClick={() => uploadMutation.mutate()}
           >
-            رفع
+            {t('resources.upload')}
           </Button>
         </CardContent>
       </Card>
@@ -126,21 +129,21 @@ export default function ResourcesManagementPage() {
         rows={rows}
         loading={listQuery.isLoading || listQuery.isFetching}
         getRowId={(row) => row.id}
-        summaryText={`${totalCount} ملف`}
-        emptyMessage="لا توجد ملفات بعد."
+        summaryText={t('resources.summary', { count: totalCount })}
+        emptyMessage={t('resources.empty')}
         pagination={{
           currentPage: page,
           totalPages,
           pageSize: PAGE_SIZE,
           onPageChange: setPage,
-          previousLabel: 'السابق',
-          nextLabel: 'التالي',
-          getPageLabel: (pageNumber) => `صفحة ${pageNumber}`,
+          previousLabel: t('common.previous'),
+          nextLabel: t('common.next'),
+          getPageLabel: (pageNumber) => t('common.page', { page: pageNumber }),
         }}
         columns={[
           {
             id: 'name',
-            header: 'الملف',
+            header: t('resources.file'),
             renderCell: (row) => (
               <div className="min-w-0">
                 <p className="max-w-xs truncate font-semibold">{row.originalName || row.id}</p>
@@ -148,17 +151,17 @@ export default function ResourcesManagementPage() {
               </div>
             ),
           },
-          { id: 'size', header: 'الحجم', renderCell: (row) => humanSize(row.sizeBytes) },
+          { id: 'size', header: t('resources.size'), renderCell: (row) => humanSize(row.sizeBytes) },
           {
             id: 'visibility',
-            header: 'الظهور',
+            header: t('resources.visibility'),
             renderCell: (row) => (
               <Badge variant="outline" color={row.visibility === 'PRIVATE' ? 'amber' : 'emerald'}>
-                {row.visibility === 'PRIVATE' ? 'خاص' : 'عام'}
+                {row.visibility === 'PRIVATE' ? t('common.private') : t('common.public')}
               </Badge>
             ),
           },
-          { id: 'role', header: 'الاستخدام', renderCell: (row) => row.role || 'ATTACHMENT' },
+          { id: 'role', header: t('resources.usage'), renderCell: (row) => row.role || 'ATTACHMENT' },
           {
             id: 'actions',
             header: '',
@@ -171,7 +174,7 @@ export default function ResourcesManagementPage() {
                   disabled={downloadMutation.isPending}
                   onClick={() => downloadMutation.mutate(row)}
                 >
-                  تنزيل
+                  {t('common.download')}
                 </Button>
                 <Button
                   size="sm"
@@ -180,7 +183,7 @@ export default function ResourcesManagementPage() {
                   disabled={removeMutation.isPending}
                   onClick={() => removeMutation.mutate(row.id)}
                 >
-                  حذف
+                  {t('common.delete')}
                 </Button>
               </div>
             ),
