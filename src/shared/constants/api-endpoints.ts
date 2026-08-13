@@ -25,6 +25,14 @@ export const API_ENDPOINTS = {
     verifyRegistration: '/api/v1/auth/register/verify',
   },
   dashboard: { summary: `${ADMIN}/dashboard/summary` },
+  health: { ready: '/api/health/ready' },
+  whatsapp: {
+    sessionStatus: `${ADMIN}/whatsapp/session/status`,
+    start: `${ADMIN}/whatsapp/session/start`,
+    reconnect: `${ADMIN}/whatsapp/session/reconnect`,
+    stop: `${ADMIN}/whatsapp/session/stop`,
+    logout: `${ADMIN}/whatsapp/session/logout`,
+  },
   ads: {
     list: `${ADMIN}/ads`,
     detail: (id: string) => byId(`${ADMIN}/ads`, id),
