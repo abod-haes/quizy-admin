@@ -14,6 +14,7 @@ import {
   LibraryBig,
   MapPin,
   Megaphone,
+  MessageCircle,
   QrCode,
   School,
   UploadCloud,
@@ -92,6 +93,14 @@ export const primarySidebarItems: SidebarItem[] = [
 ]
 
 export const secondarySidebarItems: SidebarItem[] = [
+  {
+    id: 'whatsapp',
+    labelKey: 'whatsapp:sidebar',
+    to: APP_ROUTES.whatsapp.path,
+    icon: MessageCircle,
+    roles: ['SuperAdmin'],
+    end: true,
+  },
   {
     id: 'aiChatSettings',
     labelKey: 'sidebar.items.aiChatSettings',
