@@ -1,6 +1,5 @@
 import { api } from '@/shared/api/api-client'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
-import type { AdminPermissionCode } from '@/shared/auth/admin-permissions'
 import {
   normalizeCountryCallingCode,
   trimCountryCode,
@@ -34,11 +33,6 @@ export type LoginResponse = {
   user?: AdminLoginUser | null
 }
 
-export type AdminPermissionsResponse = {
-  role: 'SuperAdmin' | 'AdminEmployee'
-  permissions: AdminPermissionCode[]
-}
-
 export type AdminLoginResponse = LoginResponse
 
 export async function loginAdmin(payload: LoginRequest): Promise<LoginResponse> {
@@ -48,8 +42,4 @@ export async function loginAdmin(payload: LoginRequest): Promise<LoginResponse> 
     phoneNumber: trimCountryCode(payload.phoneNumber, countryCallingCode),
     countryCallingCode,
   })
-}
-
-export async function getAdminPermissions(): Promise<AdminPermissionsResponse> {
-  return api.get<AdminPermissionsResponse>(API_ENDPOINTS.auth.permissions)
 }
