@@ -4,6 +4,7 @@ import { appRouter } from '@/app/router/app.route'
 import '@/design-tokens.css'
 import '@/responsive.css'
 import '@/control-system.css'
+import '@/phase-two.css'
 
 function App() {
   return <RouterProvider router={appRouter} />
