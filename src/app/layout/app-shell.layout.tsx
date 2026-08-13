@@ -59,17 +59,24 @@ export function AppShellLayout() {
   }, [pageTitle])
 
   return (
-    <div className={cn('app-shell-root h-screen bg-background', directionClass)}>
-      <div className="app-shell-frame">
-        <div className="hidden md:block">
-          <AppSidebar className="h-screen rounded-none border-y-0 border-s-0 shadow-none" />
+    <div className={cn('app-shell-root h-dvh min-h-screen w-full min-w-0 overflow-hidden bg-background', directionClass)}>
+      <div className="app-shell-frame min-w-0">
+        <div className="hidden shrink-0 md:block">
+          <AppSidebar className="h-dvh rounded-none border-y-0 border-s-0 shadow-none" />
         </div>
 
-        <section className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
+        <section className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background">
           <AppShellHeader onOpenMobileMenu={() => setMobileOpen(true)} />
 
-          <main className={cn('flex min-h-0 w-full flex-1 p-4 sm:p-6 lg:p-8', shouldLockPageScroll ? 'quizy-quizzes-scroll-page overflow-hidden' : 'overflow-auto')}>
-            <Outlet />
+          <main
+            className={cn(
+              'flex min-h-0 min-w-0 w-full flex-1 px-3 py-4 sm:px-4 sm:py-5 lg:px-6 lg:py-6 2xl:px-8',
+              shouldLockPageScroll ? 'quizy-quizzes-scroll-page overflow-hidden' : 'overflow-y-auto overflow-x-hidden'
+            )}
+          >
+            <div className="min-h-0 min-w-0 w-full flex-1">
+              <Outlet />
+            </div>
           </main>
         </section>
       </div>

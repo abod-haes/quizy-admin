@@ -1,0 +1,69 @@
+/* Final Phase 2 refinement: legacy CRUD compatibility, RTL and mobile rhythm. */
+
+[data-slot='filters-grid'] > * { min-width: 0; }
+
+[data-slot='filters-grid'] > div > p:first-child {
+  margin-bottom: .5rem;
+  font-size: .875rem !important;
+  font-weight: 600 !important;
+  line-height: 1.25rem;
+  color: color-mix(in srgb, var(--foreground) 90%, transparent) !important;
+}
+
+.app-shell-frame main form label,
+[data-slot='dialog-content'] form label {
+  font-size: .875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  color: color-mix(in srgb, var(--foreground) 90%, transparent);
+}
+
+.app-shell-frame main form [role='alert'],
+[data-slot='dialog-content'] form [role='alert'] {
+  font-size: .75rem;
+  line-height: 1.25rem;
+}
+
+[data-slot='dialog-description'] { line-height: 1.6; }
+
+[data-slot='dialog-footer'] > [data-slot='button'] {
+  height: var(--quizy-control-height) !important;
+  min-width: 7.5rem;
+  border-radius: var(--quizy-control-radius) !important;
+}
+
+[data-slot='table-head'],
+[data-slot='table-cell'] { text-align: start; }
+
+[data-slot='date-picker-content'],
+[data-slot='popover-content'] {
+  border-color: color-mix(in srgb, var(--primary) 9%, var(--border)) !important;
+}
+
+[dir='rtl'] [data-slot='page-header-actions'],
+[dir='rtl'] [data-slot='dialog-footer'],
+[dir='rtl'] [data-slot='filters-grid'] { direction: rtl; }
+
+[dir='rtl'] [data-slot='table-head'],
+[dir='rtl'] [data-slot='table-cell'] { text-align: right; }
+
+[dir='ltr'] [data-slot='table-head'],
+[dir='ltr'] [data-slot='table-cell'] { text-align: left; }
+
+@media (max-width: 767px) {
+  [data-slot='filters-grid'] { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+@media (max-width: 639px) {
+  [data-slot='dialog-footer'] { align-items: stretch; }
+  [data-slot='dialog-footer'] > [data-slot='button'] { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell-frame main *,
+  [data-slot='dialog-content'] * {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

@@ -36,7 +36,7 @@ type CustomSelectProps<T extends string | number = string> = {
 }
 
 const SELECT_TRIGGER_BASE_CLASS =
-  'h-10 w-full min-w-0 rounded-md border border-input bg-card px-3 text-sm text-foreground outline-none transition-[background-color,border-color] duration-150 hover:border-muted-foreground/45 focus-visible:border-primary/55 focus-visible:ring-1 focus-visible:ring-primary/20 data-[state=open]:border-primary/55 data-[state=open]:ring-1 data-[state=open]:ring-primary/20 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-70 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20'
+  'h-11 w-full min-w-0 rounded-xl border border-primary/10 bg-[var(--quizy-surface-strong)] px-3.5 text-sm font-medium text-foreground shadow-[var(--quizy-control-shadow)] outline-none transition-[transform,background-color,border-color,box-shadow] duration-200 hover:border-primary/25 hover:bg-card focus-visible:-translate-y-px focus-visible:border-primary/50 focus-visible:shadow-[var(--quizy-control-focus-shadow)] data-[state=open]:border-primary/50 data-[state=open]:shadow-[var(--quizy-control-focus-shadow)] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-70 aria-invalid:border-destructive aria-invalid:shadow-[0_0_0_4px_rgba(220,38,38,0.12)]'
 
 const DEFAULT_TRIGGER_CLASS = SELECT_TRIGGER_BASE_CLASS
 const FILTER_TRIGGER_CLASS = SELECT_TRIGGER_BASE_CLASS
@@ -131,9 +131,9 @@ export function CustomSelect<T extends string | number = string>({
         required={required}
         disabled={disabled}
       >
-        <div className="group/custom-select relative w-full">
+        <div className="group/custom-select relative w-full min-w-0">
           {icon ? (
-            <span className="pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground/80 transition-colors group-focus-within/custom-select:text-primary/80 [inset-inline-start:0.75rem] [&_svg]:size-4">
+            <span className="pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground/75 transition-colors group-focus-within/custom-select:text-primary [inset-inline-start:0.9rem] [&_svg]:size-4">
               {icon}
             </span>
           ) : null}
@@ -144,7 +144,7 @@ export function CustomSelect<T extends string | number = string>({
             aria-label={ariaLabel}
             className={cn(
               variant === 'filter' ? FILTER_TRIGGER_CLASS : DEFAULT_TRIGGER_CLASS,
-              icon && 'ps-10',
+              icon && 'ps-11',
               '[&_[data-slot=select-value]]:flex-1 [&_[data-slot=select-value]]:text-start',
               className
             )}
@@ -161,7 +161,7 @@ export function CustomSelect<T extends string | number = string>({
             onScroll: handleViewportScroll,
           }}
           className={cn(
-            'z-[1000] w-[var(--radix-select-trigger-width)] rounded-md border border-border bg-popover p-1 text-foreground ring-0 [&_[data-slot=select-scroll-up-button]]:bg-popover [&_[data-slot=select-scroll-down-button]]:bg-popover',
+            'z-[1000] w-[var(--radix-select-trigger-width)] rounded-xl border border-primary/10 bg-popover p-1 text-foreground shadow-[0_20px_60px_rgba(45,27,90,0.18)] ring-0 [&_[data-slot=select-scroll-up-button]]:bg-popover [&_[data-slot=select-scroll-down-button]]:bg-popover',
             contentClassName
           )}
         >
@@ -170,7 +170,7 @@ export function CustomSelect<T extends string | number = string>({
               key={String(option.value)}
               value={String(option.value)}
               disabled={option.disabled}
-              className="h-9 rounded-sm px-2.5 text-start text-sm"
+              className="min-h-10 rounded-lg px-3 text-start text-sm"
             >
               {displayLabel(option.label, option.value)}
             </SelectItem>

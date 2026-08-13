@@ -65,7 +65,7 @@ export function AppSidebar({ onNavigate, className, ...props }: AppSidebarProps)
     <aside
       {...props}
       className={cn(
-        'quizy-sidebar-shell flex h-full w-72 min-h-0 flex-col overflow-hidden border-e p-4 backdrop-blur-xl',
+        'quizy-sidebar-shell flex h-full w-64 min-w-64 min-h-0 flex-col overflow-hidden border-e p-3 backdrop-blur-xl xl:w-72 xl:min-w-72 xl:p-4',
         className,
       )}
     >
@@ -83,7 +83,7 @@ export function AppSidebar({ onNavigate, className, ...props }: AppSidebarProps)
         </nav>
       </div>
 
-      <div className="mt-4 shrink-0 rounded-2xl border border-border/70 bg-background/55 p-2 shadow-sm backdrop-blur dark:bg-white/[0.04]">
+      <div className="mt-3 shrink-0 rounded-2xl border border-border/70 bg-background/55 p-2 shadow-sm backdrop-blur xl:mt-4 dark:bg-white/[0.04]">
         <nav className="space-y-1">
           {allowedSecondaryItems.map((item) => (
             <SidebarNavItem

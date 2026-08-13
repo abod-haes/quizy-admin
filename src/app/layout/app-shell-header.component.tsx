@@ -49,28 +49,28 @@ export function AppShellHeader({ onOpenMobileMenu }: AppShellHeaderProps) {
   }
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border/80 bg-card/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+    <header className="flex h-16 min-w-0 shrink-0 items-center gap-2 border-b border-border/80 bg-card/95 px-3 backdrop-blur sm:gap-3 sm:px-5 lg:px-6 supports-[backdrop-filter]:bg-card/80">
       <Button
         type="button"
         variant="ghost"
         size="icon-sm"
         aria-label={t('layout.mobile.openNavigation')}
-        className="app-shell-mobile-menu text-muted-foreground hover:bg-muted/60 hover:text-foreground md:hidden"
+        className="app-shell-mobile-menu shrink-0 text-muted-foreground hover:bg-muted/60 hover:text-foreground md:hidden"
         onClick={onOpenMobileMenu}
       >
         <Menu className="size-4" />
       </Button>
 
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+        <p className="hidden text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:block">
           {t('layout.brand.name')}
         </p>
-        <h2 className="truncate text-base font-bold text-foreground sm:text-lg">
+        <h2 className="truncate text-sm font-bold text-foreground sm:text-lg">
           {t(pageLabelKey)}
         </h2>
       </div>
 
-      <div className="ms-auto flex items-center gap-1.5">
+      <div className="ms-auto flex shrink-0 items-center gap-1 sm:gap-1.5">
         <Button
           type="button"
           variant="ghost"

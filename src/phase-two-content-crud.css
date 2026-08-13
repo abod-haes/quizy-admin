@@ -1,0 +1,49 @@
+/* Phase 2 coverage for the shared AcademicContentCrudPage family. */
+.app-shell-frame main > div > section.flex.h-full > div:first-child:not(.quiz-builder-hero) {
+  gap: .875rem;
+  border-color: color-mix(in srgb, var(--primary) 10%, var(--border));
+  border-radius: 1.25rem;
+  padding: 1rem;
+}
+
+.app-shell-frame main > div > section.flex.h-full > div:first-child:not(.quiz-builder-hero) h1 {
+  text-wrap: balance;
+  letter-spacing: -.025em;
+}
+
+.app-shell-frame main > div > section.flex.h-full > div:first-child:not(.quiz-builder-hero) p.line-clamp-1 {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  max-width: 70ch;
+  text-wrap: pretty;
+}
+
+.app-shell-frame main > div > section.flex.h-full > div:first-child:not(.quiz-builder-hero) [data-slot='button'] {
+  min-height: var(--quizy-control-height);
+  border-radius: var(--quizy-control-radius);
+  padding-inline: 1rem;
+}
+
+.app-shell-frame main > div > section.flex.h-full [data-slot='card-header'] .grid {
+  max-width: none !important;
+  gap: .75rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+}
+
+/* Local max-height/overflow utilities must not clip select/dropdown portals. */
+[data-slot='dialog-content'].overflow-hidden {
+  overflow: visible !important;
+}
+
+@media (max-width: 639px) {
+  .app-shell-frame main > div > section.flex.h-full > div:first-child:not(.quiz-builder-hero) > div:last-child {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+    width: 100%;
+  }
+
+  .app-shell-frame main > div > section.flex.h-full > div:first-child:not(.quiz-builder-hero) > div:last-child [data-slot='button'] {
+    width: 100%;
+  }
+}
