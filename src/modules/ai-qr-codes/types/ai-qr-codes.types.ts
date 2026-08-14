@@ -22,6 +22,7 @@ export type UnifiedQrItem = {
   code: string
   qrType?: number
   qrPayload?: string | null
+  qrSvg?: string | null
   validUntil?: string | null
   createdAt?: string | null
   redeemed?: boolean | null
