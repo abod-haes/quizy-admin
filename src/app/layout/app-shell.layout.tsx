@@ -28,6 +28,35 @@ const moduleTitleFallbacks: Record<string, string> = {
   resources: 'Resources',
 }
 
+const FIXED_TABLE_PATHS = new Set([
+  '/quizzes',
+  '/questions',
+  '/classes',
+  '/subjects',
+  '/units',
+  '/lessons',
+  '/teachers',
+  '/students',
+  '/management-users',
+  '/courses',
+  '/courses/sessions',
+  '/courses/purchases',
+  '/resources',
+  '/ads',
+  '/points-of-sale',
+  '/qr-codes',
+  '/notifications',
+  '/page-contents',
+  '/ai-chat/subscriptions',
+  '/ai-chat/documents',
+  '/ai-chat/qr-codes',
+])
+
+function normalizePathname(pathname: string) {
+  const normalized = pathname.replace(/\/+$/, '')
+  return normalized || '/'
+}
+
 export function AppShellLayout() {
   const [mobileOpen, setMobileOpen] = useState<boolean>(false)
   const { i18n, t } = useTranslation()
@@ -38,7 +67,8 @@ export function AppShellLayout() {
   const pathSegments = location.pathname.split('/').filter(Boolean)
   const firstSegment = pathSegments[0] ?? 'dashboard'
   const secondSegment = pathSegments[1]
-  const shouldLockPageScroll = firstSegment === 'quizzes'
+  const normalizedPathname = normalizePathname(location.pathname)
+  const shouldLockPageScroll = FIXED_TABLE_PATHS.has(normalizedPathname)
 
   const pageTitle = useMemo(() => {
     const brandName = t('layout.brand.name')
@@ -59,17 +89,26 @@ export function AppShellLayout() {
   }, [pageTitle])
 
   return (
-    <div className={cn('app-shell-root h-screen bg-background', directionClass)}>
-      <div className="app-shell-frame">
-        <div className="hidden md:block">
-          <AppSidebar className="h-screen rounded-none border-y-0 border-s-0 shadow-none" />
+    <div className={cn('app-shell-root h-dvh min-h-screen w-full min-w-0 overflow-hidden bg-background', directionClass)}>
+      <div className="app-shell-frame min-w-0">
+        <div className="hidden shrink-0 md:block">
+          <AppSidebar className="h-dvh rounded-none border-y-0 border-s-0 shadow-none" />
         </div>
 
-        <section className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
+        <section className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-background">
           <AppShellHeader onOpenMobileMenu={() => setMobileOpen(true)} />
 
-          <main className={cn('flex min-h-0 w-full flex-1 p-4 sm:p-6 lg:p-8', shouldLockPageScroll ? 'quizy-quizzes-scroll-page overflow-hidden' : 'overflow-auto')}>
-            <Outlet />
+          <main
+            className={cn(
+              'flex min-h-0 min-w-0 w-full flex-1 px-3 py-4 sm:px-4 sm:py-5 lg:px-6 lg:py-6 2xl:px-8',
+              shouldLockPageScroll
+                ? 'admin-fixed-table-page overflow-hidden'
+                : 'overflow-y-auto overflow-x-hidden'
+            )}
+          >
+            <div className={cn('min-h-0 min-w-0 w-full flex-1', shouldLockPageScroll && 'h-full overflow-hidden')}>
+              <Outlet />
+            </div>
           </main>
         </section>
       </div>

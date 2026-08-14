@@ -1,0 +1,85 @@
+{
+  "title": "Course content management",
+  "sessionTitle": "Session content",
+  "description": "Manage session files, videos, comments, and teacher notes through the Nest APIs.",
+  "backToCourse": "Back to course",
+  "fields": {
+    "course": "Course",
+    "session": "Session",
+    "title": "Title",
+    "description": "Description",
+    "materialType": "Material type",
+    "file": "File",
+    "order": "Order",
+    "content": "Content"
+  },
+  "placeholders": {
+    "course": "Select a course",
+    "session": "Select a session",
+    "emptySelection": "Select a course and session to view content.",
+    "empty": "No data yet."
+  },
+  "tabs": {
+    "materials": "Materials and videos",
+    "comments": "Comments",
+    "notes": "Teacher notes"
+  },
+  "types": {
+    "file": "File",
+    "video": "HLS video"
+  },
+  "actions": {
+    "add": "Add",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "download": "Download",
+    "view": "View",
+    "play": "Play",
+    "manifest": "Offline manifest",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "form": {
+    "createMaterial": "Add material",
+    "editMaterial": "Edit material",
+    "createComment": "Add comment",
+    "editComment": "Edit comment",
+    "createNote": "Add note",
+    "editNote": "Edit note",
+    "fileHint": "File materials accept files and images only; video materials accept video only. When editing an existing material, leave the file empty to keep the current resource."
+  },
+  "validation": {
+    "courseRequired": "Select a course.",
+    "sessionRequired": "Select a session.",
+    "titleLength": "The title must be between 2 and 200 characters.",
+    "descriptionMax": "The description must not exceed 1000 characters.",
+    "resourceRequired": "Select a file for the new material.",
+    "fileOnly": "This material type accepts files and images only, not video or audio.",
+    "videoOnly": "Video materials require a video file.",
+    "order": "Order must be an integer that is zero or greater.",
+    "contentLength": "Content must be between 1 and 2000 characters.",
+    "uploadMissingId": "The upload succeeded but the server did not return a resourceId."
+  },
+  "messages": {
+    "saved": "Saved successfully.",
+    "deleted": "Deleted successfully.",
+    "requestFailed": "The request could not be completed.",
+    "deleteTitle": "Confirm deletion",
+    "deleteConfirm": "Delete {{name}}?",
+    "materialFallback": "this material",
+    "itemFallback": "this item",
+    "videoNotReady": "The video is not ready.",
+    "hlsOnly": "Video uses HLS; use playback or the offline manifest when processing is ready."
+  },
+  "hls": {
+    "ready": "Ready to play",
+    "processing": "Processing",
+    "failed": "Processing failed",
+    "notReady": "Not ready"
+  },
+  "pagination": {
+    "summary": "{{page}} / {{totalPages}}"
+  }
+}

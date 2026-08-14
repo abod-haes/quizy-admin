@@ -15,10 +15,7 @@ import {
 import type { AuthUser } from '@/app/auth/auth-user.type'
 import type { AppPermission } from '@/constants/permissions'
 import {
-  clearAuthPermissions,
-  clearAuthRoles,
-  clearAuthToken,
-  clearAuthUser,
+  clearAuthSession,
   getAuthPermissions,
   getAuthRoles,
   getAuthToken,
@@ -44,7 +41,7 @@ type AuthContextValue = {
     token: string,
     roles?: AppRole[],
     permissions?: AppPermission[],
-    user?: AuthUser | null
+    user?: AuthUser | null,
   ) => void
   loginFromBackend: (payload: unknown) => void
   logout: () => void
@@ -56,7 +53,7 @@ type AuthContextValue = {
   hasPermission: (permission: AppPermission | null | undefined) => boolean
   hasAnyPermission: (
     permissions: readonly AppPermission[] | undefined,
-    requireAll?: boolean
+    requireAll?: boolean,
   ) => boolean
 }
 
@@ -66,17 +63,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [token, setToken] = useState<string | null>(() => getAuthToken())
   const [user, setUserState] = useState<AuthUser | null>(() => getAuthUser())
   const [roles, setRolesState] = useState<AppRole[]>(() => getAuthRoles())
-  const [permissions, setPermissionsState] = useState<AppPermission[]>(() =>
-    getAuthPermissions()
-  )
+  const [permissions, setPermissionsState] = useState<AppPermission[]>(() => getAuthPermissions())
 
   const setUser = useCallback((nextUser: AuthUser | null) => {
     if (!nextUser) {
-      clearAuthUser()
+      localStorage.removeItem('app.auth.user')
       setUserState(null)
       return
     }
-
     setAuthUser(nextUser)
     setUserState(nextUser)
   }, [])
@@ -96,30 +90,20 @@ export function AuthProvider({ children }: PropsWithChildren) {
       nextToken: string,
       nextRoles?: AppRole[],
       nextPermissions?: AppPermission[],
-      nextUser?: AuthUser | null
+      nextUser?: AuthUser | null,
     ) => {
       setAuthToken(nextToken)
       setToken(nextToken)
-
-      if (nextRoles) {
-        setRoles(nextRoles)
-      }
-
-      if (nextPermissions) {
-        setPermissions(nextPermissions)
-      }
-
-      if (nextUser) {
-        setUser(nextUser)
-      }
+      if (nextRoles) setRoles(nextRoles)
+      if (nextPermissions) setPermissions(nextPermissions)
+      if (nextUser) setUser(nextUser)
     },
-    [setPermissions, setRoles, setUser]
+    [setPermissions, setRoles, setUser],
   )
 
   const loginFromBackend = useCallback(
     (payload: unknown) => {
       const parsedSession = parseBackendAuthSession(payload)
-
       if (parsedSession.token) {
         setAuthToken(parsedSession.token)
         setToken(parsedSession.token)
@@ -128,14 +112,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setPermissions(parsedSession.permissions)
       setUser(parsedSession.user)
     },
-    [setPermissions, setRoles, setUser]
+    [setPermissions, setRoles, setUser],
   )
 
   const logout = useCallback(() => {
-    clearAuthPermissions()
-    clearAuthRoles()
-    clearAuthToken()
-    clearAuthUser()
+    clearAuthSession()
     setToken(null)
     setUserState(null)
     setRolesState([])
@@ -143,35 +124,25 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, [])
 
   const hasRole = useCallback((role: AppRole) => roles.includes(role), [roles])
-
   const hasAnyRole = useCallback(
-    (requiredRoles: readonly AppRole[] | undefined) =>
-      hasAnyRoleInList(roles, requiredRoles),
-    [roles]
+    (requiredRoles: readonly AppRole[] | undefined) => hasAnyRoleInList(roles, requiredRoles),
+    [roles],
   )
-
   const hasPermission = useCallback(
     (requiredPermission: AppPermission | null | undefined) =>
       hasPermissionInList(permissions, requiredPermission),
-    [permissions]
+    [permissions],
   )
-
   const hasAnyPermission = useCallback(
-    (
-      requiredPermissions: readonly AppPermission[] | undefined,
-      requireAll = false
-    ) => hasAnyPermissionInList(permissions, requiredPermissions, requireAll),
-    [permissions]
+    (requiredPermissions: readonly AppPermission[] | undefined, requireAll = false) =>
+      hasAnyPermissionInList(permissions, requiredPermissions, requireAll),
+    [permissions],
   )
 
   useEffect(() => {
     const onUnauthorized = () => logout()
-
     window.addEventListener('auth:unauthorized', onUnauthorized)
-
-    return () => {
-      window.removeEventListener('auth:unauthorized', onUnauthorized)
-    }
+    return () => window.removeEventListener('auth:unauthorized', onUnauthorized)
   }, [logout])
 
   const contextValue = useMemo<AuthContextValue>(
@@ -202,12 +173,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
       logout,
       permissions,
       roles,
-      setUser,
       setPermissions,
       setRoles,
+      setUser,
       token,
       user,
-    ]
+    ],
   )
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
@@ -215,10 +186,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext)
-
-  if (!context) {
-    throw new Error('useAuth must be used inside AuthProvider')
-  }
-
+  if (!context) throw new Error('useAuth must be used inside AuthProvider')
   return context
 }

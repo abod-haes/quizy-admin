@@ -2,7 +2,15 @@ import { SlidersHorizontal } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 
 type FiltersDialogProps = {
@@ -25,7 +33,7 @@ type FiltersDialogProps = {
 }
 
 const FILTER_TRIGGER_CLASS =
-  'h-10 min-w-0 rounded-md border border-border bg-card px-4 py-1 text-sm font-medium text-foreground transition-[background-color,border-color,color] duration-150 hover:border-input hover:bg-muted/45 focus-visible:border-primary/55 focus-visible:ring-1 focus-visible:ring-primary/20 data-[state=open]:border-primary/55 data-[state=open]:ring-1 data-[state=open]:ring-primary/20'
+  'h-11 min-w-0 rounded-xl border border-primary/10 bg-card px-4 text-sm font-medium text-foreground shadow-[var(--quizy-control-shadow)] transition-[background-color,border-color,box-shadow] duration-150 hover:border-primary/25 hover:bg-muted/35 focus-visible:border-primary/55 focus-visible:ring-1 focus-visible:ring-primary/20 data-[state=open]:border-primary/55 data-[state=open]:shadow-[var(--quizy-control-focus-shadow)]'
 
 export function FiltersDialog({
   children,
@@ -50,34 +58,19 @@ export function FiltersDialog({
   const dialogOpen = isControlled ? open : internalOpen
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (!isControlled) {
-      setInternalOpen(nextOpen)
-    }
-
+    if (!isControlled) setInternalOpen(nextOpen)
     onOpenChange?.(nextOpen)
   }
 
   const handleApply = () => {
     onApply?.()
-
-    if (closeOnApply) {
-      handleOpenChange(false)
-    }
+    if (closeOnApply) handleOpenChange(false)
   }
 
   const normalizedActiveFiltersCount =
     typeof activeFiltersCount === 'number' && Number.isFinite(activeFiltersCount)
       ? Math.max(0, Math.trunc(activeFiltersCount))
       : null
-
-  const shouldShowActiveFiltersCount = normalizedActiveFiltersCount !== null
-
-  const renderActiveFiltersCountBadge = () =>
-    shouldShowActiveFiltersCount ? (
-      <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary/12 px-1.5 text-[11px] font-semibold leading-5 text-primary">
-        {normalizedActiveFiltersCount}
-      </span>
-    ) : null
 
   return (
     <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
@@ -86,29 +79,30 @@ export function FiltersDialog({
           type="button"
           variant="outline"
           icon={<SlidersHorizontal className="size-4" />}
-          className={cn(
-            triggerVariant === 'filter' && FILTER_TRIGGER_CLASS,
-            triggerClassName
-          )}
+          className={cn(triggerVariant === 'filter' && FILTER_TRIGGER_CLASS, triggerClassName)}
         >
-          <span className="inline-flex items-center gap-2">
-            <span>{triggerLabel}</span>
-            {renderActiveFiltersCountBadge()}
+          <span className="inline-flex min-w-0 items-center gap-2">
+            <span className="truncate">{triggerLabel}</span>
+            {normalizedActiveFiltersCount !== null ? (
+              <span className="inline-flex min-w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 px-1.5 text-[11px] font-bold leading-6 text-primary">
+                {normalizedActiveFiltersCount}
+              </span>
+            ) : null}
           </span>
         </Button>
       </DialogTrigger>
 
-      <DialogContent className={cn('', contentClassName)}>
+      <DialogContent className={cn('sm:max-w-3xl', contentClassName)}>
         {title || description ? (
           <DialogHeader>
-            {title ? (
-              <DialogTitle>{title}</DialogTitle>
-            ) : null}
+            {title ? <DialogTitle>{title}</DialogTitle> : null}
             {description ? <DialogDescription>{description}</DialogDescription> : null}
           </DialogHeader>
         ) : null}
 
-        <div className="grid gap-3 md:grid-cols-2">{children}</div>
+        <div data-slot="filters-grid" className="grid min-w-0 gap-4 sm:grid-cols-2">
+          {children}
+        </div>
 
         {applyLabel || resetLabel ? (
           <DialogFooter className="sm:justify-between">
@@ -116,9 +110,7 @@ export function FiltersDialog({
               <Button type="button" variant="outline" onClick={onReset}>
                 {resetLabel}
               </Button>
-            ) : (
-              <span />
-            )}
+            ) : <span />}
 
             {applyLabel ? (
               <Button type="button" onClick={handleApply}>

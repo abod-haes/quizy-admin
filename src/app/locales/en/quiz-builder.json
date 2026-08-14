@@ -1,0 +1,80 @@
+{
+  "title": "Quiz Builder",
+  "createDescription": "Create a quiz, link it to its subject, teacher, and content, then add questions and answers.",
+  "editDescription": "Update the quiz and its existing questions while preserving links you do not change.",
+  "back": "Back to quizzes",
+  "fields": {
+    "quizTitle": "Quiz title",
+    "subject": "Subject",
+    "teacher": "Teacher",
+    "timeExpiration": "Quiz duration in minutes",
+    "isFree": "Free quiz",
+    "linkedContent": "Linked content",
+    "question": "Question",
+    "hint": "Hint",
+    "lessons": "Lessons",
+    "files": "Files",
+    "answers": "Answers",
+    "correct": "Correct"
+  },
+  "placeholders": {
+    "quizTitle": "Example: Unit 1 quiz",
+    "subject": "Select subject",
+    "teacher": "Select teacher",
+    "linkedContent": "Select subjects, units, or lessons",
+    "lessons": "Select lessons",
+    "files": "Select files",
+    "question": "Enter the question text",
+    "hint": "Optional hint",
+    "answer": "Answer text"
+  },
+  "entityTypes": {
+    "subject": "Subject",
+    "unit": "Unit",
+    "lesson": "Lesson"
+  },
+  "actions": {
+    "addQuestion": "Add question",
+    "removeQuestion": "Remove question",
+    "addAnswer": "Add answer",
+    "removeAnswer": "Remove answer",
+    "save": "Save quiz",
+    "saving": "Saving...",
+    "formatJson": "Format JSON",
+    "visualMode": "Visual form",
+    "jsonMode": "JSON"
+  },
+  "questions": {
+    "title": "Questions",
+    "count": "{{count}} questions",
+    "item": "Question {{index}}",
+    "existingLessons": "Current lessons: {{names}}",
+    "existingLessonsHint": "Leave lessons unchanged to preserve the current links, or select new lessons to replace them."
+  },
+  "answers": {
+    "item": "Answer {{index}}",
+    "default": "Answer {{index}}"
+  },
+  "validation": {
+    "titleRequired": "Enter a quiz title.",
+    "subjectRequired": "Select a subject.",
+    "teacherRequired": "Select a teacher.",
+    "timeExpiration": "Quiz duration must be a positive integer.",
+    "questionRequired": "Every question needs text.",
+    "lessonRequired": "A new question needs at least one lesson.",
+    "answersRequired": "Every question needs at least two answers.",
+    "answerRequired": "Every answer needs text.",
+    "correctAnswerRequired": "Every question needs at least one correct answer.",
+    "jsonInvalid": "The JSON is invalid or does not match the quiz contract.",
+    "loadFailed": "Could not load the quiz data.",
+    "saveFailed": "Could not save the quiz."
+  },
+  "messages": {
+    "created": "Quiz created successfully.",
+    "updated": "Quiz updated successfully."
+  },
+  "json": {
+    "title": "Quiz JSON",
+    "description": "Advanced editing mode. Saving validates the same Nest contract used by the visual form."
+  }
+}

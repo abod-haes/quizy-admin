@@ -1,0 +1,85 @@
+{
+  "title": "إدارة محتوى الكورسات",
+  "sessionTitle": "محتوى الجلسة",
+  "description": "إدارة ملفات الجلسة والفيديوهات والتعليقات وملاحظات المدرس من واجهات Nest.",
+  "backToCourse": "رجوع للكورس",
+  "fields": {
+    "course": "الكورس",
+    "session": "الجلسة",
+    "title": "العنوان",
+    "description": "الوصف",
+    "materialType": "نوع المادة",
+    "file": "الملف",
+    "order": "الترتيب",
+    "content": "المحتوى"
+  },
+  "placeholders": {
+    "course": "اختر الكورس",
+    "session": "اختر الجلسة",
+    "emptySelection": "اختر كورسًا وجلسة لعرض المحتوى.",
+    "empty": "لا توجد بيانات بعد."
+  },
+  "tabs": {
+    "materials": "المواد والفيديوهات",
+    "comments": "التعليقات",
+    "notes": "ملاحظات المدرس"
+  },
+  "types": {
+    "file": "ملف",
+    "video": "فيديو HLS"
+  },
+  "actions": {
+    "add": "إضافة",
+    "edit": "تعديل",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "download": "تنزيل",
+    "view": "عرض",
+    "play": "تشغيل",
+    "manifest": "Offline manifest",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+  "form": {
+    "createMaterial": "إضافة مادة",
+    "editMaterial": "تعديل المادة",
+    "createComment": "إضافة تعليق",
+    "editComment": "تعديل التعليق",
+    "createNote": "إضافة ملاحظة",
+    "editNote": "تعديل الملاحظة",
+    "fileHint": "النوع ملف يقبل الملفات والصور فقط، والنوع فيديو يقبل الفيديو فقط. عند تعديل مادة موجودة يمكنك ترك الملف فارغًا للاحتفاظ بالمورد الحالي."
+  },
+  "validation": {
+    "courseRequired": "اختر الكورس.",
+    "sessionRequired": "اختر الجلسة.",
+    "titleLength": "يجب أن يكون العنوان بين حرفين و200 حرف.",
+    "descriptionMax": "يجب ألا يتجاوز الوصف 1000 حرف.",
+    "resourceRequired": "اختر ملفًا للمادة الجديدة.",
+    "fileOnly": "هذا النوع يقبل الملفات والصور فقط، وليس الفيديو أو الصوت.",
+    "videoOnly": "عند اختيار فيديو يجب رفع ملف فيديو فقط.",
+    "order": "الترتيب يجب أن يكون عددًا صحيحًا صفرًا أو أكبر.",
+    "contentLength": "يجب أن يكون المحتوى بين حرف و2000 حرف.",
+    "uploadMissingId": "تم رفع الملف لكن لم يرجع resourceId من السيرفر."
+  },
+  "messages": {
+    "saved": "تم الحفظ بنجاح.",
+    "deleted": "تم الحذف بنجاح.",
+    "requestFailed": "تعذر تنفيذ الطلب.",
+    "deleteTitle": "تأكيد الحذف",
+    "deleteConfirm": "هل تريد حذف {{name}}؟",
+    "materialFallback": "هذه المادة",
+    "itemFallback": "هذا العنصر",
+    "videoNotReady": "الفيديو غير جاهز.",
+    "hlsOnly": "الفيديو يستخدم HLS؛ استخدم التشغيل أو Offline manifest عندما تصبح الحالة جاهزة."
+  },
+  "hls": {
+    "ready": "جاهز للتشغيل",
+    "processing": "قيد المعالجة",
+    "failed": "فشلت المعالجة",
+    "notReady": "غير جاهز"
+  },
+  "pagination": {
+    "summary": "{{page}} / {{totalPages}}"
+  }
+}

@@ -6,33 +6,38 @@ import type { AppPermission } from '@/constants/permissions'
 import { AppShellLayout } from '@/app/layout/app-shell.layout'
 import { RequireAuth } from '@/app/router/require-auth.guard'
 import { APP_ROUTES, type AppRouteKey } from '@/app/router/route-object.type'
+import AdsManagementPage from '@/modules/ads/ads.page'
+import AcceptInvitationPage from '@/modules/auth/pages/accept-invitation.page'
 import LoginPage from '@/modules/auth/pages/login.page'
-import RegisterPage from '@/modules/auth/pages/register.page'
 import RecoverPage from '@/modules/auth/pages/recover.page'
 import ResetPasswordPage from '@/modules/auth/pages/reset-password.page'
-import VerifyCodePage from '@/modules/auth/pages/verify-code.page'
 import {
-  AdsPage,
   ClassesPage,
-  CoursesPage,
   LessonsPage,
-  ManagementUsersPage,
   NotificationsPage,
   PageContentsPage,
-  QuestionsPage,
   StudentsPage,
   SubjectsPage,
   TeachersPage,
   UnitsPage,
 } from '@/modules/content-crud/pages/academic-content-crud.page'
 import CourseContentPage from '@/modules/courses/pages/course-content.page'
+import CoursesManagementPage from '@/modules/courses/pages/courses-management.page'
+import CoursePurchasesPage from '@/modules/courses/pages/course-purchases.page'
 import CourseSessionsPage from '@/modules/courses/pages/course-sessions.page'
 import DashboardPage from '@/modules/dashboard/pages/dashboard.page'
+import EmployeesPage from '@/modules/employees/employees.page'
 import { NotFoundPage } from '@/modules/not-found/pages/not-found.page'
+import PointsOfSaleManagementPage from '@/modules/points-of-sale/points-of-sale.page'
 import QuizBuilderPage from '@/modules/quiz-builder/pages/quiz-builder-v2.page'
+import QuestionsManagementPage from '@/modules/questions/questions.page'
+import ResourcesManagementPage from '@/modules/resources/resources.page'
 import AiChatSettingsPage from '@/modules/ai-chat/pages/ai-chat-settings.page'
+import AiSubscriptionsPage from '@/modules/ai-chat/pages/ai-subscriptions.page'
+import AiDocumentsPage from '@/modules/ai-chat/pages/ai-documents.page'
 import AiQrCodesPage from '@/modules/ai-qr-codes/pages/ai-qr-codes.page'
 import QuizzesPage from '@/modules/quizzes/pages/quizzes.page'
+import WhatsAppManagementPage from '@/modules/whatsapp/whatsapp.page'
 
 function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof createElement>) {
   const route = APP_ROUTES[routeKey]
@@ -45,62 +50,60 @@ function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof creat
   const requireAllPermissions =
     'requireAllPermissions' in route ? Boolean(route.requireAllPermissions) : false
 
-  if (!route.protected) {
-    return element
-  }
+  if (!route.protected) return element
 
   return createElement(
     RequireAuth,
     { requiredRoles, requiredPermissions, requireAllPermissions },
-    element
+    element,
   )
 }
 
 const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<typeof createElement> }> = [
   { routeKey: 'quizBuilder', element: createElement(QuizBuilderPage) },
   { routeKey: 'quizzes', element: createElement(QuizzesPage) },
-  { routeKey: 'questions', element: createElement(QuestionsPage) },
+  { routeKey: 'questions', element: createElement(QuestionsManagementPage) },
   { routeKey: 'classes', element: createElement(ClassesPage) },
   { routeKey: 'subjects', element: createElement(SubjectsPage) },
   { routeKey: 'lessons', element: createElement(LessonsPage) },
   { routeKey: 'units', element: createElement(UnitsPage) },
   { routeKey: 'teachers', element: createElement(TeachersPage) },
   { routeKey: 'students', element: createElement(StudentsPage) },
-  { routeKey: 'managementUsers', element: createElement(ManagementUsersPage) },
-  { routeKey: 'courses', element: createElement(CoursesPage) },
+  { routeKey: 'managementUsers', element: createElement(EmployeesPage) },
+  { routeKey: 'courses', element: createElement(CoursesManagementPage) },
   { routeKey: 'courseDetail', element: createElement(CourseSessionsPage) },
   { routeKey: 'courseSessions', element: createElement(CourseSessionsPage) },
+  { routeKey: 'coursePurchases', element: createElement(CoursePurchasesPage) },
   { routeKey: 'courseSessionDetail', element: createElement(CourseContentPage) },
   { routeKey: 'courseContent', element: createElement(CourseContentPage) },
-  { routeKey: 'ads', element: createElement(AdsPage) },
+  { routeKey: 'resources', element: createElement(ResourcesManagementPage) },
+  { routeKey: 'ads', element: createElement(AdsManagementPage) },
+  { routeKey: 'pointsOfSale', element: createElement(PointsOfSaleManagementPage) },
+  { routeKey: 'qrCodes', element: createElement(AiQrCodesPage) },
   { routeKey: 'notifications', element: createElement(NotificationsPage) },
   { routeKey: 'pageContents', element: createElement(PageContentsPage) },
+  { routeKey: 'whatsapp', element: createElement(WhatsAppManagementPage) },
   { routeKey: 'aiChatSettings', element: createElement(AiChatSettingsPage) },
+  { routeKey: 'aiSubscriptions', element: createElement(AiSubscriptionsPage) },
+  { routeKey: 'aiDocuments', element: createElement(AiDocumentsPage) },
   { routeKey: 'aiQrCodes', element: createElement(AiQrCodesPage) },
 ]
 
 export const appRouter = createBrowserRouter([
-  {
-    path: APP_ROUTES.login.path,
-    element: createElement(LoginPage),
-  },
-  { path: '/register', element: createElement(RegisterPage) },
+  { path: APP_ROUTES.login.path, element: createElement(LoginPage) },
+  { path: '/accept-invitation', element: createElement(AcceptInvitationPage) },
   { path: '/recover', element: createElement(RecoverPage) },
   { path: '/reset-password', element: createElement(ResetPasswordPage) },
-  { path: '/verify-code', element: createElement(VerifyCodePage) },
   {
     path: APP_ROUTES.root.path,
     element: withRouteAccess('root', createElement(AppShellLayout)),
     children: [
-      {
-        index: true,
-        element: createElement(Navigate, { to: APP_ROUTES.dashboard.path, replace: true }),
-      },
-      {
-        path: APP_ROUTES.dashboard.path,
-        element: withRouteAccess('dashboard', createElement(DashboardPage)),
-      },
-      ...quizyModuleRoutes.map(({ routeKey, element }) => ({ path: APP_ROUTES[routeKey].path, element: withRouteAccess(routeKey, element) })),
+      { index: true, element: createElement(Navigate, { to: APP_ROUTES.dashboard.path, replace: true }) },
+      { path: APP_ROUTES.dashboard.path, element: withRouteAccess('dashboard', createElement(DashboardPage)) },
+      ...quizyModuleRoutes.map(({ routeKey, element }) => ({
+        path: APP_ROUTES[routeKey].path,
+        element: withRouteAccess(routeKey, element),
+      })),
     ],
   },
   { path: APP_ROUTES.notFound.path, element: createElement(NotFoundPage) },

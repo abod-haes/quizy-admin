@@ -1,29 +1,42 @@
 {
-  "badge": "Super Admin",
-  "title": "AI settings",
-  "description": "Control daily limits and input options for the Quizy AI assistant.",
-  "fields": {
-    "dailyTokenLimit": "Daily token limit",
-    "dailyMessageLimit": "Daily message limit",
-    "maxInputCharacters": "Maximum message characters"
+  "title": "Quizy AI",
+  "description": "Manage subscription plans and monitor real usage from Nest.",
+  "actions": {
+    "refresh": "Refresh",
+    "addPlan": "Add plan",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save"
   },
-  "hints": { "positiveInteger": "Enter a positive whole number." },
-  "global": {
-    "title": "Global settings",
-    "description": "Settings shared by all AI plans.",
-    "hint": "This limit is applied before a message is sent to the AI service."
+  "form": {
+    "createTitle": "Add a new plan",
+    "editTitle": "Edit AI plan",
+    "description": "The plan is stored in Nest and is immediately available to subscriptions and unified QR.",
+    "code": "Plan code",
+    "name": "Plan name",
+    "tokenLimit": "Token limit",
+    "tokenResetDays": "Reset tokens every (days)",
+    "subscriptionDurationDays": "Subscription duration in days",
+    "sortOrder": "Display order",
+    "descriptionField": "Description",
+    "active": "Active",
+    "free": "Free plan"
+  },
+  "metrics": {
+    "activeUsers": "Active users",
+    "conversations": "Conversations",
+    "questions": "Questions",
+    "totalTokens": "Total tokens"
   },
   "plans": {
-    "free": { "title": "Free", "description": "Limits for the free plan." },
-    "plus": { "title": "Plus", "description": "Limits for the Plus plan." },
-    "pro": { "title": "Pro", "description": "Limits for the Pro plan." },
-    "ultra": { "title": "Ultra", "description": "Limits for the Ultra plan." }
+    "title": "Subscription plans",
+    "description": "The UI has no fixed plan enum; all plans come from the database.",
+    "free": "Free",
+    "inactive": "Inactive",
+    "usage": "{{tokens}} tokens / {{days}} days • {{subscriptions}} active subscriptions"
   },
-  "actions": { "save": "Save settings", "retry": "Retry" },
   "states": {
-    "errorTitle": "Could not load AI settings",
-    "errorDescription": "Check the connection and try again."
-  },
-  "validation": { "positiveInteger": "The value must be a positive whole number." },
-  "messages": { "saved": "AI settings saved successfully.", "saveFailed": "Could not save AI settings." }
+    "errorTitle": "Could not load AI data."
+  }
 }

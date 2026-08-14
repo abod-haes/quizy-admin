@@ -47,24 +47,26 @@ function DatePicker({
       <PopoverTrigger asChild>
         <button
           id={id}
+          data-slot="date-picker-trigger"
           aria-label={ariaLabel}
           type="button"
           disabled={disabled}
           className={cn(
-            "flex h-10 w-full items-center justify-start gap-2 rounded-md border border-input bg-card px-3 text-start text-sm text-foreground transition-[background-color,border-color] duration-150 outline-none hover:border-muted-foreground/45 focus-visible:border-primary/55 focus-visible:ring-1 focus-visible:ring-primary/20 data-[state=open]:border-primary/55 data-[state=open]:ring-1 data-[state=open]:ring-primary/20 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-70",
+            "flex h-11 w-full min-w-0 items-center justify-start gap-2 rounded-xl border border-primary/10 bg-[var(--quizy-surface-strong)] px-3.5 text-start text-sm font-medium text-foreground shadow-[var(--quizy-control-shadow)] transition-[background-color,border-color,box-shadow,transform] duration-150 outline-none hover:border-primary/25 focus-visible:-translate-y-px focus-visible:border-primary/55 focus-visible:shadow-[var(--quizy-control-focus-shadow)] data-[state=open]:border-primary/55 data-[state=open]:shadow-[var(--quizy-control-focus-shadow)] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-70",
             !value && "text-muted-foreground",
             className
           )}
         >
-          <CalendarIcon className="size-4 text-muted-foreground" />
-          <span className="truncate">{value ? format(value, displayFormat) : placeholder}</span>
+          <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
+          <span className="min-w-0 flex-1 truncate">{value ? format(value, displayFormat) : placeholder}</span>
         </button>
       </PopoverTrigger>
       <PopoverContent
+        data-slot="date-picker-content"
         align={resolvedAlign}
         sideOffset={popoverSideOffset}
         className={cn(
-          "w-auto rounded-md border border-border bg-popover p-1 text-foreground ring-0",
+          "w-auto rounded-xl border border-primary/10 bg-popover p-1.5 text-foreground shadow-[var(--quizy-popup-shadow)] ring-0",
           popoverClassName
         )}
       >
@@ -72,7 +74,7 @@ function DatePicker({
           mode="single"
           selected={value}
           onSelect={onChange}
-          className={cn("rounded-md border-border bg-popover p-1", calendarClassName)}
+          className={cn("rounded-lg border-border bg-popover p-1", calendarClassName)}
           captionLayout="label"
           {...calendarProps}
         />

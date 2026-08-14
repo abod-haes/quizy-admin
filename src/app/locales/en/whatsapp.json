@@ -1,0 +1,45 @@
+{
+  "sidebar": "WhatsApp & OTP",
+  "title": "WhatsApp OTP management",
+  "description": "Monitor the live WhatsApp connection and control the session used to deliver OTP messages.",
+  "connection": { "live": "Live", "offline": "Offline" },
+  "services": { "database": "Database", "redis": "Redis", "worker": "OTP Worker", "whatsappSocket": "WhatsApp Socket" },
+  "states": { "up": "Up", "down": "Down", "ready": "Ready", "READY": "Ready", "degraded": "Degraded" },
+  "warnings": {
+    "staleReadyTitle": "Stored status is READY but the live WhatsApp socket is down",
+    "staleReadyDescription": "This explains missing registration OTP messages. Reconnect the session, then confirm that WhatsApp Socket is up."
+  },
+  "session": {
+    "title": "WhatsApp session",
+    "description": "Persisted session state combined with the live health endpoint.",
+    "persistedStatus": "Persisted session status",
+    "persistedHint": "This alone does not prove the socket is connected",
+    "liveSocket": "Live socket",
+    "displayName": "Account name",
+    "phone": "WhatsApp number",
+    "lastConnected": "Last connected",
+    "lastDisconnected": "Last disconnected",
+    "updatedAt": "Session updated",
+    "healthTime": "Health checked",
+    "disconnectReason": "Disconnect reason",
+    "lastError": "Last error"
+  },
+  "controls": { "title": "Session controls", "description": "Commands are queued to the OTP worker and status refreshes automatically." },
+  "actions": {
+    "refresh": "Refresh",
+    "start": "Start session",
+    "reconnect": "Reconnect",
+    "stop": "Stop session",
+    "logout": "Log out WhatsApp",
+    "logoutConfirm": "Logging out clears the current WhatsApp session and requires pairing again. Continue?",
+    "accepted": "Command accepted. Status will refresh automatically."
+  },
+  "qr": {
+    "title": "Pair WhatsApp",
+    "description": "Scan the QR code when the session is waiting for pairing.",
+    "alt": "WhatsApp pairing QR code",
+    "instructions": "Open Linked Devices in WhatsApp, choose Link a device, then scan this code.",
+    "waiting": "Waiting for the worker to generate a QR code."
+  },
+  "errors": { "load": "Could not load WhatsApp status or readiness health.", "action": "The command failed. Check the worker status and try again." }
+}

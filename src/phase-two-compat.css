@@ -1,0 +1,15 @@
+/* Phase 2 compatibility for current PageHeader/legacy CRUD markup. */
+.app-shell-frame main header.w-full { margin-bottom: .25rem; }
+.app-shell-frame main header.w-full h1 { max-width: 24ch; text-wrap: balance; letter-spacing: -.025em; }
+.app-shell-frame main header.w-full h1 + p { max-width: 70ch; text-wrap: pretty; }
+.app-shell-frame main header.w-full > div.flex > div:last-child:not(:first-child) > [data-slot='button'] { min-width: 2.75rem; }
+[dir='rtl'] .app-shell-frame main header.w-full > div.flex > div:last-child:not(:first-child) { direction: rtl; }
+
+@media (max-width: 639px) {
+  .app-shell-frame main header.w-full > div.flex > div:last-child:not(:first-child) {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+    width: 100%;
+  }
+  .app-shell-frame main header.w-full > div.flex > div:last-child:not(:first-child) > [data-slot='button'] { width: 100%; }
+}

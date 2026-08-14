@@ -1,0 +1,16 @@
+@import './phase1-polish.css';
+
+:root {
+  --quizy-control-height: 2.75rem;
+  --quizy-control-radius: 0.75rem;
+  --quizy-surface-radius: 1rem;
+  --quizy-surface-radius-lg: 1.5rem;
+  --quizy-control-padding-inline: 0.875rem;
+  --quizy-field-gap: 0.5rem;
+  --quizy-section-gap: 1.25rem;
+  --quizy-control-font-size: 0.875rem;
+  --quizy-control-font-weight: 500;
+  --quizy-motion-fast: 160ms;
+  --quizy-motion-base: 180ms;
+  --quizy-popup-shadow: 0 20px 60px rgba(45, 27, 90, 0.2);
+}

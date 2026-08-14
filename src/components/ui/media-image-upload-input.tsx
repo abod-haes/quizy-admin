@@ -79,6 +79,7 @@ export function MediaImageUploadInput({
 
   const clearFile = () => {
     setFile(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
     onFileSelected?.({ file: null, collection, name })
   }
 
@@ -106,24 +107,26 @@ export function MediaImageUploadInput({
   }
 
   return (
-    <div className="space-y-4 rounded-xl border border-border/70 bg-card p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1">
-          <p className="text-sm font-semibold text-foreground">{resolvedTitle}</p>
-          <p className="text-xs text-muted-foreground">{resolvedHint}</p>
-        </div>
+    <div
+      data-slot="file-image-input"
+      className="w-full min-w-0 space-y-4 rounded-2xl border border-primary/15 bg-[var(--quizy-surface-strong)] p-3 shadow-[var(--quizy-control-shadow)] sm:p-4"
+    >
+      <div className="min-w-0 space-y-1">
+        <p className="text-sm font-semibold text-foreground">{resolvedTitle}</p>
+        <p className="text-xs leading-5 text-muted-foreground">{resolvedHint}</p>
       </div>
 
       {!hideMetaSelectors ? (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
           <CustomSelect value={collection} options={collectionOptions} onValueChange={(value) => setCollection(value as MediaCollection)} disabled={disabled || isUploading} />
           <CustomSelect value={name} options={nameOptions} onValueChange={(value) => setName(value as MediaName)} disabled={disabled || isUploading} />
         </div>
       ) : null}
 
       <div
+        data-slot="file-image-dropzone"
         role="button"
-        tabIndex={0}
+        tabIndex={disabled || isUploading ? -1 : 0}
         onClick={openFilePicker}
         onKeyDown={(event) => {
           if (event.key === 'Enter' || event.key === ' ') {
@@ -131,7 +134,7 @@ export function MediaImageUploadInput({
             openFilePicker()
           }
         }}
-        className="group flex min-h-44 cursor-pointer items-center justify-center rounded-xl border border-dashed border-border/80 bg-gradient-to-b from-muted/20 to-muted/35 p-4 transition-colors hover:border-primary/45 hover:from-muted/35 hover:to-muted/50"
+        className="group flex min-h-32 min-w-0 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-primary/25 bg-primary/[0.025] p-3 outline-none transition-[border-color,background-color,box-shadow] hover:border-primary/40 hover:bg-primary/[0.045] focus-visible:border-primary/55 focus-visible:shadow-[var(--quizy-control-focus-shadow)] sm:p-4"
       >
         <Input
           id={inputId}
@@ -143,69 +146,69 @@ export function MediaImageUploadInput({
           className="sr-only"
         />
 
-      {previewUrl ? (
-        <div className="w-full space-y-3">
-          <div className="overflow-hidden rounded-xl border border-border/80 bg-background p-2">
-            <div className="flex min-h-60 items-center justify-center overflow-hidden rounded-lg bg-[repeating-linear-gradient(45deg,rgba(0,0,0,0.04)_0,rgba(0,0,0,0.04)_10px,transparent_10px,transparent_20px)] dark:bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.04)_0,rgba(255,255,255,0.04)_10px,transparent_10px,transparent_20px)]">
-              <img
-                src={previewUrl}
-                alt={file?.name ?? 'Selected image preview'}
-                className="max-h-[22rem] w-full object-contain"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 rounded-xl border border-border/70 bg-muted/15 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0 space-y-1">
-              <p className="truncate text-sm font-semibold text-foreground">{file?.name}</p>
-              <p className="text-xs text-muted-foreground">{fileSizeLabel}</p>
+        {previewUrl ? (
+          <div className="w-full min-w-0 space-y-3">
+            <div className="overflow-hidden rounded-xl border border-primary/10 bg-background/80 p-2">
+              <div className="flex min-h-52 items-center justify-center overflow-hidden rounded-lg bg-muted/25">
+                <img
+                  src={previewUrl}
+                  alt={file?.name ?? 'Selected image preview'}
+                  className="max-h-[22rem] w-full object-contain"
+                />
+              </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              {!uploadOnSubmit ? (
+            <div className="flex min-w-0 flex-col gap-3 rounded-xl border border-primary/10 bg-muted/35 p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0 space-y-1">
+                <p className="truncate text-sm font-semibold text-foreground" dir="auto">{file?.name}</p>
+                <p className="text-xs text-muted-foreground">{fileSizeLabel}</p>
+              </div>
+
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                {!uploadOnSubmit ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    icon={<Upload className="size-4" />}
+                    disabled={!file || disabled || isUploading}
+                    loading={isUploading}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      void handleUpload()
+                    }}
+                  >
+                    {isUploading
+                      ? t('common.media.uploading', { ns: 'translation', defaultValue: 'Uploading...' })
+                      : t('common.media.upload', { ns: 'translation', defaultValue: 'Upload' })}
+                  </Button>
+                ) : null}
+
                 <Button
                   type="button"
-                  variant="outline"
-                  size="sm"
-                  icon={<Upload className="size-4" />}
-                  disabled={!file || disabled || isUploading}
-                  loading={isUploading}
-                  onClick={(event) => {
-                    event.preventDefault()
-                    event.stopPropagation()
-                    void handleUpload()
-                  }}
-                >
-                  {isUploading
-                    ? t('common.media.uploading', { ns: 'translation', defaultValue: 'Uploading...' })
-                    : t('common.media.upload', { ns: 'translation', defaultValue: 'Upload' })}
-                </Button>
-              ) : null}
-
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                icon={<X className="size-4" />}
-                disabled={disabled || isUploading}
-                onClick={handleClearButtonClick}
-                aria-label={t('common.actions.reset', { ns: 'translation', defaultValue: 'Reset' })}
-              />
+                  variant="ghost"
+                  size="icon-sm"
+                  icon={<X className="size-4" />}
+                  disabled={disabled || isUploading}
+                  onClick={handleClearButtonClick}
+                  aria-label={t('common.actions.reset', { ns: 'translation', defaultValue: 'Reset' })}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      ) : (
+        ) : (
           <div className="flex flex-col items-center gap-2 py-3 text-center">
-            <span className="rounded-full border border-border bg-background p-2">
-              <ImagePlus className="size-5 text-muted-foreground transition-colors group-hover:text-primary" />
+            <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <ImagePlus className="size-5" />
             </span>
-            <p className="text-sm font-medium text-foreground">
+            <p className="text-sm font-semibold text-foreground">
               {t('common.media.choosePreviewBeforeUpload', {
                 ns: 'translation',
                 defaultValue: 'Choose an image to preview before upload',
               })}
             </p>
-            <p className="text-xs text-muted-foreground">{resolvedHint}</p>
+            <p className="max-w-md text-xs leading-5 text-muted-foreground">{resolvedHint}</p>
           </div>
         )}
       </div>

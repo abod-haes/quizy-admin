@@ -5,32 +5,32 @@ import { Slot } from "radix-ui"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center whitespace-nowrap border border-transparent font-medium leading-none transition-[background-color,border-color,color,opacity] duration-150 outline-none select-none focus-visible:border-primary/45 focus-visible:ring-1 focus-visible:ring-primary/20 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-55 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center whitespace-nowrap border border-transparent font-semibold leading-none outline-none select-none transition-[transform,background-color,border-color,color,box-shadow,opacity] duration-200 focus-visible:border-primary/45 focus-visible:ring-0 focus-visible:shadow-[var(--quizy-control-focus-shadow)] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-55 aria-invalid:border-destructive aria-invalid:shadow-[0_0_0_4px_rgba(220,38,38,0.12)] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground hover:bg-primary/92 active:bg-primary/95 aria-expanded:bg-primary/95 data-[state=open]:bg-primary/95",
+          "bg-primary text-primary-foreground shadow-[0_12px_28px_var(--quizy-glow)] hover:bg-primary/92 active:bg-primary/96 aria-expanded:bg-primary/95 data-[state=open]:bg-primary/95",
         outline:
-          "border-border bg-card text-foreground hover:border-input hover:bg-muted/45 active:bg-muted/60 aria-expanded:border-primary/35 aria-expanded:bg-muted/60 data-[state=open]:border-primary/35 data-[state=open]:bg-muted/60",
+          "border-primary/10 bg-[var(--quizy-surface-strong)] text-foreground shadow-[var(--quizy-control-shadow)] hover:border-primary/25 hover:bg-accent/45 active:bg-accent/60 aria-expanded:border-primary/30 aria-expanded:bg-accent/55 data-[state=open]:border-primary/30 data-[state=open]:bg-accent/55",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/85 active:bg-secondary aria-expanded:bg-secondary data-[state=open]:bg-secondary",
+          "border-primary/5 bg-secondary text-secondary-foreground shadow-[var(--quizy-control-shadow)] hover:bg-secondary/85 active:bg-secondary aria-expanded:bg-secondary data-[state=open]:bg-secondary",
         ghost:
-          "border-transparent bg-transparent text-foreground hover:bg-muted/75 active:bg-muted aria-expanded:bg-muted data-[state=open]:bg-muted",
+          "border-transparent bg-transparent text-foreground shadow-none hover:bg-muted/75 active:bg-muted aria-expanded:bg-muted data-[state=open]:bg-muted",
         destructive:
-          "border-transparent bg-destructive text-primary-foreground hover:bg-destructive/90 active:bg-destructive/95 aria-expanded:bg-destructive/95 data-[state=open]:bg-destructive/95 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40",
+          "border-transparent bg-destructive text-primary-foreground shadow-[var(--quizy-control-shadow)] hover:bg-destructive/90 active:bg-destructive/95 aria-expanded:bg-destructive/95 data-[state=open]:bg-destructive/95",
         link:
-          "border-transparent bg-transparent text-primary hover:underline active:opacity-85 underline-offset-4 focus-visible:border-transparent focus-visible:ring-0",
+          "border-transparent bg-transparent text-primary shadow-none hover:underline active:opacity-85 underline-offset-4 focus-visible:border-transparent focus-visible:shadow-none",
       },
       size: {
-        default: "h-10 gap-2 rounded-md px-4 text-sm",
-        xs: "h-6 gap-1 rounded-md px-2 text-xs [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-7 gap-1.5 rounded-md px-2.5 text-xs",
-        lg: "h-11 gap-2 rounded-md px-5 text-sm",
-        icon: "size-10 rounded-md p-0",
-        "icon-xs": "size-6 rounded-md p-0 [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-7 rounded-md p-0",
-        "icon-lg": "size-11 rounded-md p-0",
+        default: "h-11 gap-2 rounded-xl px-4 text-sm",
+        xs: "h-9 gap-1.5 rounded-lg px-2.5 text-xs [&_svg:not([class*='size-'])]:size-3.5",
+        sm: "h-11 gap-2 rounded-xl px-3.5 text-sm",
+        lg: "h-11 gap-2 rounded-xl px-5 text-sm",
+        icon: "size-11 rounded-xl p-0",
+        "icon-xs": "size-9 rounded-lg p-0 [&_svg:not([class*='size-'])]:size-3.5",
+        "icon-sm": "size-11 rounded-xl p-0",
+        "icon-lg": "size-11 rounded-xl p-0",
       },
     },
     compoundVariants: [
@@ -47,7 +47,7 @@ const buttonVariants = cva(
       {
         variant: "link",
         size: "sm",
-        className: "h-auto rounded-none p-0 shadow-none text-xs",
+        className: "h-auto rounded-none p-0 shadow-none text-sm",
       },
       {
         variant: "link",

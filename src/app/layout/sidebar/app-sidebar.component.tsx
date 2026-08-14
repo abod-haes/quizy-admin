@@ -2,6 +2,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 
+import { useAuth } from '@/app/providers/auth.provider'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { SidebarBrand } from '@/app/layout/sidebar/sidebar-brand.component'
@@ -12,6 +13,8 @@ import {
 import { SidebarNavItem } from '@/app/layout/sidebar/sidebar-nav-item.component'
 import {
   isSidebarGroupItem,
+  type SidebarItem,
+  type SidebarLinkItem,
 } from '@/app/layout/sidebar/sidebar.types'
 import { SidebarUserCard } from '@/app/layout/sidebar/sidebar-user-card.component'
 
@@ -21,22 +24,49 @@ type AppSidebarProps = ComponentPropsWithoutRef<'aside'> & {
 
 export function AppSidebar({ onNavigate, className, ...props }: AppSidebarProps) {
   const location = useLocation()
+  const { hasAnyRole, hasAnyPermission } = useAuth()
+
+  const isAllowed = (item: SidebarLinkItem) =>
+    hasAnyRole(item.roles) &&
+    hasAnyPermission(item.permissions, item.requireAllPermissions ?? false)
+
+  const filterItems = (items: SidebarItem[]): SidebarItem[] =>
+    items.reduce<SidebarItem[]>((visibleItems, item) => {
+      if (!isSidebarGroupItem(item)) {
+        if (isAllowed(item)) visibleItems.push(item)
+        return visibleItems
+      }
+
+      if (
+        !hasAnyRole(item.roles) ||
+        !hasAnyPermission(item.permissions, item.requireAllPermissions ?? false)
+      ) {
+        return visibleItems
+      }
+
+      const children = item.children.filter(isAllowed)
+      if (children.length) visibleItems.push({ ...item, children })
+      return visibleItems
+    }, [])
 
   const allowedPrimaryItems = useMemo(
-    () => primarySidebarItems,
-    []
+    () => filterItems(primarySidebarItems),
+    // AuthProvider callbacks change when their backing session/permissions change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hasAnyRole, hasAnyPermission],
   )
   const allowedSecondaryItems = useMemo(
-    () => secondarySidebarItems,
-    []
+    () => filterItems(secondarySidebarItems),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hasAnyRole, hasAnyPermission],
   )
 
   return (
     <aside
       {...props}
       className={cn(
-        'quizy-sidebar-shell flex h-full w-72 min-h-0 flex-col overflow-hidden border-e p-4 backdrop-blur-xl',
-        className
+        'quizy-sidebar-shell flex h-full w-64 min-w-64 min-h-0 flex-col overflow-hidden border-e p-3 backdrop-blur-xl xl:w-72 xl:min-w-72 xl:p-4',
+        className,
       )}
     >
       <SidebarBrand />
@@ -53,7 +83,7 @@ export function AppSidebar({ onNavigate, className, ...props }: AppSidebarProps)
         </nav>
       </div>
 
-      <div className="mt-4 shrink-0 rounded-2xl border border-border/70 bg-background/55 p-2 shadow-sm backdrop-blur dark:bg-white/[0.04]">
+      <div className="mt-3 shrink-0 rounded-2xl border border-border/70 bg-background/55 p-2 shadow-sm backdrop-blur xl:mt-4 dark:bg-white/[0.04]">
         <nav className="space-y-1">
           {allowedSecondaryItems.map((item) => (
             <SidebarNavItem
@@ -65,7 +95,6 @@ export function AppSidebar({ onNavigate, className, ...props }: AppSidebarProps)
         </nav>
 
         <Separator className="my-3 bg-border/70" />
-
         <SidebarUserCard />
       </div>
     </aside>

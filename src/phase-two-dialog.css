@@ -1,0 +1,32 @@
+[data-slot='dialog-header'] {
+  min-width: 0;
+  gap: .5rem;
+}
+
+[data-slot='dialog-title'] {
+  letter-spacing: -.015em;
+  text-wrap: balance;
+}
+
+[data-slot='dialog-description'] {
+  max-width: 68ch;
+  text-wrap: pretty;
+}
+
+[data-slot='dialog-footer'] > [data-slot='button'] {
+  min-height: var(--quizy-control-height);
+  min-width: 7.5rem;
+  border-radius: var(--quizy-control-radius) !important;
+}
+
+@media (max-width: 639px) {
+  [data-slot='dialog-footer'] > [data-slot='button'] {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+[dir='rtl'] [data-slot='dialog-header'],
+[dir='rtl'] [data-slot='dialog-description'] {
+  text-align: start;
+}

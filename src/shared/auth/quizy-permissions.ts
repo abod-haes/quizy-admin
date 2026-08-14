@@ -35,16 +35,9 @@ export const rolePermissions: Record<AppRole, readonly QuizyPermission[]> = {
     'aiChat.settings.manage',
     'aiQrCodes.manage',
   ],
-  Teacher: [
-    'dashboard.view',
-    'lessons.manage',
-    'quizzes.manage',
-    'questions.manage',
-    'resources.manage',
-    'courses.manage',
-    'reviewQueue.manage',
-  ],
-  Student: ['dashboard.view'],
+  // Real employee permissions are loaded from `/api/v1/admin/auth/permissions`.
+  // Keep this empty so a stale/local fallback can never grant more than the server.
+  AdminEmployee: [],
 }
 
 export function getPermissionsForRoles(roles: readonly AppRole[]): QuizyPermission[] {

@@ -90,7 +90,7 @@ function DialogOverlay({
       {...props}
     >
       <motion.div
-        className={cn("fixed inset-0 isolate z-50 bg-black/20", className)}
+        className={cn("fixed inset-0 isolate z-50 bg-black/25 backdrop-blur-[2px]", className)}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -126,7 +126,7 @@ function DialogContent({
               <motion.div
                 ref={setPortalContainer}
                 className={cn(
-                  "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] gap-4 rounded-md border border-border bg-popover p-4 text-sm text-popover-foreground outline-none sm:max-w-5xl",
+                  "fixed top-1/2 left-1/2 z-50 min-w-0 w-full max-w-[calc(100%-1rem)] !overflow-visible rounded-[1.5rem] border border-primary/10 bg-popover p-4 text-sm text-popover-foreground shadow-[var(--quizy-card-shadow)] outline-none sm:max-w-5xl",
                   className
                 )}
                 initial={{ opacity: 0, x: "-50%", y: "calc(-50% + 8px)", scale: 0.985 }}
@@ -135,12 +135,17 @@ function DialogContent({
                 transition={dialogMotionTransition}
               >
                 <DialogPortalContainerContext.Provider value={portalContainer}>
-                  {children}
+                  <div
+                    data-slot="dialog-scroll-area"
+                    className="grid max-h-[calc(100dvh-1.5rem)] min-h-0 min-w-0 gap-4 overflow-x-hidden overflow-y-auto overscroll-contain pe-1 sm:max-h-[calc(100dvh-2.5rem)] [&>.overflow-auto]:overflow-visible [&>.overflow-y-auto]:overflow-y-visible"
+                  >
+                    {children}
+                  </div>
                   {showCloseButton && (
                     <DialogPrimitive.Close data-slot="dialog-close" asChild>
                       <Button
                         variant="ghost"
-                        className="absolute top-2 end-2"
+                        className="absolute top-2 end-2 z-10"
                         size="icon-sm"
                       >
                         <XIcon />
@@ -162,7 +167,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2", className)}
+      className={cn("flex min-w-0 flex-col gap-2 pe-10", className)}
       {...props}
     />
   )
@@ -180,7 +185,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-md border-t bg-muted/35 p-4 sm:flex-row sm:justify-end",
+        "flex min-w-0 flex-col-reverse gap-2 rounded-2xl border-t border-border/70 bg-muted/35 p-4 sm:flex-row sm:flex-wrap sm:justify-end",
         className
       )}
       {...props}
@@ -203,7 +208,7 @@ function DialogTitle({
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
-        "font-heading text-base leading-none font-medium",
+        "min-w-0 break-words font-heading text-base leading-snug font-semibold",
         className
       )}
       {...props}
@@ -219,7 +224,7 @@ function DialogDescription({
     <DialogPrimitive.Description
       data-slot="dialog-description"
       className={cn(
-        "text-sm text-muted-foreground *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground",
+        "min-w-0 break-words text-sm leading-6 text-muted-foreground *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground",
         className
       )}
       {...props}
