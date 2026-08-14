@@ -10,6 +10,7 @@ import {
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
+import { generateFileUrl } from '@/shared/utils/file-url'
 
 type ProfileUploadCardProps = {
   id?: string
@@ -42,7 +43,8 @@ export function ProfileUploadCard({
   const inputId = id ?? `profile-upload-${generatedId}`
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [brokenPreviewSrc, setBrokenPreviewSrc] = useState('')
-  const shouldShowPreview = Boolean(previewSrc) && brokenPreviewSrc !== previewSrc
+  const resolvedPreviewSrc = generateFileUrl(previewSrc)
+  const shouldShowPreview = Boolean(resolvedPreviewSrc) && brokenPreviewSrc !== resolvedPreviewSrc
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     onFileSelect?.(event.target.files?.[0] ?? null)
@@ -78,10 +80,10 @@ export function ProfileUploadCard({
           {shouldShowPreview ? (
             <>
               <img
-                src={previewSrc}
+                src={resolvedPreviewSrc}
                 alt=""
                 className="size-full object-cover"
-                onError={() => setBrokenPreviewSrc(previewSrc ?? '')}
+                onError={() => setBrokenPreviewSrc(resolvedPreviewSrc)}
               />
               <span className="absolute inset-0 flex items-center justify-center bg-black/0 text-white opacity-0 transition group-hover:bg-black/35 group-hover:opacity-100">
                 <Camera className="size-5" />
