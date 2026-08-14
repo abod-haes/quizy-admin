@@ -21,6 +21,12 @@ import {
   CardHeader,
   CardTitle,
   CustomSelect,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   FormField,
   Input,
   PaginatedDataTable,
@@ -42,6 +48,7 @@ export default function EmployeesPage() {
   const [page, setPage] = useState(1)
   const [status, setStatus] = useState<AdminEmployeeStatus | 'ALL'>('ALL')
   const [search, setSearch] = useState('')
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [form, setForm] = useState<CreateAdminEmployeeInput>(EMPTY_FORM)
   const [editing, setEditing] = useState<AdminEmployee | null>(null)
   const [formError, setFormError] = useState('')
@@ -67,6 +74,7 @@ export default function EmployeesPage() {
     onSuccess: async () => {
       setForm(EMPTY_FORM)
       setFormError('')
+      setCreateDialogOpen(false)
       await invalidate()
     },
   })
@@ -82,6 +90,23 @@ export default function EmployeesPage() {
   const enableMutation = useMutation({ mutationFn: employeesService.enable, onSuccess: invalidate })
   const resendMutation = useMutation({ mutationFn: employeesService.resendInvitation, onSuccess: invalidate })
   const deleteMutation = useMutation({ mutationFn: employeesService.remove, onSuccess: invalidate })
+
+  const resetCreateForm = () => {
+    setForm(EMPTY_FORM)
+    setFormError('')
+    createMutation.reset()
+  }
+
+  const openCreateDialog = () => {
+    resetCreateForm()
+    setCreateDialogOpen(true)
+  }
+
+  const closeCreateDialog = () => {
+    if (createMutation.isPending) return
+    setCreateDialogOpen(false)
+    resetCreateForm()
+  }
 
   const togglePermission = (code: AdminPermissionCode, edit = false) => {
     if (edit && editing) {
@@ -142,35 +167,11 @@ export default function EmployeesPage() {
           <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"><ShieldCheck className="size-6" /></div>
           <div><h1 className="text-2xl font-bold">{t('employees.title')}</h1><p className="mt-1 text-sm text-muted-foreground">{t('employees.description')}</p></div>
         </div>
-        <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void employeesQuery.refetch()}>{t('common.refresh')}</Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void employeesQuery.refetch()}>{t('common.refresh')}</Button>
+          <Button icon={<UserPlus className="size-4" />} onClick={openCreateDialog}>{t('employees.add')}</Button>
+        </div>
       </div>
-
-      <Card className="rounded-3xl">
-        <CardHeader><CardTitle className="flex items-center gap-2"><UserPlus className="size-5" />{t('employees.createTitle')}</CardTitle><CardDescription>{t('employees.createDescription')}</CardDescription></CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <FormField label={t('employees.firstName')}><Input value={form.firstName} onChange={(e) => setForm((c) => ({ ...c, firstName: e.target.value }))} /></FormField>
-            <FormField label={t('employees.lastName')}><Input value={form.lastName ?? ''} onChange={(e) => setForm((c) => ({ ...c, lastName: e.target.value }))} /></FormField>
-            <FormField label={t('employees.countryCode')}><Input value={form.countryCallingCode} onChange={(e) => setForm((c) => ({ ...c, countryCallingCode: e.target.value }))} /></FormField>
-            <FormField label={t('employees.phone')}><Input inputMode="tel" value={form.phoneNumber} onChange={(e) => setForm((c) => ({ ...c, phoneNumber: e.target.value }))} /></FormField>
-          </div>
-          <div>
-            <p className="mb-2 text-sm font-bold">{t('employees.permissions')}</p>
-            <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-              {permissions.map((permission) => (
-                <label key={permission.code} className="flex cursor-pointer items-start gap-2 rounded-2xl border border-border p-3 text-sm">
-                  <input className="mt-1" type="checkbox" checked={form.permissions.includes(permission.code)} onChange={() => togglePermission(permission.code)} />
-                  <span><span className="block font-semibold">{permission.name}</span><span className="text-xs text-muted-foreground">{permission.description ?? permission.code}</span></span>
-                </label>
-              ))}
-            </div>
-          </div>
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.sendInvitation !== false} onChange={(e) => setForm((c) => ({ ...c, sendInvitation: e.target.checked }))} />{t('employees.sendInvitation')}</label>
-          {formError ? <Alert variant="destructive"><AlertTitle>{formError}</AlertTitle></Alert> : null}
-          {createMutation.isError ? <Alert variant="destructive"><AlertTitle>{t('employees.createError')}</AlertTitle></Alert> : null}
-          <div className="flex justify-end"><Button loading={createMutation.isPending} icon={<UserPlus className="size-4" />} onClick={submitCreate}>{t('employees.add')}</Button></div>
-        </CardContent>
-      </Card>
 
       {editing ? (
         <Card className="rounded-3xl border-primary/20">
@@ -201,6 +202,61 @@ export default function EmployeesPage() {
       />
 
       <div className="rounded-2xl border border-border bg-muted/30 p-4 text-xs text-muted-foreground"><KeyRound className="me-2 inline size-4" />{t('employees.tokenHint')}</div>
+
+      <Dialog
+        open={createDialogOpen}
+        onOpenChange={(open) => {
+          if (open) setCreateDialogOpen(true)
+          else closeCreateDialog()
+        }}
+      >
+        <DialogContent className="max-w-5xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><UserPlus className="size-5 text-primary" />{t('employees.createTitle')}</DialogTitle>
+            <DialogDescription>{t('employees.createDescription')}</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-5">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <FormField label={t('employees.firstName')}><Input autoFocus value={form.firstName} onChange={(e) => setForm((c) => ({ ...c, firstName: e.target.value }))} /></FormField>
+              <FormField label={t('employees.lastName')}><Input value={form.lastName ?? ''} onChange={(e) => setForm((c) => ({ ...c, lastName: e.target.value }))} /></FormField>
+              <FormField label={t('employees.countryCode')}><Input value={form.countryCallingCode} onChange={(e) => setForm((c) => ({ ...c, countryCallingCode: e.target.value }))} /></FormField>
+              <FormField label={t('employees.phone')}><Input inputMode="tel" value={form.phoneNumber} onChange={(e) => setForm((c) => ({ ...c, phoneNumber: e.target.value }))} /></FormField>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-foreground">{t('employees.permissions')}</p>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                {permissions.map((permission) => {
+                  const checked = form.permissions.includes(permission.code)
+                  return (
+                    <label
+                      key={permission.code}
+                      className={`flex min-w-0 cursor-pointer items-start gap-3 rounded-xl border p-3 text-sm transition-colors ${checked ? 'border-primary/35 bg-primary/[0.05]' : 'border-border bg-background hover:border-primary/20 hover:bg-muted/25'}`}
+                    >
+                      <input className="mt-1 size-4 shrink-0 accent-primary" type="checkbox" checked={checked} onChange={() => togglePermission(permission.code)} />
+                      <span className="min-w-0"><span className="block font-semibold text-foreground">{permission.name}</span><span className="mt-0.5 block text-xs leading-5 text-muted-foreground">{permission.description ?? permission.code}</span></span>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+
+            <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-muted/20 px-4 py-3 text-sm font-medium">
+              <input type="checkbox" className="size-4 accent-primary" checked={form.sendInvitation !== false} onChange={(e) => setForm((c) => ({ ...c, sendInvitation: e.target.checked }))} />
+              {t('employees.sendInvitation')}
+            </label>
+
+            {formError ? <Alert variant="destructive"><AlertTitle>{formError}</AlertTitle></Alert> : null}
+            {createMutation.isError ? <Alert variant="destructive"><AlertTitle>{t('employees.createError')}</AlertTitle></Alert> : null}
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" disabled={createMutation.isPending} onClick={closeCreateDialog}>{t('common.cancel')}</Button>
+            <Button type="button" loading={createMutation.isPending} icon={<UserPlus className="size-4" />} onClick={submitCreate}>{t('employees.add')}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
