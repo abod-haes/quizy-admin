@@ -4,6 +4,7 @@ import type {
   CreateUnifiedQrRequest,
   CreateUnifiedQrResponse,
   PointOfSaleOption,
+  UnifiedQrItem,
   UnifiedQrListResponse,
 } from '@/modules/ai-qr-codes/types/ai-qr-codes.types'
 import type { PagedResponse } from '@/shared/api/api.types'
@@ -17,6 +18,7 @@ export const aiQrCodesService = {
     }),
   create: (payload: CreateUnifiedQrRequest) =>
     api.post<CreateUnifiedQrResponse, CreateUnifiedQrRequest>(API_ENDPOINTS.qrCodes.create, payload),
+  detail: (id: string) => api.get<UnifiedQrItem>(`${API_ENDPOINTS.qrCodes.list}/bundles/${id}`),
   remove: (id: string) => api.delete<{ message: string }>(API_ENDPOINTS.qrCodes.remove(id)),
   pointsOfSale: () =>
     api.get<PagedResponse<PointOfSaleOption>>(API_ENDPOINTS.pointsOfSale.list, {

@@ -5,11 +5,22 @@
   "actions": {
     "refresh": "تحديث",
     "create": "إنشاء الرموز",
-    "delete": "حذف"
+    "delete": "حذف",
+    "printPdf": "طباعة / حفظ PDF",
+    "downloadSvg": "تحميل SVG",
+    "reprint": "طباعة",
+    "close": "إغلاق"
   },
   "create": {
     "title": "إنشاء حزمة QR",
     "description": "اختر نوعاً واحداً أو عدة أنواع. يمكن توليد حتى 500 رمز بنفس الحزمة."
+  },
+  "generated": {
+    "title": "تم إنشاء رموز QR",
+    "description": "تمت إضافة الرموز للقائمة. يمكنك طباعتها مباشرة أو حفظ ورقة الطباعة كملف PDF.",
+    "count": "تم إنشاء {{count}} رمز بنجاح.",
+    "printHint": "اختر «حفظ كـ PDF» من نافذة الطباعة لإرسال الملف للمطبعة.",
+    "singleTitle": "رمز QR"
   },
   "fields": {
     "courses": "الكورسات",
@@ -39,7 +50,9 @@
     "validDaysRange": "مدة الصلاحية يجب أن تكون بين يوم و3650 يوم."
   },
   "messages": {
-    "createFailed": "فشل إنشاء رموز QR."
+    "createFailed": "فشل إنشاء رموز QR.",
+    "printFailed": "تعذر تجهيز ورقة الطباعة.",
+    "detailFailed": "تعذر تجهيز الرمز للطباعة."
   },
   "summary": {
     "allCourses": "كل الكورسات",

@@ -1,7 +1,16 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Braces, FileQuestion, ListPlus, Plus, Save, Trash2 } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  Braces,
+  FileQuestion,
+  ListPlus,
+  Plus,
+  Save,
+  Trash2,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { api } from '@/shared/api/api-client'
@@ -203,10 +212,11 @@ function QuizBuilderEditor({
   entityOptions: SelectOption[]
   resourceOptions: SelectOption[]
 }) {
-  const { t } = useTranslation('quiz-builder')
+  const { t, i18n } = useTranslation('quiz-builder')
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const isEditing = Boolean(quizId)
+  const isRtl = i18n.dir() === 'rtl'
   const [mode, setMode] = useState<BuilderMode>('visual')
   const [payload, setPayload] = useState<QuizPayload>(initialPayload)
   const [jsonValue, setJsonValue] = useState(() => JSON.stringify(payloadForRequest(initialPayload), null, 2))
@@ -233,14 +243,9 @@ function QuizBuilderEditor({
     return null
   }
 
-  const readJson = (): QuizPayload | null => {
+  const parseJson = (): QuizPayload | null => {
     try {
       const parsed = normalizeQuizBody(JSON.parse(jsonValue) as RawQuiz)
-      const error = validate(parsed)
-      if (error) {
-        setJsonError(error)
-        return null
-      }
       setJsonError('')
       return parsed
     } catch {
@@ -249,10 +254,21 @@ function QuizBuilderEditor({
     }
   }
 
+  const readJsonForSave = (): QuizPayload | null => {
+    const parsed = parseJson()
+    if (!parsed) return null
+    const error = validate(parsed)
+    if (error) {
+      setJsonError(error)
+      return null
+    }
+    return parsed
+  }
+
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const source = mode === 'json' ? readJson() : payload
-      if (!source) throw new Error(t('validation.jsonInvalid'))
+      const source = mode === 'json' ? readJsonForSave() : payload
+      if (!source) throw new Error(jsonError || t('validation.jsonInvalid'))
       const validation = validate(source)
       if (validation) throw new Error(validation)
       const request = payloadForRequest(source)
@@ -310,9 +326,11 @@ function QuizBuilderEditor({
       setMode('json')
       return
     }
-    const parsed = readJson()
-    if (!parsed) return
-    setPayload(parsed)
+
+    const parsed = parseJson()
+    if (parsed) setPayload(parsed)
+    // Returning to the visual editor must never be blocked by incomplete or malformed JSON.
+    // If parsing failed, keep the last valid visual state so the admin can recover there.
     setMode('visual')
   }
 
@@ -320,11 +338,17 @@ function QuizBuilderEditor({
     <section className="space-y-6">
       <div className="flex flex-col gap-4 rounded-3xl border border-primary/15 bg-card p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-start gap-4">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
             <FileQuestion className="size-6" />
           </div>
           <div>
-            <Button variant="ghost" size="sm" className="-ms-2 mb-1" onClick={() => navigate('/quizzes')}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="-ms-2 mb-1"
+              icon={isRtl ? <ArrowRight className="size-4" /> : <ArrowLeft className="size-4" />}
+              onClick={() => navigate('/quizzes')}
+            >
               {t('back')}
             </Button>
             <h1 className="text-2xl font-bold">{t('title')}</h1>
@@ -333,15 +357,26 @@ function QuizBuilderEditor({
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant={mode === 'visual' ? 'default' : 'outline'} onClick={() => switchMode('visual')}>
-            <ListPlus className="size-4" /> {t('actions.visualMode')}
+        <div className="grid w-full gap-2 sm:grid-cols-3 lg:w-auto">
+          <Button
+            variant={mode === 'visual' ? 'default' : 'outline'}
+            icon={<ListPlus className="size-4" />}
+            onClick={() => switchMode('visual')}
+          >
+            {t('actions.visualMode')}
           </Button>
-          <Button variant={mode === 'json' ? 'default' : 'outline'} onClick={() => switchMode('json')}>
-            <Braces className="size-4" /> {t('actions.jsonMode')}
+          <Button
+            variant={mode === 'json' ? 'default' : 'outline'}
+            icon={<Braces className="size-4" />}
+            onClick={() => switchMode('json')}
+          >
+            {t('actions.jsonMode')}
           </Button>
-          <Button loading={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
-            <Save className="size-4" />
+          <Button
+            loading={saveMutation.isPending}
+            icon={<Save className="size-4" />}
+            onClick={() => saveMutation.mutate()}
+          >
             {saveMutation.isPending ? t('actions.saving') : t('actions.save')}
           </Button>
         </div>
@@ -355,7 +390,9 @@ function QuizBuilderEditor({
           </CardHeader>
           <CardContent className="space-y-3">
             <Textarea
-              className="min-h-[32rem] font-mono text-xs"
+              dir="ltr"
+              spellCheck={false}
+              className="min-h-[32rem] text-left font-mono text-xs leading-6"
               value={jsonValue}
               onChange={(event) => setJsonValue(event.target.value)}
             />
@@ -363,6 +400,7 @@ function QuizBuilderEditor({
             <div className="flex justify-end">
               <Button
                 variant="outline"
+                icon={<Braces className="size-4" />}
                 onClick={() => {
                   try {
                     setJsonValue(JSON.stringify(JSON.parse(jsonValue), null, 2))
@@ -419,7 +457,7 @@ function QuizBuilderEditor({
                 />
               </div>
               <div className="flex items-end">
-                <div className="flex h-11 w-full items-center justify-between rounded-2xl border border-border px-4">
+                <div className="flex h-11 w-full items-center justify-between rounded-xl border border-primary/10 bg-[var(--quizy-surface-strong)] px-4 shadow-[var(--quizy-control-shadow)]">
                   <Label>{t('fields.isFree')}</Label>
                   <ToggleSwitch
                     checked={payload.isFree}
@@ -440,19 +478,22 @@ function QuizBuilderEditor({
           </Card>
 
           <Card className="rounded-3xl">
-            <CardHeader className="flex-row items-center justify-between">
+            <CardHeader className="flex-row items-center justify-between gap-3">
               <div>
                 <CardTitle>{t('questions.title')}</CardTitle>
                 <CardDescription>{t('questions.count', { count: payload.questions.length })}</CardDescription>
               </div>
-              <Button onClick={() => setPayload((current) => ({ ...current, questions: [...current.questions, emptyQuestion()] }))}>
-                <Plus className="size-4" /> {t('actions.addQuestion')}
+              <Button
+                icon={<Plus className="size-4" />}
+                onClick={() => setPayload((current) => ({ ...current, questions: [...current.questions, emptyQuestion()] }))}
+              >
+                {t('actions.addQuestion')}
               </Button>
             </CardHeader>
             <CardContent className="space-y-5">
               {payload.questions.map((question, questionIndex) => (
                 <div key={question.id ?? `new-${questionIndex}`} className="space-y-4 rounded-3xl border border-border p-4">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <Badge variant="outline" color="primary">
                       {t('questions.item', { index: questionIndex + 1 })}
                     </Badge>
@@ -460,13 +501,14 @@ function QuizBuilderEditor({
                       size="sm"
                       variant="outline"
                       className="text-destructive"
+                      icon={<Trash2 className="size-4" />}
                       disabled={payload.questions.length <= 1}
                       onClick={() => setPayload((current) => ({
                         ...current,
                         questions: current.questions.filter((_, index) => index !== questionIndex),
                       }))}
                     >
-                      <Trash2 className="size-4" /> {t('actions.removeQuestion')}
+                      {t('actions.removeQuestion')}
                     </Button>
                   </div>
 
@@ -514,16 +556,17 @@ function QuizBuilderEditor({
                   </div>
 
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
                       <Label>{t('fields.answers')}</Label>
                       <Button
                         size="sm"
                         variant="outline"
+                        icon={<Plus className="size-4" />}
                         onClick={() => updateQuestion(questionIndex, {
                           answers: [...question.answers, { title: '', isCorrect: false }],
                         })}
                       >
-                        <Plus className="size-4" /> {t('actions.addAnswer')}
+                        {t('actions.addAnswer')}
                       </Button>
                     </div>
                     {question.answers.map((answer, answerIndex) => (
@@ -536,8 +579,9 @@ function QuizBuilderEditor({
                           placeholder={t('placeholders.answer')}
                           onChange={(event) => updateAnswer(questionIndex, answerIndex, { title: event.target.value })}
                         />
-                        <label className="flex items-center gap-2 text-sm">
+                        <label className="flex items-center gap-2 text-sm font-medium">
                           <input
+                            className="size-4 accent-primary"
                             type="checkbox"
                             checked={answer.isCorrect}
                             onChange={(event) => updateAnswer(questionIndex, answerIndex, { isCorrect: event.target.checked })}
@@ -548,6 +592,7 @@ function QuizBuilderEditor({
                           size="sm"
                           variant="ghost"
                           className="text-destructive"
+                          icon={<Trash2 className="size-4" />}
                           disabled={question.answers.length <= 2}
                           onClick={() => updateQuestion(questionIndex, {
                             answers: question.answers.filter((_, index) => index !== answerIndex),
