@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Download, FileUp, HardDrive, RefreshCcw, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -11,12 +11,14 @@ import {
 import {
   Badge,
   Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+  CustomFileInput,
   CustomSelect,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   FormField,
   PaginatedDataTable,
 } from '@/shared/ui'
@@ -35,8 +37,8 @@ function humanSize(bytes: number | null | undefined) {
 export default function ResourcesManagementPage() {
   const { t } = useTranslation('admin-pages')
   const queryClient = useQueryClient()
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [page, setPage] = useState(1)
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [visibility, setVisibility] = useState<AdminResourceVisibility>('PUBLIC')
 
@@ -51,7 +53,8 @@ export default function ResourcesManagementPage() {
     },
     onSuccess: async () => {
       setFile(null)
-      if (fileInputRef.current) fileInputRef.current.value = ''
+      setVisibility('PUBLIC')
+      setUploadDialogOpen(false)
       await queryClient.invalidateQueries({ queryKey: ['admin-resources'] })
     },
   })
@@ -73,6 +76,23 @@ export default function ResourcesManagementPage() {
     },
   })
 
+  const resetUpload = () => {
+    setFile(null)
+    setVisibility('PUBLIC')
+    uploadMutation.reset()
+  }
+
+  const openUploadDialog = () => {
+    resetUpload()
+    setUploadDialogOpen(true)
+  }
+
+  const closeUploadDialog = () => {
+    if (uploadMutation.isPending) return
+    setUploadDialogOpen(false)
+    resetUpload()
+  }
+
   const rows = listQuery.data?.items ?? []
   const totalCount = listQuery.data?.totalCount ?? 0
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
@@ -87,43 +107,11 @@ export default function ResourcesManagementPage() {
             <p className="mt-1 text-sm text-muted-foreground">{t('resources.description')}</p>
           </div>
         </div>
-        <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void listQuery.refetch()}>{t('common.refresh')}</Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void listQuery.refetch()}>{t('common.refresh')}</Button>
+          <Button icon={<FileUp className="size-4" />} onClick={openUploadDialog}>{t('resources.upload')}</Button>
+        </div>
       </div>
-
-      <Card className="rounded-3xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><FileUp className="size-5" />{t('resources.uploadTitle')}</CardTitle>
-          <CardDescription>{t('resources.uploadDescription')}</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-[1fr_12rem_auto] md:items-end">
-          <FormField label={t('resources.file')}>
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="block h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-            />
-          </FormField>
-          <FormField label={t('resources.visibility')}>
-            <CustomSelect
-              value={visibility}
-              options={[
-                { value: 'PUBLIC', label: t('common.public') },
-                { value: 'PRIVATE', label: t('common.private') },
-              ]}
-              onValueChange={(value) => setVisibility(value as AdminResourceVisibility)}
-            />
-          </FormField>
-          <Button
-            loading={uploadMutation.isPending}
-            disabled={!file}
-            icon={<FileUp className="size-4" />}
-            onClick={() => uploadMutation.mutate()}
-          >
-            {t('resources.upload')}
-          </Button>
-        </CardContent>
-      </Card>
 
       <PaginatedDataTable<AdminResource>
         rows={rows}
@@ -190,6 +178,43 @@ export default function ResourcesManagementPage() {
           },
         ]}
       />
+
+      <Dialog open={uploadDialogOpen} onOpenChange={(open) => { if (open) setUploadDialogOpen(true); else closeUploadDialog() }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><FileUp className="size-5 text-primary" />{t('resources.uploadTitle')}</DialogTitle>
+            <DialogDescription>{t('resources.uploadDescription')}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <FormField label={t('resources.file')}>
+              <CustomFileInput
+                accept="*/*"
+                value={file?.name ?? ''}
+                uploadLabel={t('resources.file')}
+                removeLabel={t('common.delete')}
+                disabled={uploadMutation.isPending}
+                onFileSelect={setFile}
+                onClear={() => setFile(null)}
+              />
+            </FormField>
+            <FormField label={t('resources.visibility')}>
+              <CustomSelect
+                value={visibility}
+                options={[
+                  { value: 'PUBLIC', label: t('common.public') },
+                  { value: 'PRIVATE', label: t('common.private') },
+                ]}
+                disabled={uploadMutation.isPending}
+                onValueChange={(value) => setVisibility(value as AdminResourceVisibility)}
+              />
+            </FormField>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" disabled={uploadMutation.isPending} onClick={closeUploadDialog}>{t('common.cancel')}</Button>
+            <Button type="button" loading={uploadMutation.isPending} disabled={!file} icon={<FileUp className="size-4" />} onClick={() => uploadMutation.mutate()}>{t('resources.upload')}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
