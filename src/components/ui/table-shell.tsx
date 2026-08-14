@@ -69,7 +69,9 @@ export function TableShell({
         className
       )}
     >
-      <div className="min-h-0 min-w-0 flex-1 overflow-auto">{children}</div>
+      {/* DataTable owns the only scrolling viewport. Keeping this wrapper clipped
+          avoids nested scrollbars and keeps its sticky thead attached to the body. */}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">{children}</div>
 
       <div className="shrink-0 border-t border-border/80 bg-card px-3 py-3 sm:px-4">
         <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-center md:justify-between">

@@ -19,16 +19,25 @@
   transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
 }
 
-/* Shared controls normally own their padding, but inputs with embedded icons need
-   explicit logical inset space so RTL/LTR icons never overlap text. */
+/* Shared controls normally own their padding, but inputs/selects with embedded
+   icons need explicit logical inset space so RTL/LTR icons never overlap text. */
 .app-shell-root [data-slot='input'][data-leading-icon],
-[data-slot='dialog-content'] [data-slot='input'][data-leading-icon] {
+[data-slot='dialog-content'] [data-slot='input'][data-leading-icon],
+.app-shell-root label.relative > svg[class*='start-3'] + [data-slot='input'],
+[data-slot='dialog-content'] label.relative > svg[class*='start-3'] + [data-slot='input'] {
   padding-inline-start: 2.5rem !important;
 }
 
 .app-shell-root [data-slot='input'][data-trailing-icon],
 [data-slot='dialog-content'] [data-slot='input'][data-trailing-icon] {
   padding-inline-end: 2.5rem !important;
+}
+
+/* CustomSelect renders its decorative icon as the sibling immediately before
+   the Radix trigger. The global control padding must not collapse that inset. */
+.app-shell-root .group\/custom-select > span + [data-slot='select-trigger'],
+[data-slot='dialog-content'] .group\/custom-select > span + [data-slot='select-trigger'] {
+  padding-inline-start: 2.75rem !important;
 }
 
 [data-slot='button-icon-start'],
@@ -80,6 +89,14 @@
   color: var(--foreground);
   box-shadow: var(--quizy-control-shadow);
   transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+/* JSON/code editors must stay visually LTR even when the dashboard shell is RTL. */
+.app-shell-root [data-slot='textarea'][dir='ltr'],
+[data-slot='dialog-content'] [data-slot='textarea'][dir='ltr'] {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: plaintext;
 }
 
 .app-shell-root [data-slot='textarea']:hover:not(:disabled),
