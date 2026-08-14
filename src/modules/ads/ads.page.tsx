@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ImageIcon, Megaphone, Pencil, Plus, RefreshCcw, Trash2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -8,9 +8,15 @@ import {
   Button,
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CustomFileInput,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   FormField,
   Input,
   PaginatedDataTable,
@@ -29,9 +35,8 @@ function imageSource(ad: AdminAd) {
 export default function AdsManagementPage() {
   const { t } = useTranslation('admin-pages')
   const queryClient = useQueryClient()
-  const createFileRef = useRef<HTMLInputElement | null>(null)
-  const editFileRef = useRef<HTMLInputElement | null>(null)
   const [page, setPage] = useState(1)
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [form, setForm] = useState<AdInput>(EMPTY_FORM)
   const [createImage, setCreateImage] = useState<File | null>(null)
   const [editing, setEditing] = useState<AdminAd | null>(null)
@@ -47,7 +52,7 @@ export default function AdsManagementPage() {
     onSuccess: async () => {
       setForm(EMPTY_FORM)
       setCreateImage(null)
-      if (createFileRef.current) createFileRef.current.value = ''
+      setCreateDialogOpen(false)
       await invalidate()
     },
   })
@@ -63,11 +68,27 @@ export default function AdsManagementPage() {
     onSuccess: async () => {
       setEditing(null)
       setEditImage(null)
-      if (editFileRef.current) editFileRef.current.value = ''
       await invalidate()
     },
   })
   const removeMutation = useMutation({ mutationFn: adsService.remove, onSuccess: invalidate })
+
+  const resetCreate = () => {
+    setForm(EMPTY_FORM)
+    setCreateImage(null)
+    createMutation.reset()
+  }
+
+  const openCreateDialog = () => {
+    resetCreate()
+    setCreateDialogOpen(true)
+  }
+
+  const closeCreateDialog = () => {
+    if (createMutation.isPending) return
+    setCreateDialogOpen(false)
+    resetCreate()
+  }
 
   const rows = listQuery.data?.items ?? []
   const totalCount = listQuery.data?.totalCount ?? 0
@@ -80,31 +101,30 @@ export default function AdsManagementPage() {
           <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Megaphone className="size-6" /></div>
           <div><h1 className="text-2xl font-bold">{t('ads.title')}</h1><p className="mt-1 text-sm text-muted-foreground">{t('ads.description')}</p></div>
         </div>
-        <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void listQuery.refetch()}>{t('common.refresh')}</Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void listQuery.refetch()}>{t('common.refresh')}</Button>
+          <Button icon={<Plus className="size-4" />} onClick={openCreateDialog}>{t('ads.add')}</Button>
+        </div>
       </div>
-
-      <Card className="rounded-3xl">
-        <CardHeader><CardTitle className="flex items-center gap-2"><Plus className="size-5" />{t('ads.createTitle')}</CardTitle><CardDescription>{t('ads.createDescription')}</CardDescription></CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <FormField label={t('ads.titleField')}><Input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} /></FormField>
-            <FormField label={t('ads.image')}><input ref={createFileRef} type="file" accept="image/*" className="block h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" onChange={(event) => setCreateImage(event.target.files?.[0] ?? null)} /></FormField>
-          </div>
-          <FormField label={t('ads.descriptionField')}><Textarea value={form.description ?? ''} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} /></FormField>
-          <div className="flex justify-end"><Button loading={createMutation.isPending} disabled={!form.title.trim()} onClick={() => createMutation.mutate()}>{t('ads.add')}</Button></div>
-        </CardContent>
-      </Card>
 
       {editing ? (
         <Card className="rounded-3xl border-primary/20">
           <CardHeader><CardTitle>{t('ads.editTitle')}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <FormField label={t('ads.titleField')}><Input value={editing.title} onChange={(event) => setEditing({ ...editing, title: event.target.value })} /></FormField>
-              <FormField label={t('ads.replaceImage')}><input ref={editFileRef} type="file" accept="image/*" className="block h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" onChange={(event) => setEditImage(event.target.files?.[0] ?? null)} /></FormField>
-            </div>
+            <FormField label={t('ads.titleField')}><Input value={editing.title} onChange={(event) => setEditing({ ...editing, title: event.target.value })} /></FormField>
+            <FormField label={t('ads.replaceImage')}>
+              <CustomFileInput
+                value={editImage?.name ?? ''}
+                previewSrc={imageSource(editing) ?? undefined}
+                uploadLabel={t('ads.replaceImage')}
+                removeLabel={t('common.delete')}
+                disabled={updateMutation.isPending}
+                onFileSelect={setEditImage}
+                onClear={() => setEditImage(null)}
+              />
+            </FormField>
             <FormField label={t('ads.descriptionField')}><Textarea value={editing.description ?? ''} onChange={(event) => setEditing({ ...editing, description: event.target.value })} /></FormField>
-            <div className="flex justify-end gap-2"><Button variant="outline" icon={<X className="size-4" />} onClick={() => setEditing(null)}>{t('common.cancel')}</Button><Button loading={updateMutation.isPending} disabled={!editing.title.trim()} onClick={() => updateMutation.mutate()}>{t('common.save')}</Button></div>
+            <div className="flex justify-end gap-2"><Button variant="outline" icon={<X className="size-4" />} onClick={() => { setEditing(null); setEditImage(null) }}>{t('common.cancel')}</Button><Button loading={updateMutation.isPending} disabled={!editing.title.trim()} onClick={() => updateMutation.mutate()}>{t('common.save')}</Button></div>
           </CardContent>
         </Card>
       ) : null}
@@ -127,9 +147,36 @@ export default function AdsManagementPage() {
           },
           { id: 'title', header: t('ads.titleField'), renderCell: (row) => <span className="font-semibold">{row.title}</span> },
           { id: 'description', header: t('ads.descriptionField'), renderCell: (row) => <span className="line-clamp-2 max-w-md text-sm text-muted-foreground">{row.description || '—'}</span> },
-          { id: 'actions', header: '', renderCell: (row) => <div className="flex justify-end gap-2"><Button size="sm" variant="outline" icon={<Pencil className="size-3.5" />} onClick={() => setEditing({ ...row })}>{t('common.edit')}</Button><Button size="sm" variant="outline" icon={<Trash2 className="size-3.5" />} disabled={removeMutation.isPending} onClick={() => removeMutation.mutate(row)}>{t('common.delete')}</Button></div> },
+          { id: 'actions', header: '', renderCell: (row) => <div className="flex justify-end gap-2"><Button size="sm" variant="outline" icon={<Pencil className="size-3.5" />} onClick={() => { setEditing({ ...row }); setEditImage(null) }}>{t('common.edit')}</Button><Button size="sm" variant="outline" icon={<Trash2 className="size-3.5" />} disabled={removeMutation.isPending} onClick={() => removeMutation.mutate(row)}>{t('common.delete')}</Button></div> },
         ]}
       />
+
+      <Dialog open={createDialogOpen} onOpenChange={(open) => { if (open) setCreateDialogOpen(true); else closeCreateDialog() }}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Plus className="size-5 text-primary" />{t('ads.createTitle')}</DialogTitle>
+            <DialogDescription>{t('ads.createDescription')}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <FormField label={t('ads.titleField')}><Input autoFocus value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} /></FormField>
+            <FormField label={t('ads.image')}>
+              <CustomFileInput
+                value={createImage?.name ?? ''}
+                uploadLabel={t('ads.image')}
+                removeLabel={t('common.delete')}
+                disabled={createMutation.isPending}
+                onFileSelect={setCreateImage}
+                onClear={() => setCreateImage(null)}
+              />
+            </FormField>
+            <FormField label={t('ads.descriptionField')}><Textarea value={form.description ?? ''} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} /></FormField>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" disabled={createMutation.isPending} onClick={closeCreateDialog}>{t('common.cancel')}</Button>
+            <Button type="button" loading={createMutation.isPending} disabled={!form.title.trim()} onClick={() => createMutation.mutate()}>{t('ads.add')}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }

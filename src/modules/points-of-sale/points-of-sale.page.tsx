@@ -13,9 +13,14 @@ import {
   Button,
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   FormField,
   Input,
   PaginatedDataTable,
@@ -29,6 +34,7 @@ export default function PointsOfSaleManagementPage() {
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [form, setForm] = useState<PointOfSaleInput>(EMPTY_FORM)
   const [editing, setEditing] = useState<PointOfSale | null>(null)
 
@@ -46,6 +52,7 @@ export default function PointsOfSaleManagementPage() {
     mutationFn: pointsOfSaleService.create,
     onSuccess: async () => {
       setForm(EMPTY_FORM)
+      setCreateDialogOpen(false)
       await invalidate()
     },
   })
@@ -66,6 +73,22 @@ export default function PointsOfSaleManagementPage() {
   const totalCount = listQuery.data?.totalCount ?? 0
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
 
+  const resetCreate = () => {
+    setForm(EMPTY_FORM)
+    createMutation.reset()
+  }
+
+  const openCreateDialog = () => {
+    resetCreate()
+    setCreateDialogOpen(true)
+  }
+
+  const closeCreateDialog = () => {
+    if (createMutation.isPending) return
+    setCreateDialogOpen(false)
+    resetCreate()
+  }
+
   const create = () => {
     if (!form.name.trim()) return
     createMutation.mutate({ name: form.name.trim(), location: form.location?.trim() || null })
@@ -83,28 +106,13 @@ export default function PointsOfSaleManagementPage() {
             <p className="mt-1 text-sm text-muted-foreground">{t('pointsOfSale.description')}</p>
           </div>
         </div>
-        <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void listQuery.refetch()}>
-          {t('common.refresh')}
-        </Button>
-      </div>
-
-      <Card className="rounded-3xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Plus className="size-5" />{t('pointsOfSale.createTitle')}</CardTitle>
-          <CardDescription>{t('pointsOfSale.createDescription')}</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-[1fr_1.5fr_auto] md:items-end">
-          <FormField label={t('pointsOfSale.name')}>
-            <Input value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} />
-          </FormField>
-          <FormField label={t('pointsOfSale.location')}>
-            <Input value={form.location ?? ''} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value }))} />
-          </FormField>
-          <Button loading={createMutation.isPending} disabled={!form.name.trim()} onClick={create}>
-            {t('common.create')}
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void listQuery.refetch()}>
+            {t('common.refresh')}
           </Button>
-        </CardContent>
-      </Card>
+          <Button icon={<Plus className="size-4" />} onClick={openCreateDialog}>{t('common.create')}</Button>
+        </div>
+      </div>
 
       {editing ? (
         <Card className="rounded-3xl border-primary/20">
@@ -167,6 +175,27 @@ export default function PointsOfSaleManagementPage() {
           },
         ]}
       />
+
+      <Dialog open={createDialogOpen} onOpenChange={(open) => { if (open) setCreateDialogOpen(true); else closeCreateDialog() }}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Plus className="size-5 text-primary" />{t('pointsOfSale.createTitle')}</DialogTitle>
+            <DialogDescription>{t('pointsOfSale.createDescription')}</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField label={t('pointsOfSale.name')}>
+              <Input autoFocus value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} />
+            </FormField>
+            <FormField label={t('pointsOfSale.location')}>
+              <Input value={form.location ?? ''} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value }))} />
+            </FormField>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" disabled={createMutation.isPending} onClick={closeCreateDialog}>{t('common.cancel')}</Button>
+            <Button type="button" loading={createMutation.isPending} disabled={!form.name.trim()} onClick={create}>{t('common.create')}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
