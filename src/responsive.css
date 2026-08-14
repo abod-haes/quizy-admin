@@ -48,14 +48,18 @@
 }
 
 .app-shell-frame main.admin-fixed-table-page > div > section > [data-slot='card'] {
+  display: flex;
   min-height: 0;
   flex: 1 1 0%;
+  flex-direction: column;
   overflow: hidden;
 }
 
 .app-shell-frame main.admin-fixed-table-page > div > section > [data-slot='card'] > [data-slot='card-content'] {
+  display: flex;
   min-height: 0;
   flex: 1 1 0%;
+  flex-direction: column;
   overflow: hidden;
 }
 
