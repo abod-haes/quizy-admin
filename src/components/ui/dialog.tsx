@@ -126,7 +126,7 @@ function DialogContent({
               <motion.div
                 ref={setPortalContainer}
                 className={cn(
-                  "fixed top-1/2 left-1/2 z-50 w-full max-w-[calc(100%-1rem)] overflow-visible rounded-[1.5rem] border border-primary/10 bg-popover p-4 text-sm text-popover-foreground shadow-[var(--quizy-card-shadow)] outline-none sm:max-w-5xl",
+                  "fixed top-1/2 left-1/2 z-50 min-w-0 w-full max-w-[calc(100%-1rem)] !overflow-visible rounded-[1.5rem] border border-primary/10 bg-popover p-4 text-sm text-popover-foreground shadow-[var(--quizy-card-shadow)] outline-none sm:max-w-5xl",
                   className
                 )}
                 initial={{ opacity: 0, x: "-50%", y: "calc(-50% + 8px)", scale: 0.985 }}
@@ -135,7 +135,10 @@ function DialogContent({
                 transition={dialogMotionTransition}
               >
                 <DialogPortalContainerContext.Provider value={portalContainer}>
-                  <div className="grid max-h-[calc(100dvh-1.5rem)] min-h-0 gap-4 overflow-y-auto overscroll-contain pe-0.5 sm:max-h-[calc(100dvh-2.5rem)]">
+                  <div
+                    data-slot="dialog-scroll-area"
+                    className="grid max-h-[calc(100dvh-1.5rem)] min-h-0 min-w-0 gap-4 overflow-x-hidden overflow-y-auto overscroll-contain pe-1 sm:max-h-[calc(100dvh-2.5rem)] [&>.overflow-auto]:overflow-visible [&>.overflow-y-auto]:overflow-y-visible"
+                  >
                     {children}
                   </div>
                   {showCloseButton && (
@@ -182,7 +185,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-[1.5rem] border-t bg-muted/35 p-4 sm:flex-row sm:flex-wrap sm:justify-end",
+        "flex min-w-0 flex-col-reverse gap-2 rounded-2xl border-t border-border/70 bg-muted/35 p-4 sm:flex-row sm:flex-wrap sm:justify-end",
         className
       )}
       {...props}
