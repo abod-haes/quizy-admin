@@ -2,12 +2,12 @@ import axios, { type AxiosInstance } from 'axios'
 
 import { toApiError } from '@/core/api/api-error.type'
 import { attachAuthInterceptors } from '@/core/api/auth-interceptor.services'
+import { API_ORIGIN } from '@/shared/config/api-origin'
 import { env } from '@/shared/config/env'
 
 const LANGUAGE_STORAGE_KEY = 'app:language'
 const SUPPORTED_LANGUAGES = new Set(['ar', 'en'])
 const DEFAULT_LANGUAGE = 'ar'
-const API_BASE_URL = 'https://quizy-staging.abdulrahman-hares.com'
 
 function normalizeLanguage(value: string | null | undefined): string | null {
   if (!value) return null
@@ -31,7 +31,7 @@ function getCurrentLanguage(): string {
 }
 
 const httpClient: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_ORIGIN,
   timeout: 20000,
   headers: {
     Accept: 'application/json',
