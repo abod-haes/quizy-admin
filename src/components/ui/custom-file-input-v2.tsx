@@ -55,10 +55,18 @@ export function CustomFileInput({ id, value, previewSrc, accept = 'image/*', dis
   const hasFile = Boolean(effectiveFileLabel || effectivePreview)
 
   return (
-    <div className={cn('w-full min-w-0 rounded-2xl border border-primary/10 bg-[var(--quizy-surface-strong)] p-3 shadow-[var(--quizy-control-shadow)] sm:p-4', disabled && 'opacity-65', className)}>
+    <div
+      data-slot="file-image-input"
+      className={cn(
+        'w-full min-w-0 rounded-2xl border border-primary/15 bg-[var(--quizy-surface-strong)] p-3 shadow-[var(--quizy-control-shadow)] sm:p-4',
+        disabled && 'opacity-65',
+        className,
+      )}
+    >
       <input id={inputId} ref={inputRef} type="file" accept={accept} className="sr-only" disabled={disabled} onChange={handleFileChange} />
       <div className="grid min-w-0 gap-3 sm:grid-cols-[9rem_minmax(0,1fr)] sm:items-center sm:gap-4">
         <button
+          data-slot="file-image-dropzone"
           type="button"
           disabled={disabled}
           onClick={() => inputRef.current?.click()}
@@ -66,7 +74,11 @@ export function CustomFileInput({ id, value, previewSrc, accept = 'image/*', dis
           onDragOver={(event) => { event.preventDefault(); if (!disabled) setIsDragging(true) }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
-          className={cn('group relative flex h-32 w-full min-w-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-primary/20 bg-primary/[0.025] text-center outline-none transition-[border-color,background-color,box-shadow,transform] duration-200 hover:border-primary/35 hover:bg-primary/[0.045] focus-visible:border-primary/50 focus-visible:shadow-[var(--quizy-control-focus-shadow)] sm:h-28', isDragging && 'scale-[0.99] border-primary/55 bg-primary/[0.075] shadow-[var(--quizy-control-focus-shadow)]', disabled && 'cursor-not-allowed')}
+          className={cn(
+            'group relative flex h-32 w-full min-w-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-primary/25 bg-primary/[0.025] text-center outline-none transition-[border-color,background-color,box-shadow,transform] duration-200 hover:border-primary/40 hover:bg-primary/[0.045] focus-visible:border-primary/55 focus-visible:shadow-[var(--quizy-control-focus-shadow)] sm:h-28',
+            isDragging && 'scale-[0.99] border-primary/60 bg-primary/[0.075] shadow-[var(--quizy-control-focus-shadow)]',
+            disabled && 'cursor-not-allowed',
+          )}
         >
           {effectivePreview ? (
             <>
@@ -84,7 +96,7 @@ export function CustomFileInput({ id, value, previewSrc, accept = 'image/*', dis
         <div className="min-w-0 space-y-3">
           <div className="min-w-0 space-y-1">
             {effectiveFileLabel ? (
-              <div className="flex min-w-0 items-center gap-2 rounded-xl bg-muted/45 px-3 py-2">
+              <div className="flex min-w-0 items-center gap-2 rounded-xl border border-primary/10 bg-muted/35 px-3 py-2">
                 <FileText className="size-4 shrink-0 text-primary" />
                 <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground" dir="auto">{effectiveFileLabel}</span>
               </div>
