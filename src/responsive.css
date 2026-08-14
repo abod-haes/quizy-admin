@@ -11,7 +11,7 @@
   height: 100dvh;
 }
 
-.app-shell-frame main:not(.quizy-quizzes-scroll-page) {
+.app-shell-frame main:not(.admin-fixed-table-page) {
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -28,6 +28,42 @@
 .app-shell-frame main [data-slot='card-content'] {
   min-width: 0;
   max-width: 100%;
+}
+
+/* List/table screens use the available viewport instead of growing the document.
+   Their page header/filter area remains fixed, the table body owns the scrolling
+   viewport, and TableShell keeps pagination pinned to the bottom. */
+.app-shell-frame main.admin-fixed-table-page > div {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-shell-frame main.admin-fixed-table-page > div > section {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-shell-frame main.admin-fixed-table-page > div > section > [data-slot='card'] {
+  min-height: 0;
+  flex: 1 1 0%;
+  overflow: hidden;
+}
+
+.app-shell-frame main.admin-fixed-table-page > div > section > [data-slot='card'] > [data-slot='card-content'] {
+  min-height: 0;
+  flex: 1 1 0%;
+  overflow: hidden;
+}
+
+.app-shell-frame main.admin-fixed-table-page [data-slot='table-container'] {
+  min-height: 0;
+  flex: 1 1 0%;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .app-shell-frame main [data-slot='table-container'] {
