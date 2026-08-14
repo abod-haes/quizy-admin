@@ -19,6 +19,28 @@
   transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
 }
 
+/* Shared controls normally own their padding, but inputs with embedded icons need
+   explicit logical inset space so RTL/LTR icons never overlap text. */
+.app-shell-root [data-slot='input'][data-leading-icon],
+[data-slot='dialog-content'] [data-slot='input'][data-leading-icon] {
+  padding-inline-start: 2.5rem !important;
+}
+
+.app-shell-root [data-slot='input'][data-trailing-icon],
+[data-slot='dialog-content'] [data-slot='input'][data-trailing-icon] {
+  padding-inline-end: 2.5rem !important;
+}
+
+[data-slot='button-icon-start'],
+[data-slot='button-icon-end'],
+[data-slot='button-spinner'] {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
 .app-shell-root [data-slot='input']::placeholder,
 [data-slot='dialog-content'] [data-slot='input']::placeholder {
   color: color-mix(in srgb, var(--muted-foreground) 76%, transparent);
