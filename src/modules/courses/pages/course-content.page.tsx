@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next'
 
 import { api } from '@/shared/api/api-client'
 import type { PagedResponse, UUID } from '@/shared/api/api.types'
-import { API_ORIGIN } from '@/shared/config/api-origin'
+import { env } from '@/shared/config/env'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 import { toast } from '@/shared/lib/toast'
 import {
@@ -208,7 +208,9 @@ function hlsBadgeColor(material: Material): 'emerald' | 'amber' | 'rose' | 'slat
 
 function resolveApiUrl(url: string) {
   if (/^https?:\/\//i.test(url)) return url
-  return `${API_ORIGIN}${url.startsWith('/') ? url : `/${url}`}`
+  const baseUrl = env.apiBaseUrl.replace(/\/$/, '')
+  if (!baseUrl) return url.startsWith('/') ? url : `/${url}`
+  return `${baseUrl}${url.startsWith('/') ? url : `/${url}`}`
 }
 
 export default function CourseContentPage() {
@@ -419,24 +421,26 @@ export default function CourseContentPage() {
       }
 
       if (dialog.item?.id) {
-        return api.patch<unknown, typeof payload>(API_ENDPOINTS.courseNotes.update(dialog.item.id), payload)
+        return api.patch<unknown, typeof payload>(
+          API_ENDPOINTS.courseTeacherNotes.update(dialog.item.id),
+          payload,
+        )
       }
       return api.post<unknown, typeof payload>(API_ENDPOINTS.courseSessions.notes(form.sessionId), payload)
     },
     onSuccess: async () => {
-      toast.success(dialog.item ? t('messages.updated') : t('messages.created'))
+      toast.success(t('messages.saved'))
       setDialog((current) => ({ ...current, open: false }))
       await invalidateCurrent()
     },
     onError: (error) => toast.error(errorMessage(error)),
   })
 
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      if (!deleteTarget?.id) return
-      if (tab === 'materials') await api.delete(API_ENDPOINTS.courseMaterials.remove(deleteTarget.id))
-      else if (tab === 'comments') await api.delete(API_ENDPOINTS.courseComments.remove(deleteTarget.id))
-      else await api.delete(API_ENDPOINTS.courseNotes.remove(deleteTarget.id))
+  const removeMutation = useMutation({
+    mutationFn: async (item: Material | TextRecord) => {
+      if (tab === 'materials') return api.delete(API_ENDPOINTS.courseMaterials.remove(item.id))
+      if (tab === 'comments') return api.delete(API_ENDPOINTS.courseComments.remove(item.id))
+      return api.delete(API_ENDPOINTS.courseTeacherNotes.remove(item.id))
     },
     onSuccess: async () => {
       toast.success(t('messages.deleted'))
@@ -447,255 +451,527 @@ export default function CourseContentPage() {
   })
 
   const downloadMutation = useMutation({
-    mutationFn: async (material: Material) => {
-      if (isVideoMaterial(material)) {
-        const blob = await api.downloadBlob(API_ENDPOINTS.courseMaterials.offlineManifest(material.id))
-        downloadBlob(blob, `${getBlobName(material)}-offline.json`)
-        return
-      }
-      if (!material.resourceId) throw new Error(t('validation.resourceRequired'))
-      const blob = await api.downloadBlob(API_ENDPOINTS.resources.download(material.resourceId))
-      downloadBlob(blob, getBlobName(material))
-    },
+    mutationFn: (material: Material) => api.downloadBlob(API_ENDPOINTS.courseMaterials.download(material.id)),
+    onSuccess: (blob, material) => downloadBlob(blob, getBlobName(material)),
     onError: (error) => toast.error(errorMessage(error)),
   })
 
-  const playbackMutation = useMutation({
-    mutationFn: (material: Material) => api.get<PlaybackResponse>(API_ENDPOINTS.courseMaterials.playback(material.id)),
-    onSuccess: (response) => {
-      const url = resolveApiUrl(response.playlistUrl)
-      window.open(url, '_blank', 'noopener,noreferrer')
-    },
-    onError: (error) => toast.error(errorMessage(error)),
-  })
-
-  const openMaterialDialog = (material?: Material) => {
-    setDialog({
-      open: true,
-      kind: 'material',
-      item: material ?? null,
-      material: material
-        ? {
-            courseId,
-            sessionId,
-            title: material.title ?? '',
-            description: material.description ?? '',
-            materialType: material.materialType === 2 ? 2 : 1,
-            file: null,
-            order: Number(material.order ?? 0),
-            currentResourceId: material.resourceId ?? null,
-          }
-        : createEmptyMaterial(courseId, sessionId),
-      text: createEmptyText(courseId, sessionId),
-    })
+  const openVideoPlayback = async (material: Material) => {
+    if (!isVideoReady(material)) {
+      toast.info(t('messages.videoNotReady'), { description: hlsStatusLabel(material) })
+      return
+    }
+    try {
+      const playback = await api.get<PlaybackResponse>(API_ENDPOINTS.courseMaterials.playback(material.id))
+      window.open(resolveApiUrl(playback.playlistUrl), '_blank', 'noopener,noreferrer')
+    } catch (error) {
+      toast.error(errorMessage(error))
+    }
   }
 
-  const openTextDialog = (kind: Exclude<DialogKind, 'material'>, item?: TextRecord) => {
+  const downloadVideoManifest = async (material: Material) => {
+    if (!isVideoReady(material)) {
+      toast.info(t('messages.videoNotReady'), { description: hlsStatusLabel(material) })
+      return
+    }
+    try {
+      const blob = await api.downloadBlob(API_ENDPOINTS.courseMaterials.offlineManifest(material.id))
+      downloadBlob(blob, `${getBlobName(material)}-hls-manifest.json`)
+    } catch (error) {
+      toast.error(errorMessage(error))
+    }
+  }
+
+  const openCreate = (kind: DialogKind) =>
     setDialog({
       open: true,
       kind,
-      item: item ?? null,
+      item: null,
       material: createEmptyMaterial(courseId, sessionId),
-      text: {
-        courseId,
-        sessionId,
-        content: item?.content ?? '',
-      },
+      text: createEmptyText(courseId, sessionId),
     })
+
+  const openMaterial = (item: Material) =>
+    setDialog({
+      open: true,
+      kind: 'material',
+      item,
+      material: {
+        ...createEmptyMaterial(courseId, sessionId),
+        title: item.title ?? '',
+        description: item.description ?? '',
+        materialType: item.materialType === 2 ? 2 : 1,
+        order: item.order ?? 0,
+        currentResourceId: item.resourceId ?? null,
+      },
+      text: createEmptyText(courseId, sessionId),
+    })
+
+  const openText = (kind: 'comment' | 'note', item: TextRecord) =>
+    setDialog({
+      open: true,
+      kind,
+      item,
+      material: createEmptyMaterial(courseId, sessionId),
+      text: { ...createEmptyText(courseId, sessionId), content: item.content ?? '' },
+    })
+
+  const openTabPage = (nextTab: TabKey) => {
+    setContentPage(1)
+    if (isSessionDetailRoute) {
+      navigate(`/courses/${routeCourseId}/sessions/${routeSessionId}/${pathFromTab(nextTab)}`)
+    }
   }
 
-  const contentPagePath = (nextTab: TabKey) => {
-    const tabPath = pathFromTab(nextTab)
-    return `/courses/${encodeURIComponent(courseId)}/sessions/${encodeURIComponent(sessionId)}/${tabPath}`
-  }
+  const dialogTitle = dialog.kind === 'material'
+    ? t(dialog.item ? 'form.editMaterial' : 'form.createMaterial')
+    : dialog.kind === 'comment'
+      ? t(dialog.item ? 'form.editComment' : 'form.createComment')
+      : t(dialog.item ? 'form.editNote' : 'form.createNote')
 
-  const canOpenMaterialDialog = Boolean(courseId && sessionId)
-  const canOpenTextDialog = Boolean(courseId && sessionId)
-
-  if (isSessionDetailRoute && (detailCourseQuery.isLoading || detailSessionQuery.isLoading)) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-28 w-full rounded-3xl" />
-        <Skeleton className="h-44 w-full rounded-3xl" />
-      </div>
-    )
-  }
+  const deleteName = deleteTarget
+    ? tab === 'materials'
+      ? (deleteTarget as Material).title || t('messages.materialFallback')
+      : (deleteTarget as TextRecord).content?.slice(0, 60) || t('messages.itemFallback')
+    : ''
 
   return (
-    <section className="space-y-6">
-      <Card className="rounded-3xl border-primary/15 bg-gradient-to-br from-card via-card to-primary/[0.035] shadow-sm">
-        <CardHeader className="gap-4 p-5 sm:p-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-2">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="-ms-2 w-fit"
-                onClick={() => navigate('/courses')}
-              >
-                <ArrowLeft className="size-4 rtl:rotate-180" />
-                {t('hero.back')}
-              </Button>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline" color="fuchsia">{t('hero.badge')}</Badge>
-                  {selectedCourseLabel ? <span className="text-sm font-semibold text-foreground">{selectedCourseLabel}</span> : null}
-                </div>
-                <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">{selectedSessionLabel || t('hero.title')}</h1>
-                <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">{t('hero.description')}</p>
+    <section className="flex min-h-0 w-full flex-col gap-3 overflow-hidden">
+      <div className="rounded-[1.4rem] border border-primary/10 bg-card/95 px-4 py-3 shadow-sm sm:px-5">
+        {isSessionDetailRoute ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="-ms-2 mb-2"
+            onClick={() => navigate(`/courses/${routeCourseId}`)}
+          >
+            <ArrowLeft className="size-4 rtl:rotate-180" />
+            {t('backToCourse')}
+          </Button>
+        ) : null}
+        <Badge variant="outline" color="primary" className="mb-2 rounded-full px-3">Courses</Badge>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          {isSessionDetailRoute ? selectedSessionLabel || t('sessionTitle') : t('title')}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {isSessionDetailRoute && selectedCourseLabel ? selectedCourseLabel : t('description')}
+        </p>
+      </div>
+
+      <Card className="flex min-h-0 flex-1 flex-col rounded-3xl shadow-sm">
+        <CardHeader className="shrink-0 space-y-3 px-4 py-3 sm:px-5">
+          {!isSessionDetailRoute ? (
+            <div className="grid gap-3 lg:grid-cols-2">
+              <div className="space-y-2">
+                <Label>{t('fields.course')}</Label>
+                <CustomSelect
+                  value={courseId || undefined}
+                  placeholder={t('placeholders.course')}
+                  options={courseOptions}
+                  onValueChange={(value) => {
+                    setCourseId(String(value))
+                    setSessionId('')
+                    setContentPage(1)
+                  }}
+                />
               </div>
-            </div>
-
-            <div className="quizy-course-content-hero-actions flex flex-wrap items-center gap-2">
-              {tab === 'materials' ? (
-                <Button type="button" onClick={() => openMaterialDialog()} disabled={!canOpenMaterialDialog}>
-                  <Plus className="size-4" />
-                  {t('actions.addMaterial')}
-                </Button>
-              ) : (
-                <Button type="button" onClick={() => openTextDialog(tab === 'comments' ? 'comment' : 'note')} disabled={!canOpenTextDialog}>
-                  <Plus className="size-4" />
-                  {tab === 'comments' ? t('actions.addComment') : t('actions.addNote')}
-                </Button>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {!isSessionDetailRoute ? (
-        <div className="grid gap-4 rounded-3xl border border-border/70 bg-card p-4 shadow-sm sm:grid-cols-2 sm:p-5">
-          <div className="space-y-2">
-            <Label>{t('filters.course')}</Label>
-            <CustomSelect value={courseId || undefined} placeholder={t('filters.coursePlaceholder')} options={courseOptions} onValueChange={(value) => { setCourseId(String(value)); setSessionId(''); setContentPage(1) }} />
-          </div>
-          <div className="space-y-2">
-            <Label>{t('filters.session')}</Label>
-            <CustomSelect value={sessionId || undefined} placeholder={t('filters.sessionPlaceholder')} options={sessionOptions} disabled={!courseId || sessionsQuery.isLoading} onValueChange={(value) => { setSessionId(String(value)); setContentPage(1) }} />
-          </div>
-        </div>
-      ) : null}
-
-      {sessionId ? (
-        <div className="flex flex-wrap gap-2">
-          {(['materials', 'comments', 'notes'] as const).map((key) => (
-            <Button
-              key={key}
-              type="button"
-              variant={tab === key ? 'default' : 'outline'}
-              onClick={() => {
-                setContentPage(1)
-                if (isSessionDetailRoute) navigate(contentPagePath(key))
-              }}
-            >
-              {t(`tabs.${key}`)}
-            </Button>
-          ))}
-        </div>
-      ) : null}
-
-      <Card className="rounded-3xl border-border/70 shadow-sm">
-        <CardContent className="p-0">
-          {activeQuery.isLoading ? (
-            <div className="space-y-3 p-5"><Skeleton className="h-14 w-full" /><Skeleton className="h-14 w-full" /><Skeleton className="h-14 w-full" /></div>
-          ) : !sessionId ? (
-            <div className="p-10 text-center text-sm text-muted-foreground">{t('states.selectSession')}</div>
-          ) : activeItems.length === 0 ? (
-            <div className="p-10 text-center text-sm text-muted-foreground">{t('states.empty')}</div>
-          ) : (
-            <div className="divide-y divide-border/70">
-              {activeItems.map((item) => {
-                if (tab === 'materials') {
-                  const material = item as Material
-                  return (
-                    <div key={material.id} className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
-                      <div className="min-w-0 space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-semibold text-foreground">{material.title || material.id}</p>
-                          <Badge variant="outline" color={isVideoMaterial(material) ? 'fuchsia' : 'slate'}>{isVideoMaterial(material) ? t('material.video') : t('material.file')}</Badge>
-                          {isVideoMaterial(material) ? <Badge variant="outline" color={hlsBadgeColor(material)}>{hlsStatusLabel(material)}</Badge> : null}
-                        </div>
-                        <p className="text-sm leading-6 text-muted-foreground">{material.description || t('states.noDescription')}</p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {isVideoMaterial(material) ? (
-                          <Button type="button" variant="outline" size="sm" disabled={!isVideoReady(material) || playbackMutation.isPending} onClick={() => playbackMutation.mutate(material)}>
-                            <ExternalLink className="size-4" />
-                            {t('actions.play')}
-                          </Button>
-                        ) : null}
-                        <Button type="button" variant="outline" size="sm" disabled={downloadMutation.isPending} onClick={() => downloadMutation.mutate(material)}>
-                          <Download className="size-4" />
-                          {t('actions.download')}
-                        </Button>
-                        <Button type="button" variant="outline" size="sm" onClick={() => openMaterialDialog(material)}>
-                          <Pencil className="size-4" />
-                          {t('actions.edit')}
-                        </Button>
-                        <Button type="button" variant="outline" size="sm" className="text-destructive" onClick={() => setDeleteTarget(material)}>
-                          <Trash2 className="size-4" />
-                          {t('actions.delete')}
-                        </Button>
-                      </div>
-                    </div>
-                  )
-                }
-
-                const record = item as TextRecord
-                return (
-                  <div key={record.id} className="flex flex-col gap-3 p-4 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="min-w-0 space-y-1">
-                      <p className="whitespace-pre-wrap text-sm leading-6 text-foreground">{record.content || '—'}</p>
-                      {record.authorRole ? <p className="text-xs text-muted-foreground">{record.authorRole}</p> : null}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Button type="button" variant="outline" size="sm" onClick={() => openTextDialog(tab === 'comments' ? 'comment' : 'note', record)}><Pencil className="size-4" />{t('actions.edit')}</Button>
-                      <Button type="button" variant="outline" size="sm" className="text-destructive" onClick={() => setDeleteTarget(record)}><Trash2 className="size-4" />{t('actions.delete')}</Button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-
-          {sessionId && totalPages > 1 ? (
-            <div className="flex items-center justify-between gap-3 border-t border-border/70 p-4">
-              <span className="text-xs text-muted-foreground">{t('pagination.summary', { page: contentPage, totalPages })}</span>
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" size="sm" disabled={contentPage <= 1} onClick={() => setContentPage((current) => Math.max(1, current - 1))}>{t('pagination.previous')}</Button>
-                <Button type="button" variant="outline" size="sm" disabled={contentPage >= totalPages} onClick={() => setContentPage((current) => Math.min(totalPages, current + 1))}>{t('pagination.next')}</Button>
+              <div className="space-y-2">
+                <Label>{t('fields.session')}</Label>
+                <CustomSelect
+                  value={sessionId || undefined}
+                  placeholder={t('placeholders.session')}
+                  disabled={!courseId}
+                  options={sessionOptions}
+                  onValueChange={(value) => {
+                    setSessionId(String(value))
+                    setContentPage(1)
+                  }}
+                />
               </div>
             </div>
           ) : null}
+
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              {(['materials', 'comments', 'notes'] as const).map((tabKey) => (
+                <Button
+                  key={tabKey}
+                  type="button"
+                  variant={tab === tabKey ? 'default' : 'outline'}
+                  onClick={() => openTabPage(tabKey)}
+                >
+                  {t(`tabs.${tabKey}`)}
+                </Button>
+              ))}
+            </div>
+            <Button
+              type="button"
+              disabled={!sessionId}
+              onClick={() => openCreate(tab === 'materials' ? 'material' : tab === 'comments' ? 'comment' : 'note')}
+            >
+              <Plus className="size-4" /> {t('actions.add')}
+            </Button>
+          </div>
+        </CardHeader>
+
+        <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 pb-4 sm:px-5">
+          {!sessionId ? (
+            <div className="rounded-3xl border border-dashed border-border bg-muted/30 p-10 text-center text-muted-foreground">
+              {t('placeholders.emptySelection')}
+            </div>
+          ) : activeQuery.isLoading ? (
+            <div className="space-y-3">
+              {[0, 1, 2].map((item) => <Skeleton key={item} className="h-14 rounded-2xl" />)}
+            </div>
+          ) : (
+            <>
+              <div className="min-h-0 flex-1 overflow-auto rounded-2xl border border-border bg-background/70 p-3">
+                <div className="grid gap-3">
+                  {activeItems.length === 0 ? (
+                    <div className="p-8 text-center text-muted-foreground">{t('placeholders.empty')}</div>
+                  ) : (
+                    activeItems.map((item) => {
+                      const material = item as Material
+                      const textRecord = item as TextRecord
+                      return (
+                        <div key={item.id} className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 lg:flex-row lg:items-center lg:justify-between">
+                          <div className="min-w-0">
+                            <p className="font-semibold">
+                              {tab === 'materials' ? material.title || '-' : textRecord.content || '-'}
+                            </p>
+                            <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                              {tab === 'materials' ? (
+                                <>
+                                  <span>{isVideoMaterial(material) ? t('types.video') : t('types.file')}</span>
+                                  {isVideoMaterial(material) ? (
+                                    <Badge variant="outline" color={hlsBadgeColor(material)}>
+                                      {hlsStatusLabel(material)}
+                                    </Badge>
+                                  ) : null}
+                                </>
+                              ) : (
+                                <span>{textRecord.authorRole || '-'}</span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2">
+                            {tab === 'materials' ? (
+                              isVideoMaterial(material) ? (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={!isVideoReady(material)}
+                                    onClick={() => void openVideoPlayback(material)}
+                                  >
+                                    <ExternalLink className="size-4" /> {t('actions.play')}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={!isVideoReady(material)}
+                                    onClick={() => void downloadVideoManifest(material)}
+                                  >
+                                    <FileVideo className="size-4" /> {t('actions.manifest')}
+                                  </Button>
+                                </>
+                              ) : (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={downloadMutation.isPending}
+                                    onClick={() => downloadMutation.mutate(material)}
+                                  >
+                                    <Download className="size-4" /> {t('actions.download')}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() =>
+                                      window.open(
+                                        resolveApiUrl(API_ENDPOINTS.courseMaterials.stream(material.id)),
+                                        '_blank',
+                                        'noopener,noreferrer',
+                                      )
+                                    }
+                                  >
+                                    <ExternalLink className="size-4" /> {t('actions.view')}
+                                  </Button>
+                                </>
+                              )
+                            ) : null}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                tab === 'materials'
+                                  ? openMaterial(material)
+                                  : openText(tab === 'comments' ? 'comment' : 'note', textRecord)
+                              }
+                            >
+                              <Pencil className="size-4" /> {t('actions.edit')}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-destructive"
+                              disabled={removeMutation.isPending}
+                              onClick={() => setDeleteTarget(item)}
+                            >
+                              <Trash2 className="size-4" /> {t('actions.delete')}
+                            </Button>
+                          </div>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-4 flex shrink-0 items-center justify-end gap-2 border-t border-border/70 pt-4">
+                <Button
+                  variant="outline"
+                  disabled={contentPage <= 1 || activeQuery.isFetching}
+                  onClick={() => setContentPage((current) => Math.max(1, current - 1))}
+                >
+                  {t('actions.previous')}
+                </Button>
+                <Badge variant="outline">{t('pagination.summary', { page: contentPage, totalPages })}</Badge>
+                <Button
+                  variant="outline"
+                  disabled={contentPage >= totalPages || activeQuery.isFetching}
+                  onClick={() => setContentPage((current) => Math.min(totalPages, current + 1))}
+                >
+                  {t('actions.next')}
+                </Button>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
-      <Dialog open={dialog.open} onOpenChange={(open) => { if (!open && !saveMutation.isPending) setDialog((current) => ({ ...current, open: false })) }}>
-        <DialogContent className="max-w-3xl">
+      <Dialog
+        open={dialog.open}
+        onOpenChange={(open) => {
+          if (!saveMutation.isPending) setDialog((current) => ({ ...current, open }))
+        }}
+      >
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{t(dialog.kind === 'material' ? (dialog.item ? 'dialogs.materialEditTitle' : 'dialogs.materialCreateTitle') : dialog.kind === 'comment' ? (dialog.item ? 'dialogs.commentEditTitle' : 'dialogs.commentCreateTitle') : (dialog.item ? 'dialogs.noteEditTitle' : 'dialogs.noteCreateTitle'))}</DialogTitle>
-            <DialogDescription>{t('dialogs.description')}</DialogDescription>
+            <DialogTitle>{dialogTitle}</DialogTitle>
+            <DialogDescription>{dialog.kind === 'material' ? t('form.fileHint') : t('description')}</DialogDescription>
           </DialogHeader>
+
           {dialog.kind === 'material' ? (
-            <div className="grid gap-4 py-2 md:grid-cols-2">
-              {!isSessionDetailRoute ? <><div className="space-y-2"><Label>{t('filters.course')}</Label><CustomSelect value={dialog.material.courseId || undefined} placeholder={t('filters.coursePlaceholder')} options={courseOptions} onValueChange={(value) => setDialog((current) => ({ ...current, material: { ...current.material, courseId: String(value), sessionId: '' } }))} /></div><div className="space-y-2"><Label>{t('filters.session')}</Label><CustomSelect value={dialog.material.sessionId || undefined} placeholder={t('filters.sessionPlaceholder')} options={dialogSessionOptions} disabled={!dialog.material.courseId || dialogSessionsQuery.isLoading} onValueChange={(value) => setDialog((current) => ({ ...current, material: { ...current.material, sessionId: String(value) } }))} /></div></> : null}
-              <div className="space-y-2 md:col-span-2"><Label>{t('fields.title')}</Label><Input value={dialog.material.title} onChange={(event) => setDialog((current) => ({ ...current, material: { ...current.material, title: event.target.value } }))} /></div>
-              <div className="space-y-2 md:col-span-2"><Label>{t('fields.description')}</Label><Textarea value={dialog.material.description} onChange={(event) => setDialog((current) => ({ ...current, material: { ...current.material, description: event.target.value } }))} /></div>
-              <div className="space-y-2"><Label>{t('fields.type')}</Label><CustomSelect value={String(dialog.material.materialType)} options={[{ value: '1', label: t('material.file') }, { value: '2', label: t('material.video') }]} onValueChange={(value) => setDialog((current) => ({ ...current, material: { ...current.material, materialType: Number(value) === 2 ? 2 : 1, file: null } }))} /></div>
-              <div className="space-y-2"><Label>{t('fields.order')}</Label><Input type="number" min={0} step={1} value={dialog.material.order} onChange={(event) => setDialog((current) => ({ ...current, material: { ...current.material, order: Number(event.target.value) } }))} /></div>
-              <div className="space-y-2 md:col-span-2"><Label>{dialog.material.materialType === 2 ? t('fields.videoFile') : t('fields.file')}</Label><Input type="file" accept={dialog.material.materialType === 2 ? VIDEO_MATERIAL_ACCEPT : FILE_MATERIAL_ACCEPT} onChange={(event) => setDialog((current) => ({ ...current, material: { ...current.material, file: event.target.files?.[0] ?? null } }))} /></div>
-              {dialog.item && !dialog.material.file ? <p className="text-xs text-muted-foreground md:col-span-2">{t('fields.keepExistingResource')}</p> : null}
+            <div className="grid gap-4 py-2">
+              {!isSessionDetailRoute ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>{t('fields.course')}</Label>
+                    <CustomSelect
+                      value={dialog.material.courseId || undefined}
+                      placeholder={t('placeholders.course')}
+                      options={courseOptions}
+                      onValueChange={(value) =>
+                        setDialog((current) => ({
+                          ...current,
+                          material: { ...current.material, courseId: String(value), sessionId: '' },
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t('fields.session')}</Label>
+                    <CustomSelect
+                      value={dialog.material.sessionId || undefined}
+                      placeholder={t('placeholders.session')}
+                      disabled={!dialog.material.courseId}
+                      options={dialogSessionOptions}
+                      onValueChange={(value) =>
+                        setDialog((current) => ({
+                          ...current,
+                          material: { ...current.material, sessionId: String(value) },
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="space-y-2">
+                <Label>{t('fields.title')}</Label>
+                <Input
+                  value={dialog.material.title}
+                  maxLength={200}
+                  onChange={(event) =>
+                    setDialog((current) => ({
+                      ...current,
+                      material: { ...current.material, title: event.target.value },
+                    }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('fields.description')}</Label>
+                <Textarea
+                  value={dialog.material.description}
+                  maxLength={1000}
+                  onChange={(event) =>
+                    setDialog((current) => ({
+                      ...current,
+                      material: { ...current.material, description: event.target.value },
+                    }))
+                  }
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>{t('fields.materialType')}</Label>
+                  <CustomSelect
+                    value={String(dialog.material.materialType)}
+                    options={[
+                      { value: '1', label: t('types.file') },
+                      { value: '2', label: t('types.video') },
+                    ]}
+                    onValueChange={(value) =>
+                      setDialog((current) => ({
+                        ...current,
+                        material: {
+                          ...current.material,
+                          materialType: String(value) === '2' ? 2 : 1,
+                          file: null,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('fields.order')}</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={dialog.material.order}
+                    onChange={(event) =>
+                      setDialog((current) => ({
+                        ...current,
+                        material: { ...current.material, order: Number(event.target.value) },
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>{t('fields.file')}</Label>
+                <input
+                  type="file"
+                  accept={dialog.material.materialType === 2 ? VIDEO_MATERIAL_ACCEPT : FILE_MATERIAL_ACCEPT}
+                  className="block w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
+                  onChange={(event) =>
+                    setDialog((current) => ({
+                      ...current,
+                      material: { ...current.material, file: event.target.files?.[0] ?? null },
+                    }))
+                  }
+                />
+              </div>
             </div>
           ) : (
-            <div className="space-y-2 py-2"><Label>{t('fields.content')}</Label><Textarea rows={8} value={dialog.text.content} onChange={(event) => setDialog((current) => ({ ...current, text: { ...current.text, content: event.target.value } }))} /></div>
+            <div className="grid gap-4 py-2">
+              {!isSessionDetailRoute ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>{t('fields.course')}</Label>
+                    <CustomSelect
+                      value={dialog.text.courseId || undefined}
+                      placeholder={t('placeholders.course')}
+                      options={courseOptions}
+                      onValueChange={(value) =>
+                        setDialog((current) => ({
+                          ...current,
+                          text: { ...current.text, courseId: String(value), sessionId: '' },
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t('fields.session')}</Label>
+                    <CustomSelect
+                      value={dialog.text.sessionId || undefined}
+                      placeholder={t('placeholders.session')}
+                      disabled={!dialog.text.courseId}
+                      options={dialogSessionOptions}
+                      onValueChange={(value) =>
+                        setDialog((current) => ({
+                          ...current,
+                          text: { ...current.text, sessionId: String(value) },
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+              ) : null}
+              <div className="space-y-2">
+                <Label>{t('fields.content')}</Label>
+                <Textarea
+                  value={dialog.text.content}
+                  maxLength={2000}
+                  onChange={(event) =>
+                    setDialog((current) => ({
+                      ...current,
+                      text: { ...current.text, content: event.target.value },
+                    }))
+                  }
+                />
+              </div>
+            </div>
           )}
-          <DialogFooter><Button type="button" variant="outline" disabled={saveMutation.isPending} onClick={() => setDialog((current) => ({ ...current, open: false }))}>{t('actions.cancel')}</Button><Button type="button" loading={saveMutation.isPending} onClick={() => saveMutation.mutate()}>{t('actions.save')}</Button></DialogFooter>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={saveMutation.isPending}
+              onClick={() => setDialog((current) => ({ ...current, open: false }))}
+            >
+              {t('actions.cancel')}
+            </Button>
+            <Button type="button" disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+              {saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+              {t('actions.save')}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteTarget(null) }}>
-        <DialogContent className="max-w-md"><DialogHeader><DialogTitle>{t('delete.title')}</DialogTitle><DialogDescription>{t('delete.description')}</DialogDescription></DialogHeader><DialogFooter><Button type="button" variant="outline" disabled={deleteMutation.isPending} onClick={() => setDeleteTarget(null)}>{t('actions.cancel')}</Button><Button type="button" className="bg-destructive text-destructive-foreground hover:bg-destructive/90" loading={deleteMutation.isPending} onClick={() => deleteMutation.mutate()}>{t('actions.delete')}</Button></DialogFooter></DialogContent>
+      <Dialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open && !removeMutation.isPending) setDeleteTarget(null)
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('messages.deleteTitle')}</DialogTitle>
+            <DialogDescription>{t('messages.deleteConfirm', { name: deleteName })}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" disabled={removeMutation.isPending} onClick={() => setDeleteTarget(null)}>
+              {t('actions.cancel')}
+            </Button>
+            <Button
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={removeMutation.isPending}
+              onClick={() => deleteTarget && removeMutation.mutate(deleteTarget)}
+            >
+              {removeMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+              {t('actions.delete')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </section>
   )
