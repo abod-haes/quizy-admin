@@ -47,7 +47,7 @@
   overflow: hidden;
 }
 
-.app-shell-frame main.admin-fixed-table-page > div > section > [data-slot='card'] {
+.app-shell-frame main.admin-fixed-table-page > div > section > [data-slot='card']:has([data-slot='table-container']) {
   display: flex;
   min-height: 0;
   flex: 1 1 0%;
@@ -55,7 +55,7 @@
   overflow: hidden;
 }
 
-.app-shell-frame main.admin-fixed-table-page > div > section > [data-slot='card'] > [data-slot='card-content'] {
+.app-shell-frame main.admin-fixed-table-page > div > section > [data-slot='card']:has([data-slot='table-container']) > [data-slot='card-content'] {
   display: flex;
   min-height: 0;
   flex: 1 1 0%;
