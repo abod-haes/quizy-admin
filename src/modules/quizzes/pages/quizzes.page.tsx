@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Edit3, FileQuestion, Loader2, Plus, RefreshCcw, Search, Trash2, X } from 'lucide-react'
+import { Edit3, FileQuestion, Plus, RefreshCcw, Search, Trash2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { api } from '@/shared/api/api-client'
