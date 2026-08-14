@@ -115,15 +115,18 @@ export default function QuizzesPage() {
       <div className="flex flex-col gap-4 rounded-3xl border border-primary/10 bg-card p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-3"><FileQuestion className="size-5 text-primary" /><h1 className="text-2xl font-bold">{t('quizzes.title')}</h1></div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => void quizzesQuery.refetch()} disabled={quizzesQuery.isFetching}><RefreshCcw className="size-4" />{t('quizzes.refresh')}</Button>
-          <Button onClick={() => navigate('/quiz-builder')}><Plus className="size-4" />{t('quizzes.add')}</Button>
+          <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void quizzesQuery.refetch()} disabled={quizzesQuery.isFetching}>{t('quizzes.refresh')}</Button>
+          <Button icon={<Plus className="size-4" />} onClick={() => navigate('/quiz-builder')}>{t('quizzes.add')}</Button>
         </div>
       </div>
 
       <div className="grid gap-2 md:grid-cols-[1fr_16rem_auto]">
-        <label className="relative block"><Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input className="ps-10" value={search} placeholder={t('quizzes.searchPlaceholder')} onChange={(event) => { setSearch(event.target.value); setPage(1) }} /></label>
+        <label className="relative block">
+          <Search className="pointer-events-none absolute start-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input data-leading-icon className="ps-10" value={search} placeholder={t('quizzes.searchPlaceholder')} onChange={(event) => { setSearch(event.target.value); setPage(1) }} />
+        </label>
         <CustomSelect value={teacherId} variant="filter" options={teacherOptions} onValueChange={(value) => { setTeacherId(String(value)); setPage(1) }} />
-        {hasFilters ? <Button variant="outline" onClick={() => { setSearch(''); setTeacherId(ALL_VALUE); setPage(1) }}><X className="size-4" />{t('quizzes.clearFilters')}</Button> : null}
+        {hasFilters ? <Button variant="outline" icon={<X className="size-4" />} onClick={() => { setSearch(''); setTeacherId(ALL_VALUE); setPage(1) }}>{t('quizzes.clearFilters')}</Button> : null}
       </div>
 
       <Card className="rounded-3xl"><CardContent className="p-4">
@@ -139,13 +142,13 @@ export default function QuizzesPage() {
             { id: 'teacher', header: t('quizzes.teacher'), renderCell: (row) => quizTeacher(row, teachers) },
             { id: 'questions', header: t('quizzes.questionsCount'), renderCell: questionsCount },
             { id: 'status', header: t('quizzes.status'), renderCell: (row) => row.isFree ? t('quizzes.free') : t('quizzes.paid') },
-            { id: 'actions', header: '', renderCell: (row) => <div className="flex justify-end gap-2"><Button size="sm" variant="outline" onClick={() => navigate(`/quiz-builder?quizId=${encodeURIComponent(row.id)}`)}><Edit3 className="size-4" />{t('common.edit')}</Button><Button size="sm" variant="outline" className="text-destructive" onClick={() => setDeleteTarget(row)}><Trash2 className="size-4" />{t('common.delete')}</Button></div> },
+            { id: 'actions', header: '', renderCell: (row) => <div className="flex justify-end gap-2"><Button size="sm" variant="outline" icon={<Edit3 className="size-4" />} onClick={() => navigate(`/quiz-builder?quizId=${encodeURIComponent(row.id)}`)}>{t('common.edit')}</Button><Button size="sm" variant="outline" className="text-destructive" icon={<Trash2 className="size-4" />} onClick={() => setDeleteTarget(row)}>{t('common.delete')}</Button></div> },
           ]}
         />
       </CardContent></Card>
 
       <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteTarget(null) }}>
-        <DialogContent className="max-w-md"><DialogHeader><DialogTitle>{t('quizzes.deleteTitle')}</DialogTitle><DialogDescription>{deleteTarget ? t('quizzes.deleteConfirm', { name: quizTitle(deleteTarget) }) : ''}</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" disabled={deleteMutation.isPending} onClick={() => setDeleteTarget(null)}>{t('common.cancel')}</Button><Button className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={deleteMutation.isPending} onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}>{deleteMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('common.delete')}</Button></DialogFooter></DialogContent>
+        <DialogContent className="max-w-md"><DialogHeader><DialogTitle>{t('quizzes.deleteTitle')}</DialogTitle><DialogDescription>{deleteTarget ? t('quizzes.deleteConfirm', { name: quizTitle(deleteTarget) }) : ''}</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" disabled={deleteMutation.isPending} onClick={() => setDeleteTarget(null)}>{t('common.cancel')}</Button><Button className="bg-destructive text-destructive-foreground hover:bg-destructive/90" loading={deleteMutation.isPending} icon={<Trash2 className="size-4" />} onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}>{t('common.delete')}</Button></DialogFooter></DialogContent>
       </Dialog>
     </section>
   )
