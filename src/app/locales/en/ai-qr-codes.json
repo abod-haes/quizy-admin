@@ -5,11 +5,22 @@
   "actions": {
     "refresh": "Refresh",
     "create": "Create codes",
-    "delete": "Delete"
+    "delete": "Delete",
+    "printPdf": "Print / Save PDF",
+    "downloadSvg": "Download SVG",
+    "reprint": "Print",
+    "close": "Close"
   },
   "create": {
     "title": "Create QR bundle",
     "description": "Choose one or more grant types. You can generate up to 500 codes for the same bundle."
+  },
+  "generated": {
+    "title": "QR codes created",
+    "description": "The new codes were added to the list. Print them now or save the print sheet as a PDF.",
+    "count": "{{count}} codes created successfully.",
+    "printHint": "Choose “Save as PDF” in the browser print dialog to send a print-ready file.",
+    "singleTitle": "QR code"
   },
   "fields": {
     "courses": "Courses",
@@ -39,7 +50,9 @@
     "validDaysRange": "Validity must be between 1 and 3650 days."
   },
   "messages": {
-    "createFailed": "Could not create QR codes."
+    "createFailed": "Could not create QR codes.",
+    "printFailed": "Could not prepare the print sheet.",
+    "detailFailed": "Could not prepare this code for printing."
   },
   "summary": {
     "allCourses": "All courses",
