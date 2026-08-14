@@ -3,6 +3,7 @@ import { useEffect, useId, useRef, useState, type ChangeEvent, type DragEvent } 
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { generateFileUrl } from '@/shared/utils/file-url'
 
 type CustomFileInputProps = {
   id?: string
@@ -25,6 +26,7 @@ export function CustomFileInput({ id, value, previewSrc, accept = 'image/*', dis
   const [localPreview, setLocalPreview] = useState('')
   const [selectedFileName, setSelectedFileName] = useState('')
   const [isDragging, setIsDragging] = useState(false)
+  const [brokenPreview, setBrokenPreview] = useState('')
 
   useEffect(() => () => { if (localPreview) URL.revokeObjectURL(localPreview) }, [localPreview])
 
@@ -32,6 +34,7 @@ export function CustomFileInput({ id, value, previewSrc, accept = 'image/*', dis
     if (localPreview) URL.revokeObjectURL(localPreview)
     setLocalPreview(nextFile?.type.startsWith('image/') ? URL.createObjectURL(nextFile) : '')
     setSelectedFileName(nextFile?.name ?? '')
+    setBrokenPreview('')
     onFileSelect?.(nextFile)
   }
 
@@ -45,12 +48,14 @@ export function CustomFileInput({ id, value, previewSrc, accept = 'image/*', dis
     if (localPreview) URL.revokeObjectURL(localPreview)
     setLocalPreview('')
     setSelectedFileName('')
+    setBrokenPreview('')
     if (inputRef.current) inputRef.current.value = ''
     onClear?.()
     onFileSelect?.(null)
   }
 
-  const effectivePreview = localPreview || previewSrc || ''
+  const effectivePreview = generateFileUrl(localPreview || previewSrc || '')
+  const showPreview = Boolean(effectivePreview) && brokenPreview !== effectivePreview
   const effectiveFileLabel = selectedFileName || value?.trim() || ''
   const hasFile = Boolean(effectiveFileLabel || effectivePreview)
 
@@ -80,9 +85,9 @@ export function CustomFileInput({ id, value, previewSrc, accept = 'image/*', dis
             disabled && 'cursor-not-allowed',
           )}
         >
-          {effectivePreview ? (
+          {showPreview ? (
             <>
-              <img src={effectivePreview} alt="" className="size-full object-cover" />
+              <img src={effectivePreview} alt="" className="size-full object-cover" onError={() => setBrokenPreview(effectivePreview)} />
               <span className="absolute inset-0 flex items-center justify-center bg-black/0 text-xs font-semibold text-white opacity-0 transition group-hover:bg-black/35 group-hover:opacity-100">{uploadLabel}</span>
             </>
           ) : (
