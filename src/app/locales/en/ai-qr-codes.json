@@ -1,7 +1,7 @@
 {
-  "badge": "Unified QR",
-  "title": "Quizy QR codes",
-  "description": "A single code can unlock courses, quizzes, and an AI subscription in any combination.",
+  "badge": "QR Management",
+  "title": "QR Code Management",
+  "description": "Create and manage QR codes for courses, quizzes, and AI subscriptions, either individually or in a combined bundle.",
   "actions": {
     "refresh": "Refresh",
     "create": "Create codes",
@@ -65,7 +65,7 @@
   },
   "table": {
     "summary": "{{count}} codes",
-    "empty": "No unified QR codes yet.",
+    "empty": "No QR codes yet.",
     "code": "Code",
     "content": "Content",
     "usage": "Usage",
