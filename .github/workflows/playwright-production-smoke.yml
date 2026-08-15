@@ -1,5 +1,6 @@
 name: Playwright Production Smoke
 
+# Triggered after repository Actions and secrets were configured.
 on:
   push:
     branches:
