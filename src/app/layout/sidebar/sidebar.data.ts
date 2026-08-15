@@ -9,6 +9,9 @@ export const primarySidebarItems: SidebarItem[] = [
     { id: 'ads', labelKey: 'content-crud:modules.ads.title', to: APP_ROUTES.ads.path, icon: Megaphone, permissions: ['content.manage'], end: true },
     { id: 'notifications', labelKey: 'content-crud:modules.notifications.title', to: APP_ROUTES.notifications.path, icon: BellRing, permissions: ['notifications.manage'], end: true },
     { id: 'pageContents', labelKey: 'content-crud:modules.pageContents.title', to: APP_ROUTES.pageContents.path, icon: FileText, permissions: ['content.manage'], end: true },
+    { id: 'pointsOfSale', labelKey: 'content-crud:modules.pointsOfSale.title', to: APP_ROUTES.pointsOfSale.path, icon: MapPin, permissions: ['qr.manage'], end: true },
+    { id: 'qrCodes', labelKey: 'sidebar.items.qrCodes', to: APP_ROUTES.qrCodes.path, icon: QrCode, permissions: ['qr.manage'], end: true },
+    { id: 'whatsapp', labelKey: 'whatsapp:sidebar', to: APP_ROUTES.whatsapp.path, icon: MessageCircle, roles: ['SuperAdmin'], end: true },
   ] },
   { id: 'quizManagement', labelKey: 'sidebar.groups.quizManagement', icon: FileQuestion, permissions: ['quizzes.manage'], children: [
     { id: 'quizBuilder', labelKey: 'sidebar.items.quizBuilder', to: APP_ROUTES.quizBuilder.path, icon: UploadCloud, permissions: ['quizzes.manage'], end: true },
@@ -33,10 +36,6 @@ export const primarySidebarItems: SidebarItem[] = [
     { id: 'students', labelKey: 'sidebar.items.students', to: APP_ROUTES.students.path, icon: UsersRound, permissions: ['content.manage'], end: true },
     { id: 'managementUsers', labelKey: 'content-crud:modules.managementUsers.title', to: APP_ROUTES.managementUsers.path, icon: UsersRound, permissions: ['employees.manage'], end: true },
   ] },
-  { id: 'distributionManagement', labelKey: 'sidebar.items.aiQrCodes', icon: QrCode, permissions: ['qr.manage'], children: [
-    { id: 'pointsOfSale', labelKey: 'content-crud:modules.pointsOfSale.title', to: APP_ROUTES.pointsOfSale.path, icon: MapPin, permissions: ['qr.manage'], end: true },
-    { id: 'unifiedQrCodes', labelKey: 'sidebar.items.aiQrCodes', to: APP_ROUTES.qrCodes.path, icon: QrCode, permissions: ['qr.manage'], end: true },
-  ] },
   { id: 'aiManagement', labelKey: 'sidebar.groups.aiManagement', icon: BrainCircuit, permissions: ['ai.manage'], children: [
     { id: 'aiChatSettings', labelKey: 'sidebar.items.aiChatSettings', to: APP_ROUTES.aiChatSettings.path, icon: BrainCircuit, permissions: ['ai.manage'], end: true },
     { id: 'aiSubscriptions', labelKey: 'sidebar.items.aiSubscriptions', to: APP_ROUTES.aiSubscriptions.path, icon: UsersRound, permissions: ['ai.manage'], end: true },
@@ -44,6 +43,4 @@ export const primarySidebarItems: SidebarItem[] = [
   ] },
 ]
 
-export const secondarySidebarItems: SidebarItem[] = [
-  { id: 'whatsapp', labelKey: 'whatsapp:sidebar', to: APP_ROUTES.whatsapp.path, icon: MessageCircle, roles: ['SuperAdmin'], end: true },
-]
+export const secondarySidebarItems: SidebarItem[] = []
