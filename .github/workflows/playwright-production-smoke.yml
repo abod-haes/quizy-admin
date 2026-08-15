@@ -1,0 +1,59 @@
+name: Playwright Production Smoke
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/playwright-production-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      QUIZY_ADMIN_URL: https://quizy-admin-gold.vercel.app
+      QUIZY_ADMIN_PHONE: ${{ secrets.QUIZY_ADMIN_PHONE }}
+      QUIZY_ADMIN_PASSWORD: ${{ secrets.QUIZY_ADMIN_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.0'
+          cache: npm
+
+      - name: Install application dependencies
+        run: npm ci
+
+      - name: Install Playwright runner
+        run: npm install --no-save @playwright/test
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify test credentials are configured
+        shell: bash
+        run: |
+          if [ -z "$QUIZY_ADMIN_PHONE" ] || [ -z "$QUIZY_ADMIN_PASSWORD" ]; then
+            echo "Required repository secrets QUIZY_ADMIN_PHONE and/or QUIZY_ADMIN_PASSWORD are missing."
+            exit 1
+          fi
+
+      - name: Run production read-only smoke test
+        run: npx playwright test tests/e2e/production-smoke.spec.ts --project=chromium
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-production-smoke-report
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+          retention-days: 7
