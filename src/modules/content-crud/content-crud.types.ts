@@ -34,6 +34,9 @@ export type AcademicContentItem = {
   lastName?: string | null
   phoneNumber?: string | null
   countryCallingCode?: string | null
+  phoneVerified?: boolean | null
+  isBlocked?: boolean | null
+  accountStatus?: 'ACTIVE' | 'BLOCKED' | 'PENDING_VERIFICATION' | string | null
   role?: number | string | null
   userType?: number | string | null
   status?: string | null
