@@ -1,6 +1,11 @@
 import { API_ORIGIN } from '@/shared/config/api-origin'
 
-const LEGACY_RESOURCE_PATH = /(?:^|\/)uploads\/resources\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\.[^/?#]+)?$/i
+const UUID_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+const LEGACY_RESOURCE_PATH = new RegExp(`(?:^|/)uploads/resources/(${UUID_PATTERN})(?:\\.[^/?#]+)?$`, 'i')
+const RESOURCE_CONTENT_PATH = new RegExp(
+  `(?:^|/)(?:api/)+(?:v1/admin/)?resources/(${UUID_PATTERN})/content$`,
+  'i',
+)
 
 function normalizePathname(value: string): string {
   try {
@@ -10,8 +15,11 @@ function normalizePathname(value: string): string {
   }
 }
 
-function legacyResourceId(value: string): string | null {
-  return normalizePathname(value).match(LEGACY_RESOURCE_PATH)?.[1] ?? null
+function resourceIdFromUrl(value: string): string | null {
+  const pathname = normalizePathname(value)
+  return pathname.match(LEGACY_RESOURCE_PATH)?.[1]
+    ?? pathname.match(RESOURCE_CONTENT_PATH)?.[1]
+    ?? null
 }
 
 export function generateResourceContentUrl(resourceId: string | null | undefined): string {
@@ -28,7 +36,7 @@ export function generateFileUrl(path: string | null | undefined): string {
     return normalizedPath
   }
 
-  const resourceId = legacyResourceId(normalizedPath)
+  const resourceId = resourceIdFromUrl(normalizedPath)
   if (resourceId) {
     return generateResourceContentUrl(resourceId)
   }
