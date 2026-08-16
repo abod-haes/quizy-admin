@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  Ban,
   ChevronLeft,
   ChevronRight,
   DatabaseZap,
@@ -12,6 +13,7 @@ import {
   Plus,
   RefreshCcw,
   Search,
+  ShieldCheck,
   SlidersHorizontal,
   Trash2,
   UserRound,
@@ -21,6 +23,7 @@ import { toast } from '@/shared/lib/toast'
 
 import { api } from '@/shared/api/api-client'
 import type { PagedResponse, ResourceLink } from '@/shared/api/api.types'
+import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 import { academicContentConfigs } from '@/modules/content-crud/content-crud.config'
 import type {
   AcademicContentItem,
@@ -90,6 +93,18 @@ type ResourceImageState = { resource: ContentResource | null; pendingFile: File 
 type ResourceMutationPayload = { entityId: string; file: File }
 type ResourceFileMutationPayload = { id: string; entityId?: string | null; file: File }
 type ResourceDeleteMutationPayload = { id: string; entityId?: string | null }
+type StudentAccountStatus = {
+  id: string
+  isBlocked: boolean
+  blockedAt: string | null
+  phoneVerified: boolean
+  phoneVerifiedAt: string | null
+  accountStatus: 'ACTIVE' | 'BLOCKED' | 'PENDING_VERIFICATION'
+}
+type StudentAccountAction = {
+  id: string
+  action: 'block' | 'unblock'
+}
 
 function createEmptyResourceImageState(): ResourceImageState {
   return { resource: null, pendingFile: null }
@@ -382,7 +397,8 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
   const canEdit = config.allowEdit !== false && config.fields.length > 0
   const canDelete = config.allowDelete !== false
   const canViewCourse = config.key === 'courses'
-  const showActionsColumn = canEdit || canDelete || canViewCourse
+  const isStudentModule = config.key === 'students'
+  const showActionsColumn = canEdit || canDelete || canViewCourse || isStudentModule
   const activeEditId = formState.open && formState.mode === 'edit' ? formState.item?.id ?? '' : ''
 
   useEffect(() => {
@@ -404,6 +420,16 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
       params: { Page: page, PerPage: DEFAULT_PAGE_SIZE, ...(config.key === 'pageContents' ? { pageType: Number(pageContentType) } : {}) },
     }),
   })
+  const studentStatusesQuery = useQuery({
+    queryKey: ['content-crud', 'students', 'account-statuses'],
+    queryFn: () => api.get<StudentAccountStatus[]>(API_ENDPOINTS.students.statuses),
+    enabled: isStudentModule,
+    staleTime: 30_000,
+  })
+  const studentStatusById = useMemo(
+    () => new Map((studentStatusesQuery.data ?? []).map((status) => [status.id, status])),
+    [studentStatusesQuery.data],
+  )
   const detailQuery = useQuery({
     queryKey: ['content-crud', config.key, 'detail', activeEditId],
     queryFn: async () => {
@@ -563,6 +589,20 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
     },
   })
 
+  const studentAccountMutation = useMutation({
+    mutationFn: ({ id, action }: StudentAccountAction) =>
+      api.patch<{ message?: string }>(
+        action === 'block' ? API_ENDPOINTS.students.block(id) : API_ENDPOINTS.students.unblock(id),
+      ),
+    onSuccess: async (response) => {
+      toast.success(response.message || t('studentAccount.updated'))
+      await queryClient.invalidateQueries({ queryKey: ['content-crud', 'students'] })
+    },
+    onError: (error) => {
+      toast.error(t(getApiErrorMessage(error)))
+    },
+  })
+
   const openCreateForm = () => {
     setDetailHydratedId(null)
     setResourceImageState(createEmptyResourceImageState())
@@ -645,6 +685,27 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
   const handleDelete = (item: AcademicContentItem) => setDeleteTarget(item)
   const confirmDelete = () => {
     if (deleteTarget) deleteMutation.mutate(deleteTarget)
+  }
+
+  const renderStudentStatus = (item: AcademicContentItem) => {
+    const status = studentStatusById.get(item.id)
+    const accountStatus = status?.accountStatus ?? (item.phoneVerified === false ? 'PENDING_VERIFICATION' : null)
+
+    if (!accountStatus) {
+      return (
+        <span className="inline-flex rounded-full border border-border bg-muted/40 px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+          {studentStatusesQuery.isLoading ? t('studentAccount.loading') : t('studentAccount.unknown')}
+        </span>
+      )
+    }
+
+    if (accountStatus === 'BLOCKED') {
+      return <span className="inline-flex rounded-full border border-destructive/25 bg-destructive/10 px-2.5 py-1 text-xs font-semibold text-destructive">{t('studentAccount.blocked')}</span>
+    }
+    if (accountStatus === 'PENDING_VERIFICATION') {
+      return <span className="inline-flex rounded-full border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">{t('studentAccount.pending')}</span>
+    }
+    return <span className="inline-flex rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">{t('studentAccount.active')}</span>
   }
 
   const renderTableCellContent = (item: AcademicContentItem, column: ContentCrudConfig['columns'][number]) => {
@@ -740,36 +801,61 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
                   <TableHeader className="sticky top-0 z-10 bg-card/95 backdrop-blur">
                     <TableRow>
                       {config.columns.map((column) => <TableHead key={column.key}>{t(column.labelKey)}</TableHead>)}
+                      {isStudentModule ? <TableHead>{t('studentAccount.status')}</TableHead> : null}
                       {showActionsColumn ? <TableHead className="w-32 text-center">{t('fields.actions')}</TableHead> : null}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {items.map((item) => (
-                      <TableRow key={item.id}>
-                        {config.columns.map((column) => (
-                          <TableCell key={column.key} className={column.key === RESOURCE_IMAGE_FIELD_NAME ? 'w-20' : 'max-w-[18rem] truncate'}>
-                            {renderTableCellContent(item, column)}
+                    {items.map((item) => {
+                      const studentStatus = isStudentModule ? studentStatusById.get(item.id) : undefined
+                      const studentActionBusy = studentAccountMutation.isPending && studentAccountMutation.variables?.id === item.id
+                      return (
+                        <TableRow key={item.id}>
+                          {config.columns.map((column) => (
+                            <TableCell key={column.key} className={column.key === RESOURCE_IMAGE_FIELD_NAME ? 'w-20' : 'max-w-[18rem] truncate'}>
+                              {renderTableCellContent(item, column)}
+                            </TableCell>
+                          ))}
+                          {isStudentModule ? <TableCell>{renderStudentStatus(item)}</TableCell> : null}
+                          <TableCell className={showActionsColumn ? undefined : 'hidden'}>
+                            <div className="flex justify-center gap-2">
+                              {canViewCourse ? (
+                                <Button type="button" size="icon-sm" variant="outline" onClick={() => navigate(`/courses/${item.id}`)}>
+                                  <Eye className="size-4" />
+                                </Button>
+                              ) : null}
+                              {canEdit ? (
+                                <Button type="button" size="icon-sm" variant="outline" onClick={() => openEditForm(item)}>
+                                  <Pencil className="size-4" />
+                                </Button>
+                              ) : null}
+                              {isStudentModule ? (
+                                <Button
+                                  type="button"
+                                  size="icon-sm"
+                                  variant="outline"
+                                  className={studentStatus?.isBlocked ? 'text-emerald-700 hover:text-emerald-700 dark:text-emerald-300' : 'text-amber-700 hover:text-amber-700 dark:text-amber-300'}
+                                  disabled={!studentStatus || studentStatusesQuery.isLoading || studentAccountMutation.isPending}
+                                  title={studentStatus?.isBlocked ? t('studentAccount.unblock') : t('studentAccount.block')}
+                                  aria-label={studentStatus?.isBlocked ? t('studentAccount.unblock') : t('studentAccount.block')}
+                                  onClick={() => {
+                                    if (!studentStatus) return
+                                    studentAccountMutation.mutate({ id: item.id, action: studentStatus.isBlocked ? 'unblock' : 'block' })
+                                  }}
+                                >
+                                  {studentActionBusy ? <Loader2 className="size-4 animate-spin" /> : studentStatus?.isBlocked ? <ShieldCheck className="size-4" /> : <Ban className="size-4" />}
+                                </Button>
+                              ) : null}
+                              {canDelete ? (
+                                <Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => handleDelete(item)}>
+                                  <Trash2 className="size-4" />
+                                </Button>
+                              ) : null}
+                            </div>
                           </TableCell>
-                        ))}
-                        <TableCell className={showActionsColumn ? undefined : 'hidden'}>
-                          <div className="flex justify-center gap-2">
-                            {canViewCourse ? (
-                              <Button type="button" size="icon-sm" variant="outline" onClick={() => navigate(`/courses/${item.id}`)}>
-                                <Eye className="size-4" />
-                              </Button>
-                            ) : null}
-                            {canEdit ? (
-                              <Button type="button" size="icon-sm" variant="outline" onClick={() => openEditForm(item)}>
-                                <Pencil className="size-4" />
-                              </Button>
-                            ) : null}
-                            <Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => handleDelete(item)}>
-                              <Trash2 className="size-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                        </TableRow>
+                      )
+                    })}
                   </TableBody>
                 </Table>
               </div>
