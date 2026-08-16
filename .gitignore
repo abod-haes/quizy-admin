@@ -2,3 +2,10 @@ node_modules
 dist
 .env
 .vscode/
+
+# Playwright E2E is local-only. Never commit CI config, tests, or generated artifacts.
+playwright.config.ts
+playwright-report/
+test-results/
+tests/e2e/
+.github/workflows/playwright-production-smoke.yml
