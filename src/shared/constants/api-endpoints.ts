@@ -67,8 +67,11 @@ export const API_ENDPOINTS = {
   },
   students: {
     list: `${ADMIN}/students`, brief: `${ADMIN}/students/brief`,
+    statuses: `${ADMIN}/students/account-statuses`,
     detail: (id: string) => byId(`${ADMIN}/students`, id), create: `${ADMIN}/students`,
     update: (id: string) => byId(`${ADMIN}/students`, id), remove: (id: string) => byId(`${ADMIN}/students`, id),
+    block: (id: string) => `${ADMIN}/students/${id}/block`,
+    unblock: (id: string) => `${ADMIN}/students/${id}/unblock`,
   },
   employees: {
     ...employeeCrud,
