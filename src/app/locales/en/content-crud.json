@@ -69,6 +69,17 @@
     "userType": "User type",
     "password": "Password"
   },
+  "studentAccount": {
+    "status": "Account status",
+    "active": "Active",
+    "pending": "Pending verification",
+    "blocked": "Blocked",
+    "loading": "Checking...",
+    "unknown": "Unknown",
+    "block": "Block account",
+    "unblock": "Unblock account",
+    "updated": "Student account status updated."
+  },
   "actions": {
     "create": "Create",
     "sendNotification": "Send notification",
