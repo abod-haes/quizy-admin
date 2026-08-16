@@ -16,7 +16,6 @@ import {
   LessonsPage,
   NotificationsPage,
   PageContentsPage,
-  StudentsPage,
   SubjectsPage,
   TeachersPage,
   UnitsPage,
@@ -38,6 +37,7 @@ import AiSubscriptionsPage from '@/modules/ai-chat/pages/ai-subscriptions.page'
 import AiDocumentsPage from '@/modules/ai-chat/pages/ai-documents.page'
 import AiQrCodesPage from '@/modules/ai-qr-codes/pages/ai-qr-codes.page'
 import QuizzesPage from '@/modules/quizzes/pages/quizzes.page'
+import StudentsManagementPage from '@/modules/students/students.page'
 import WhatsAppManagementPage from '@/modules/whatsapp/whatsapp.page'
 
 function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof createElement>) {
@@ -70,7 +70,7 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'lessons', element: createElement(LessonsPage) },
   { routeKey: 'units', element: createElement(UnitsPage) },
   { routeKey: 'teachers', element: createElement(TeachersPage) },
-  { routeKey: 'students', element: createElement(StudentsPage) },
+  { routeKey: 'students', element: createElement(StudentsManagementPage) },
   { routeKey: 'managementUsers', element: createElement(EmployeesPage) },
   { routeKey: 'courses', element: createElement(CoursesManagementPage) },
   { routeKey: 'courseDetail', element: createElement(CourseSessionsPage) },
