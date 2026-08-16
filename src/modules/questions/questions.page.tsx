@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { FileQuestion, Loader2, Pencil, Plus, RefreshCcw, Search, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 
 import { api } from '@/shared/api/api-client'
 import type { PagedResponse } from '@/shared/api/api.types'
@@ -86,6 +87,7 @@ function optionLabel(option: RelationOption) {
 
 export default function QuestionsManagementPage() {
   const { t } = useTranslation('admin-pages')
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
@@ -135,24 +137,8 @@ export default function QuestionsManagementPage() {
     setFormOpen(true)
   }
 
-  const openEdit = async (question: QuestionRow) => {
-    try {
-      const detail = await api.get<QuestionDetail>(API_ENDPOINTS.questions.detail(question.id))
-      setEditingId(question.id)
-      setForm({
-        title: detail.title ?? '',
-        hint: detail.hint ?? '',
-        description: detail.description ?? '',
-        quizIds: Array.isArray(detail.quizIds) ? detail.quizIds : [],
-        lessonIds: Array.isArray(detail.lessonIds) ? detail.lessonIds : [],
-        answers: Array.isArray(detail.answers)
-          ? detail.answers.map((answer) => ({ id: answer.id, title: answer.title ?? '', isCorrect: answer.isCorrect === true }))
-          : [],
-      })
-      setFormOpen(true)
-    } catch {
-      toast.error(t('questions.loadError'))
-    }
+  const openEdit = (question: QuestionRow) => {
+    navigate(`/questions/${question.id}`)
   }
 
   const saveMutation = useMutation({
@@ -265,7 +251,7 @@ export default function QuestionsManagementPage() {
                 header: '',
                 renderCell: (row) => (
                   <div className="flex justify-end gap-2">
-                    <Button size="sm" variant="outline" onClick={() => void openEdit(row)}><Pencil className="size-4" />{t('common.edit')}</Button>
+                    <Button size="sm" variant="outline" onClick={() => openEdit(row)}><Pencil className="size-4" />{t('common.edit')}</Button>
                     <Button size="sm" variant="outline" className="text-destructive" onClick={() => setDeleteTarget(row)}><Trash2 className="size-4" />{t('common.delete')}</Button>
                   </div>
                 ),

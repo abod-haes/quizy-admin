@@ -31,6 +31,7 @@ import { NotFoundPage } from '@/modules/not-found/pages/not-found.page'
 import PointsOfSaleManagementPage from '@/modules/points-of-sale/points-of-sale.page'
 import QuizBuilderPage from '@/modules/quiz-builder/pages/quiz-builder-v2.page'
 import QuestionsManagementPage from '@/modules/questions/questions.page'
+import QuestionDetailPage from '@/modules/questions/question-detail.page'
 import ResourcesManagementPage from '@/modules/resources/resources.page'
 import AiChatSettingsPage from '@/modules/ai-chat/pages/ai-chat-settings.page'
 import AiSubscriptionsPage from '@/modules/ai-chat/pages/ai-subscriptions.page'
@@ -63,6 +64,7 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'quizBuilder', element: createElement(QuizBuilderPage) },
   { routeKey: 'quizzes', element: createElement(QuizzesPage) },
   { routeKey: 'questions', element: createElement(QuestionsManagementPage) },
+  { routeKey: 'questionDetail', element: createElement(QuestionDetailPage) },
   { routeKey: 'classes', element: createElement(ClassesPage) },
   { routeKey: 'subjects', element: createElement(SubjectsPage) },
   { routeKey: 'lessons', element: createElement(LessonsPage) },

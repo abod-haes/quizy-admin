@@ -17,6 +17,7 @@ export const APP_ROUTES = {
   quizBuilder: { key: 'quizBuilder', path: '/quiz-builder', protected: true, permissions: QUIZZES, breadcrumbKeys: [] },
   quizzes: { key: 'quizzes', path: '/quizzes', protected: true, permissions: QUIZZES, breadcrumbKeys: [] },
   questions: { key: 'questions', path: '/questions', protected: true, permissions: QUIZZES, breadcrumbKeys: [] },
+  questionDetail: { key: 'questionDetail', path: '/questions/:questionId', protected: true, permissions: QUIZZES, breadcrumbKeys: [] },
   classes: { key: 'classes', path: '/classes', protected: true, permissions: CONTENT, breadcrumbKeys: [] },
   subjects: { key: 'subjects', path: '/subjects', protected: true, permissions: CONTENT, breadcrumbKeys: [] },
   lessons: { key: 'lessons', path: '/lessons', protected: true, permissions: CONTENT, breadcrumbKeys: [] },
