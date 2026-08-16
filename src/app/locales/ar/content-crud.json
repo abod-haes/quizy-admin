@@ -69,6 +69,17 @@
     "userType": "نوع المستخدم",
     "password": "كلمة المرور"
   },
+  "studentAccount": {
+    "status": "حالة الحساب",
+    "active": "نشط",
+    "pending": "بانتظار التفعيل",
+    "blocked": "محظور",
+    "loading": "جاري التحقق...",
+    "unknown": "غير معروف",
+    "block": "حظر الحساب",
+    "unblock": "إلغاء الحظر",
+    "updated": "تم تحديث حالة حساب الطالب."
+  },
   "actions": {
     "create": "إضافة",
     "sendNotification": "إرسال إشعار",
