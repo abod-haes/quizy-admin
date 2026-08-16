@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Ban, Loader2, RefreshCcw, ShieldCheck } from 'lucide-react'
 
@@ -54,14 +54,12 @@ export default function StudentsManagementPage() {
     () => (studentsQuery.data ?? []).filter((student) => !statusesQuery.data || statusById.has(student.id)),
     [statusById, statusesQuery.data, studentsQuery.data],
   )
-
-  useEffect(() => {
-    if (selectedId && availableStudents.some((student) => student.id === selectedId)) return
-    setSelectedId(availableStudents[0]?.id ?? '')
-  }, [availableStudents, selectedId])
-
-  const selectedStudent = availableStudents.find((student) => student.id === selectedId)
-  const selectedStatus = selectedId ? statusById.get(selectedId) : undefined
+  const activeSelectedId =
+    selectedId && availableStudents.some((student) => student.id === selectedId)
+      ? selectedId
+      : availableStudents[0]?.id ?? ''
+  const selectedStudent = availableStudents.find((student) => student.id === activeSelectedId)
+  const selectedStatus = activeSelectedId ? statusById.get(activeSelectedId) : undefined
 
   const accountMutation = useMutation({
     mutationFn: ({ id, action }: AccountAction) =>
@@ -110,7 +108,7 @@ export default function StudentsManagementPage() {
           <label className="min-w-0 flex-1 space-y-1.5">
             <span className="text-sm font-medium text-foreground">الطالب</span>
             <select
-              value={selectedId}
+              value={activeSelectedId}
               onChange={(event) => setSelectedId(event.target.value)}
               disabled={studentsQuery.isLoading || statusesQuery.isLoading || availableStudents.length === 0}
               className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
@@ -140,11 +138,11 @@ export default function StudentsManagementPage() {
             <Button
               type="button"
               variant={selectedStatus?.isBlocked ? 'outline' : 'destructive'}
-              disabled={!selectedId || accountMutation.isPending || statusesQuery.isLoading}
+              disabled={!activeSelectedId || accountMutation.isPending || statusesQuery.isLoading}
               onClick={() => {
-                if (!selectedId) return
+                if (!activeSelectedId) return
                 accountMutation.mutate({
-                  id: selectedId,
+                  id: activeSelectedId,
                   action: selectedStatus?.isBlocked ? 'unblock' : 'block',
                 })
               }}
