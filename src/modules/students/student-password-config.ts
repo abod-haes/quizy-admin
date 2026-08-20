@@ -34,7 +34,7 @@ studentConfig.getInitialValues = (item) => ({
 
 studentConfig.validate = (values: ContentFormValues) => {
   const baseValidation = originalValidate(values)
-  const errors = baseValidation.success ? {} : { ...baseValidation.errors }
+  const errors: Record<string, string> = baseValidation.success ? {} : { ...baseValidation.errors }
   const phoneNumber = typeof values.phoneNumber === 'string' ? values.phoneNumber.trim() : ''
   const password = typeof values.password === 'string' ? values.password : ''
   const isEdit = values[STUDENT_FORM_MODE_FIELD] === 'edit'
