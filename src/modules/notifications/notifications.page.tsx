@@ -89,7 +89,7 @@ function errorMessage(error: unknown): string | null {
 }
 
 export default function NotificationsPage() {
-  const { t } = useTranslation('content-crud')
+  const { t, i18n } = useTranslation('content-crud')
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
   const [open, setOpen] = useState(false)
@@ -110,36 +110,22 @@ export default function NotificationsPage() {
       if (!form.isBroadcast && userIds.length === 0) throw new Error('validation.userIdsRequired')
 
       const data = parseData(form.data)
-      let resourceId: string | null = null
-
-      try {
-        let imageUrl = ''
-        if (imageFile) {
-          const resource = await resourcesService.uploadPublicImage(imageFile)
-          resourceId = resource.id
-          imageUrl = generateResourceContentUrl(resource.id)
-          if (!imageUrl) throw new Error('errors.notificationImageUpload')
-        }
-
-        const payload: PushNotificationPayload = {
-          title: form.title.trim(),
-          body: form.body.trim(),
-          data,
-          imageUrl,
-          isBroadcast: form.isBroadcast,
-          userIds,
-        }
-        return await api.post<unknown, PushNotificationPayload>(API_ENDPOINTS.notifications.push, payload)
-      } catch (error) {
-        if (resourceId) {
-          try {
-            await resourcesService.remove(resourceId)
-          } catch {
-            // Best effort cleanup: preserve the original notification error.
-          }
-        }
-        throw error
+      let imageUrl = ''
+      if (imageFile) {
+        const resource = await resourcesService.uploadPublicImage(imageFile)
+        imageUrl = generateResourceContentUrl(resource.id)
+        if (!imageUrl) throw new Error('errors.notificationImageUpload')
       }
+
+      const payload: PushNotificationPayload = {
+        title: form.title.trim(),
+        body: form.body.trim(),
+        data,
+        imageUrl,
+        isBroadcast: form.isBroadcast,
+        userIds,
+      }
+      return api.post<unknown, PushNotificationPayload>(API_ENDPOINTS.notifications.push, payload)
     },
     onSuccess: async () => {
       toast.success(t('messages.sent'))
@@ -160,6 +146,9 @@ export default function NotificationsPage() {
   const totalCount = listQuery.data?.totalCount ?? 0
   const pageSize = listQuery.data?.pageSize ?? 20
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
+  const notificationImageHint = i18n.dir() === 'rtl'
+    ? 'يتم رفع الصورة عبر Resources أولًا ثم إرسال رابطها مع الإشعار.'
+    : 'The image is uploaded through Resources first, then its URL is sent with the notification.'
 
   const closeDialog = () => {
     if (sendMutation.isPending) return
@@ -221,7 +210,7 @@ export default function NotificationsPage() {
             <div className="space-y-2 sm:col-span-2"><Label htmlFor="notification-body">{t('fields.body')}</Label><Textarea id="notification-body" value={form.body} onChange={(event) => updateForm('body', event.target.value)} /></div>
             <div className="space-y-2 sm:col-span-2">
               <Label>{t('fields.image')}</Label>
-              <CustomFileInput value={imageFile?.name ?? ''} uploadLabel={t('actions.chooseImage')} removeLabel={t('actions.deleteImage')} hint={t('form.notificationImageHint', { defaultValue: 'The image is uploaded through Resources before the notification is sent.' })} disabled={sendMutation.isPending} onFileSelect={setImageFile} onClear={() => setImageFile(null)} />
+              <CustomFileInput value={imageFile?.name ?? ''} uploadLabel={t('actions.chooseImage')} removeLabel={t('actions.deleteImage')} hint={notificationImageHint} disabled={sendMutation.isPending} onFileSelect={setImageFile} onClear={() => setImageFile(null)} />
             </div>
             <div className="flex h-11 items-center justify-between gap-3 rounded-2xl border border-border bg-background px-4 text-sm sm:col-span-2"><span>{t('fields.isBroadcast')}</span><ToggleSwitch checked={form.isBroadcast} onCheckedChange={(checked) => updateForm('isBroadcast', checked)} /></div>
             {!form.isBroadcast ? <div className="space-y-2 sm:col-span-2"><Label htmlFor="notification-users">{t('fields.targetUserIds')}</Label><Textarea id="notification-users" value={form.userIds} placeholder={t('placeholders.userIds')} onChange={(event) => updateForm('userIds', event.target.value)} /></div> : null}
