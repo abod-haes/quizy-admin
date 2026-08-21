@@ -20,6 +20,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  ConfirmDialog,
   CustomSelect,
   Dialog,
   DialogContent,
@@ -197,7 +198,35 @@ export default function EmployeesPage() {
           { id: 'name', header: t('employees.employee'), renderCell: (row) => <div><p className="font-semibold">{row.firstName} {row.lastName ?? ''}</p><p className="text-xs text-muted-foreground">{row.countryCallingCode ?? ''} {row.phoneNumber}</p></div> },
           { id: 'status', header: t('employees.status'), renderCell: (row) => <Badge variant="outline" color={row.status === 'ACTIVE' ? 'emerald' : row.status === 'DISABLED' ? 'slate' : 'amber'}>{statusLabel(row.status)}</Badge> },
           { id: 'permissions', header: t('employees.permissions'), renderCell: (row) => <div className="flex max-w-md flex-wrap gap-1">{row.permissions.length ? row.permissions.map((code) => <Badge key={code} variant="outline">{permissionNames.get(code) ?? code}</Badge>) : <span className="text-xs text-muted-foreground">{t('employees.noPermissions')}</span>}</div> },
-          { id: 'actions', header: '', renderCell: (row) => <div className="flex flex-wrap justify-end gap-1"><Button size="sm" variant="outline" icon={<Pencil className="size-3.5" />} onClick={() => setEditing({ ...row })}>{t('common.edit')}</Button>{row.status === 'DISABLED' ? <Button size="sm" variant="outline" icon={<UserRoundCheck className="size-3.5" />} disabled={anyActionPending} onClick={() => enableMutation.mutate(row.id)}>{t('employees.enable')}</Button> : <Button size="sm" variant="outline" icon={<UserRoundX className="size-3.5" />} disabled={anyActionPending} onClick={() => disableMutation.mutate(row.id)}>{t('employees.disable')}</Button>}{row.status === 'INVITED' ? <Button size="sm" variant="outline" icon={<Send className="size-3.5" />} disabled={anyActionPending} onClick={() => resendMutation.mutate(row.id)}>{t('employees.resendInvitation')}</Button> : null}<Button size="sm" variant="outline" icon={<Trash2 className="size-3.5" />} disabled={anyActionPending} onClick={() => deleteMutation.mutate(row.id)}>{t('common.delete')}</Button></div> },
+          {
+            id: 'actions',
+            header: '',
+            renderCell: (row) => (
+              <div className="flex flex-wrap justify-end gap-1">
+                <Button size="sm" variant="outline" icon={<Pencil className="size-3.5" />} onClick={() => setEditing({ ...row })}>{t('common.edit')}</Button>
+                {row.status === 'DISABLED' ? (
+                  <Button size="sm" variant="outline" icon={<UserRoundCheck className="size-3.5" />} disabled={anyActionPending} onClick={() => enableMutation.mutate(row.id)}>{t('employees.enable')}</Button>
+                ) : (
+                  <Button size="sm" variant="outline" icon={<UserRoundX className="size-3.5" />} disabled={anyActionPending} onClick={() => disableMutation.mutate(row.id)}>{t('employees.disable')}</Button>
+                )}
+                {row.status === 'INVITED' ? (
+                  <Button size="sm" variant="outline" icon={<Send className="size-3.5" />} disabled={anyActionPending} onClick={() => resendMutation.mutate(row.id)}>{t('employees.resendInvitation')}</Button>
+                ) : null}
+                <ConfirmDialog
+                  title={t('common.delete')}
+                  confirmLabel={t('common.delete')}
+                  confirmingLabel={t('common.delete')}
+                  cancelLabel={t('common.cancel')}
+                  onConfirm={() => deleteMutation.mutateAsync(row.id)}
+                  trigger={
+                    <Button size="sm" variant="outline" icon={<Trash2 className="size-3.5" />} disabled={anyActionPending}>
+                      {t('common.delete')}
+                    </Button>
+                  }
+                />
+              </div>
+            ),
+          },
         ]}
       />
 

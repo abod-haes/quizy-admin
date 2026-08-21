@@ -15,6 +15,7 @@ import {
   AlertTitle,
   Badge,
   Button,
+  ConfirmDialog,
   CustomSelect,
   Dialog,
   DialogContent,
@@ -340,7 +341,18 @@ export default function AiQrCodesPage() {
             renderCell: (row) => (
               <div className="flex flex-wrap justify-end gap-2">
                 <Button size="sm" variant="outline" loading={printingId === row.id} icon={<Printer className="size-4" />} onClick={() => void reprint(row)}>{t('actions.reprint')}</Button>
-                <Button size="sm" variant="outline" disabled={Boolean(row.redeemed) || deleteMutation.isPending} icon={<Trash2 className="size-4" />} onClick={() => deleteMutation.mutate(row.id)}>{t('actions.delete')}</Button>
+                <ConfirmDialog
+                  title={t('actions.delete')}
+                  confirmLabel={t('actions.delete')}
+                  confirmingLabel={t('actions.delete')}
+                  cancelLabel={t('actions.close')}
+                  onConfirm={() => deleteMutation.mutateAsync(row.id)}
+                  trigger={
+                    <Button size="sm" variant="outline" disabled={Boolean(row.redeemed) || deleteMutation.isPending} icon={<Trash2 className="size-4" />}>
+                      {t('actions.delete')}
+                    </Button>
+                  }
+                />
               </div>
             ),
           },
