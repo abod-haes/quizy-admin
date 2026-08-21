@@ -11,6 +11,7 @@ import {
 import {
   Badge,
   Button,
+  ConfirmDialog,
   CustomFileInput,
   CustomSelect,
   Dialog,
@@ -164,15 +165,23 @@ export default function ResourcesManagementPage() {
                 >
                   {t('common.download')}
                 </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  icon={<Trash2 className="size-3.5" />}
-                  disabled={removeMutation.isPending}
-                  onClick={() => removeMutation.mutate(row.id)}
-                >
-                  {t('common.delete')}
-                </Button>
+                <ConfirmDialog
+                  title={t('common.delete')}
+                  confirmLabel={t('common.delete')}
+                  confirmingLabel={t('common.delete')}
+                  cancelLabel={t('common.cancel')}
+                  onConfirm={() => removeMutation.mutateAsync(row.id)}
+                  trigger={
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      icon={<Trash2 className="size-3.5" />}
+                      disabled={removeMutation.isPending}
+                    >
+                      {t('common.delete')}
+                    </Button>
+                  }
+                />
               </div>
             ),
           },
