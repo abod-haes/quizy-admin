@@ -10,6 +10,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  ConfirmDialog,
   CustomFileInput,
   Dialog,
   DialogContent,
@@ -147,7 +148,27 @@ export default function AdsManagementPage() {
           },
           { id: 'title', header: t('ads.titleField'), renderCell: (row) => <span className="font-semibold">{row.title}</span> },
           { id: 'description', header: t('ads.descriptionField'), renderCell: (row) => <span className="line-clamp-2 max-w-md text-sm text-muted-foreground">{row.description || '—'}</span> },
-          { id: 'actions', header: '', renderCell: (row) => <div className="flex justify-end gap-2"><Button size="sm" variant="outline" icon={<Pencil className="size-3.5" />} onClick={() => { setEditing({ ...row }); setEditImage(null) }}>{t('common.edit')}</Button><Button size="sm" variant="outline" icon={<Trash2 className="size-3.5" />} disabled={removeMutation.isPending} onClick={() => removeMutation.mutate(row)}>{t('common.delete')}</Button></div> },
+          {
+            id: 'actions',
+            header: '',
+            renderCell: (row) => (
+              <div className="flex justify-end gap-2">
+                <Button size="sm" variant="outline" icon={<Pencil className="size-3.5" />} onClick={() => { setEditing({ ...row }); setEditImage(null) }}>{t('common.edit')}</Button>
+                <ConfirmDialog
+                  title={t('common.delete')}
+                  confirmLabel={t('common.delete')}
+                  confirmingLabel={t('common.delete')}
+                  cancelLabel={t('common.cancel')}
+                  onConfirm={() => removeMutation.mutateAsync(row)}
+                  trigger={
+                    <Button size="sm" variant="outline" icon={<Trash2 className="size-3.5" />} disabled={removeMutation.isPending}>
+                      {t('common.delete')}
+                    </Button>
+                  }
+                />
+              </div>
+            ),
+          },
         ]}
       />
 
