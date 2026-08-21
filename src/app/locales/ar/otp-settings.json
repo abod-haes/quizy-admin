@@ -1,0 +1,63 @@
+{
+  "title": "إعدادات OTP",
+  "description": "إدارة عملاء OTP ومفاتيح API ومراقبة طلبات رمز التحقق.",
+  "summary": {
+    "clients": "العملاء",
+    "sent": "المرسلة اليوم",
+    "verified": "المتحقق منها اليوم",
+    "worker": "حالة العامل"
+  },
+  "clients": {
+    "title": "عملاء OTP",
+    "createTitle": "إضافة عميل OTP",
+    "name": "الاسم",
+    "slug": "المعرّف النصي",
+    "hourlyLimit": "الحد بالساعة",
+    "dailyLimit": "الحد اليومي",
+    "keys": "عدد المفاتيح",
+    "status": "الحالة",
+    "empty": "لا يوجد عملاء OTP بعد."
+  },
+  "keys": {
+    "title": "مفاتيح API",
+    "createTitle": "إنشاء مفتاح API",
+    "client": "العميل",
+    "selectClient": "اختر العميل",
+    "name": "اسم المفتاح",
+    "prefix": "Prefix",
+    "status": "الحالة",
+    "lastUsed": "آخر استخدام",
+    "empty": "لا توجد مفاتيح API.",
+    "oneTimeTitle": "احفظ المفتاح الآن",
+    "oneTimeHint": "يظهر مفتاح API الكامل مرة واحدة فقط. انسخه واحفظه في مكان آمن."
+  },
+  "requests": {
+    "title": "أحدث طلبات OTP",
+    "phone": "رقم الهاتف",
+    "client": "العميل",
+    "purpose": "الغرض",
+    "status": "الحالة",
+    "createdAt": "وقت الطلب",
+    "empty": "لا توجد طلبات OTP."
+  },
+  "actions": {
+    "refresh": "تحديث",
+    "createClient": "إضافة العميل",
+    "createKey": "إنشاء المفتاح",
+    "copy": "نسخ المفتاح",
+    "enable": "تفعيل",
+    "disable": "تعطيل",
+    "revoke": "إلغاء المفتاح",
+    "actions": "الإجراءات"
+  },
+  "status": {
+    "active": "فعال",
+    "inactive": "معطل"
+  },
+  "messages": {
+    "clientCreated": "تم إنشاء عميل OTP.",
+    "keyCreated": "تم إنشاء مفتاح API. احفظه قبل مغادرة الصفحة.",
+    "keyRevoked": "تم إلغاء مفتاح API.",
+    "error": "تعذر تنفيذ العملية."
+  }
+}
