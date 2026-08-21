@@ -14,7 +14,6 @@ import ResetPasswordPage from '@/modules/auth/pages/reset-password.page'
 import {
   ClassesPage,
   LessonsPage,
-  NotificationsPage,
   PageContentsPage,
   SubjectsPage,
   TeachersPage,
@@ -27,6 +26,7 @@ import CourseSessionsPage from '@/modules/courses/pages/course-sessions.page'
 import DashboardPage from '@/modules/dashboard/pages/dashboard.page'
 import EmployeesPage from '@/modules/employees/employees.page'
 import { NotFoundPage } from '@/modules/not-found/pages/not-found.page'
+import NotificationsPage from '@/modules/notifications/notifications.page'
 import PointsOfSaleManagementPage from '@/modules/points-of-sale/points-of-sale.page'
 import QuizBuilderPage from '@/modules/quiz-builder/pages/quiz-builder-v2.page'
 import QuestionsManagementPage from '@/modules/questions/questions.page'
