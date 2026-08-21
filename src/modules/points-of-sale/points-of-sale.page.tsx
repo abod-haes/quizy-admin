@@ -15,6 +15,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  ConfirmDialog,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -169,7 +170,18 @@ export default function PointsOfSaleManagementPage() {
             renderCell: (row) => (
               <div className="flex justify-end gap-2">
                 <Button size="sm" variant="outline" icon={<Pencil className="size-3.5" />} onClick={() => setEditing({ ...row })}>{t('common.edit')}</Button>
-                <Button size="sm" variant="outline" icon={<Trash2 className="size-3.5" />} disabled={removeMutation.isPending} onClick={() => removeMutation.mutate(row.id)}>{t('common.delete')}</Button>
+                <ConfirmDialog
+                  title={t('common.delete')}
+                  confirmLabel={t('common.delete')}
+                  confirmingLabel={t('common.delete')}
+                  cancelLabel={t('common.cancel')}
+                  onConfirm={() => removeMutation.mutateAsync(row.id)}
+                  trigger={
+                    <Button size="sm" variant="outline" icon={<Trash2 className="size-3.5" />} disabled={removeMutation.isPending}>
+                      {t('common.delete')}
+                    </Button>
+                  }
+                />
               </div>
             ),
           },
