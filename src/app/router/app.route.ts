@@ -37,6 +37,7 @@ import AiSubscriptionsPage from '@/modules/ai-chat/pages/ai-subscriptions.page'
 import AiDocumentsPage from '@/modules/ai-chat/pages/ai-documents.page'
 import AiQrCodesPage from '@/modules/ai-qr-codes/pages/ai-qr-codes.page'
 import QuizzesPage from '@/modules/quizzes/pages/quizzes.page'
+import OtpSettingsPage from '@/modules/settings/pages/otp-settings.page'
 import StudentsManagementPage from '@/modules/students/students.page'
 import WhatsAppManagementPage from '@/modules/whatsapp/whatsapp.page'
 
@@ -85,6 +86,7 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'notifications', element: createElement(NotificationsPage) },
   { routeKey: 'pageContents', element: createElement(PageContentsPage) },
   { routeKey: 'whatsapp', element: createElement(WhatsAppManagementPage) },
+  { routeKey: 'otpSettings', element: createElement(OtpSettingsPage) },
   { routeKey: 'aiChatSettings', element: createElement(AiChatSettingsPage) },
   { routeKey: 'aiSubscriptions', element: createElement(AiSubscriptionsPage) },
   { routeKey: 'aiDocuments', element: createElement(AiDocumentsPage) },
