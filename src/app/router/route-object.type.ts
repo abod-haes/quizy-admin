@@ -38,6 +38,7 @@ export const APP_ROUTES = {
   notifications: { key: 'notifications', path: '/notifications', protected: true, permissions: NOTIFICATIONS, breadcrumbKeys: [] },
   pageContents: { key: 'pageContents', path: '/page-contents', protected: true, permissions: CONTENT, breadcrumbKeys: [] },
   whatsapp: { key: 'whatsapp', path: '/whatsapp', protected: true, roles: ['SuperAdmin'], breadcrumbKeys: [] },
+  otpSettings: { key: 'otpSettings', path: '/settings/otp', protected: true, roles: ['SuperAdmin'], breadcrumbKeys: [] },
   aiChatSettings: { key: 'aiChatSettings', path: '/ai-chat/settings', protected: true, permissions: AI, breadcrumbKeys: [] },
   aiSubscriptions: { key: 'aiSubscriptions', path: '/ai-chat/subscriptions', protected: true, permissions: AI, breadcrumbKeys: [] },
   aiDocuments: { key: 'aiDocuments', path: '/ai-chat/documents', protected: true, permissions: AI, breadcrumbKeys: [] },
