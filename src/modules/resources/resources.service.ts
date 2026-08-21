@@ -35,6 +35,14 @@ export const resourcesService = {
     formData.append('visibility', visibility)
     return api.upload<AdminResource>(API_ENDPOINTS.resources.upload, formData)
   },
+  uploadPublicImage: (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('visibility', 'PUBLIC')
+    formData.append('isImage', 'true')
+    formData.append('kind', 'IMAGE')
+    return api.upload<AdminResource>(API_ENDPOINTS.resources.upload, formData)
+  },
   remove: (id: string) => api.delete<{ message: string }>(API_ENDPOINTS.resources.remove(id)),
   download: (id: string) => api.downloadBlob(API_ENDPOINTS.resources.content(id)),
 }
