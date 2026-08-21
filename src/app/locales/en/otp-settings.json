@@ -1,0 +1,63 @@
+{
+  "title": "OTP Settings",
+  "description": "Manage OTP clients, API keys, and recent verification-code requests.",
+  "summary": {
+    "clients": "Clients",
+    "sent": "Sent today",
+    "verified": "Verified today",
+    "worker": "Worker status"
+  },
+  "clients": {
+    "title": "OTP Clients",
+    "createTitle": "Add OTP client",
+    "name": "Name",
+    "slug": "Slug",
+    "hourlyLimit": "Hourly limit",
+    "dailyLimit": "Daily limit",
+    "keys": "API keys",
+    "status": "Status",
+    "empty": "No OTP clients yet."
+  },
+  "keys": {
+    "title": "API Keys",
+    "createTitle": "Create API key",
+    "client": "Client",
+    "selectClient": "Select client",
+    "name": "Key name",
+    "prefix": "Prefix",
+    "status": "Status",
+    "lastUsed": "Last used",
+    "empty": "No API keys yet.",
+    "oneTimeTitle": "Save this key now",
+    "oneTimeHint": "The complete API key is shown only once. Copy it and store it securely."
+  },
+  "requests": {
+    "title": "Recent OTP Requests",
+    "phone": "Phone",
+    "client": "Client",
+    "purpose": "Purpose",
+    "status": "Status",
+    "createdAt": "Requested at",
+    "empty": "No OTP requests yet."
+  },
+  "actions": {
+    "refresh": "Refresh",
+    "createClient": "Add client",
+    "createKey": "Create key",
+    "copy": "Copy key",
+    "enable": "Enable",
+    "disable": "Disable",
+    "revoke": "Revoke",
+    "actions": "Actions"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "messages": {
+    "clientCreated": "OTP client created.",
+    "keyCreated": "API key created. Save it before leaving this page.",
+    "keyRevoked": "API key revoked.",
+    "error": "The operation could not be completed."
+  }
+}
