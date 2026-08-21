@@ -33,6 +33,16 @@ export const API_ENDPOINTS = {
     stop: `${ADMIN}/whatsapp/session/stop`,
     logout: `${ADMIN}/whatsapp/session/logout`,
   },
+  otp: {
+    dashboardSummary: `${ADMIN}/dashboard/summary`,
+    clients: `${ADMIN}/clients`,
+    client: (id: string) => `${ADMIN}/clients/${id}`,
+    apiKeys: `${ADMIN}/api-keys`,
+    revokeApiKey: (id: string) => `${ADMIN}/api-keys/${id}/revoke`,
+    requests: `${ADMIN}/otp`,
+    request: (id: string) => `${ADMIN}/otp/${id}`,
+    auditLogs: `${ADMIN}/audit-logs`,
+  },
   ads: {
     list: `${ADMIN}/ads`,
     detail: (id: string) => byId(`${ADMIN}/ads`, id),
