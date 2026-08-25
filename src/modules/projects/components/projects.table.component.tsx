@@ -1,24 +1,25 @@
-import { Eye, GripVertical, Pencil, Trash2 } from 'lucide-react'
+import {
+  Eye,
+  GripVertical,
+  Pencil,
+  Trash2 } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Reorder } from 'framer-motion'
 
 import type { ProjectsEntity } from '@/modules/projects/types/projects.type'
 import { ProjectsTableColumns } from '@/modules/projects/components/projects.table-columns'
 import { toDateLabel } from '@/shared/lib/data-value.helpers'
 import { formatUiDisplayValue } from '@/shared/lib/display-format.helpers'
-import { formatTranslationForLocale, formatTranslationList } from '@/shared/lib/translation-display.helpers'
+import { formatTranslationForLocale,
+  formatTranslationList } from '@/shared/lib/translation-display.helpers'
 import {
   Badge,
   PaginatedDataTable,
-  Table,
-  TableCell,
-  TableHead,
-  TableHeader,
   TableRowActionsMenu,
   TruncatedText,
   type DataTableColumn,
   type TableRowActionItem,
+  DataTable,
 } from '@/shared/ui'
 
 const columns = ProjectsTableColumns
@@ -282,54 +283,15 @@ export function ProjectsTable({
             </div>
           </div>
         </div>
-        <Table
-          containerClassName="h-full w-full overflow-auto"
-          className="min-w-full [&_thead_th]:h-12 [&_thead_th]:border-b [&_thead_th]:border-border/80 [&_thead_th]:bg-accent/60 [&_thead_th]:px-4 [&_thead_th]:py-3 [&_thead_th]:text-xs [&_thead_th]:font-semibold [&_thead_th]:tracking-[0.04em] [&_thead_th]:text-foreground [&_thead_th]:uppercase [&_tbody_td]:align-top">
-          <TableHeader>
-            <tr className="border-b border-border/80 hover:bg-transparent">
-              <TableHead className="w-14 text-center">
-                <span className="sr-only">
-                  {t('page.dragLabel', {
-                    defaultValue: 'Drag',
-                  })}
-                </span>
-              </TableHead>
-              {tableColumns.map((column) => (
-                <TableHead key={column.id} className={column.headerClassName}>
-                  {column.header}
-                </TableHead>
-              ))}
-            </tr>
-          </TableHeader>
-
-          <Reorder.Group
-            as="tbody"
-            axis="y"
-            values={rows}
-            onReorder={onReorderRows ?? (() => undefined)}
-            className="[&_tr:last-child]:border-0"
-          >
-            {rows.map((row) => (
-              <Reorder.Item
-                key={String(row.id)}
-                as="tr"
-                value={row}
-                className="cursor-grab border-b border-border/70 bg-background transition-colors hover:bg-muted/35 active:cursor-grabbing"
-              >
-                <TableCell className="w-14 align-middle">
-                  <div className="inline-flex items-center justify-center rounded-md border border-border/70 bg-muted/20 p-2 text-muted-foreground">
-                    <GripVertical className="size-4" />
-                  </div>
-                </TableCell>
-                {tableColumns.map((column) => (
-                  <TableCell key={column.id} className={typeof column.cellClassName === 'function' ? column.cellClassName(row) : column.cellClassName}>
-                    {column.renderCell(row)}
-                  </TableCell>
-                ))}
-              </Reorder.Item>
-            ))}
-          </Reorder.Group>
-        </Table>
+        <div className="h-[min(65vh,44rem)] min-h-72">
+          <DataTable
+            rows={rows}
+            columns={tableColumns}
+            getRowId={(row) => String(row.id)}
+            rowDragManaged
+            onRowOrderChange={onReorderRows}
+          />
+        </div>
       </div>
     )
   }

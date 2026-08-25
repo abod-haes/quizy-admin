@@ -1,6 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useEffect,
+  useMemo,
+  useState } from 'react'
+import { useNavigate,
+  useSearchParams } from 'react-router-dom'
+import { useMutation,
+  useQuery,
+  useQueryClient } from '@tanstack/react-query'
 import {
   Ban,
   ChevronLeft,
@@ -12,17 +18,17 @@ import {
   Pencil,
   Plus,
   RefreshCcw,
-  Search,
   ShieldCheck,
   SlidersHorizontal,
   Trash2,
   UserRound,
-} from 'lucide-react'
+  } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from '@/shared/lib/toast'
 
 import { api } from '@/shared/api/api-client'
-import type { PagedResponse, ResourceLink } from '@/shared/api/api.types'
+import type { PagedResponse,
+  ResourceLink } from '@/shared/api/api.types'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 import { academicContentConfigs } from '@/modules/content-crud/content-crud.config'
 import type {
@@ -32,20 +38,19 @@ import type {
   ContentFormValue,
   ContentFormValues,
   ContentRelationOption,
-} from '@/modules/content-crud/content-crud.types'
+  } from '@/modules/content-crud/content-crud.types'
 import {
   deleteContentResource,
   getContentResourcesByEntity,
   updateContentResourceFile,
   uploadContentResource,
   type ContentResource,
-} from '@/modules/content-crud/services/content-resource.services'
+  } from '@/modules/content-crud/services/content-resource.services'
 import { CountryCodeSelect } from '@/components/ui/country-code-select'
 import {
   Button,
   Card,
   CardContent,
-  CardHeader,
   CustomFileInput,
   CustomMultiSelect,
   CustomSelect,
@@ -58,14 +63,17 @@ import {
   Input,
   Label,
   Skeleton,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
   Textarea,
   ToggleSwitch,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  DataTable,
+  PageHeader,
+  type DataTableColumn,
 } from '@/shared/ui'
 import { generateFileUrl } from '@/shared/utils/file-url'
 
@@ -716,69 +724,71 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
     return column.render ? column.render(item, { relations }) : renderCellValue(item, column.key, column.relationKey, relations)
   }
 
+  const contentTableColumns: DataTableColumn<AcademicContentItem>[] = config.columns.map((column) => ({
+    id: column.key,
+    header: t(column.labelKey),
+    cellClassName: column.key === RESOURCE_IMAGE_FIELD_NAME ? 'quizy-ag-image-cell' : undefined,
+    renderCell: (item) => renderTableCellContent(item, column),
+  }))
+
+  if (isStudentModule) {
+    contentTableColumns.push({ id: 'student-status', header: t('studentAccount.status'), renderCell: (item) => renderStudentStatus(item) })
+  }
+
+  if (showActionsColumn) {
+    contentTableColumns.push({
+      id: 'actions',
+      header: t('fields.actions'),
+      headerClassName: 'text-center',
+      cellClassName: 'text-center',
+      renderCell: (item) => {
+        const studentStatus = isStudentModule ? studentStatusById.get(item.id) : undefined
+        const studentActionBusy = studentAccountMutation.isPending && studentAccountMutation.variables?.id === item.id
+        return (
+          <div className="flex w-full justify-center gap-2">
+            {canViewCourse ? <Button type="button" size="icon-sm" variant="outline" onClick={() => navigate(`/courses/${item.id}`)}><Eye className="size-4" /></Button> : null}
+            {canEdit ? <Button type="button" size="icon-sm" variant="outline" onClick={() => openEditForm(item)}><Pencil className="size-4" /></Button> : null}
+            {isStudentModule ? <Button type="button" size="icon-sm" variant="outline" className={studentStatus?.isBlocked ? 'text-emerald-700 hover:text-emerald-700 dark:text-emerald-300' : 'text-amber-700 hover:text-amber-700 dark:text-amber-300'} disabled={!studentStatus || studentStatusesQuery.isLoading || studentAccountMutation.isPending} title={studentStatus?.isBlocked ? t('studentAccount.unblock') : t('studentAccount.block')} aria-label={studentStatus?.isBlocked ? t('studentAccount.unblock') : t('studentAccount.block')} onClick={() => { if (!studentStatus) return; studentAccountMutation.mutate({ id: item.id, action: studentStatus.isBlocked ? 'unblock' : 'block' }) }}>{studentActionBusy ? <Loader2 className="size-4 animate-spin" /> : studentStatus?.isBlocked ? <ShieldCheck className="size-4" /> : <Ban className="size-4" />}</Button> : null}
+            {canDelete ? <Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => handleDelete(item)}><Trash2 className="size-4" /></Button> : null}
+          </div>
+        )
+      },
+    })
+  }
+
   return (
     <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
-      <div className="flex shrink-0 flex-col gap-3 rounded-3xl border border-primary/10 bg-card/95 p-4 shadow-sm xl:flex-row xl:items-center xl:justify-between">
-        <div className="min-w-0 space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t(config.titleKey)}</h1>
-          <p className="line-clamp-1 text-sm leading-6 text-muted-foreground">{t(config.descriptionKey)}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" size="sm" variant="outline" onClick={() => listQuery.refetch()} disabled={listQuery.isFetching}>
-            <RefreshCcw className="size-4" />
-            {t('actions.refresh')}
-          </Button>
-          {canCreate ? (
-            <Button type="button" size="sm" onClick={openCreateForm}>
-              <Plus className="size-4" />
-              {t(config.key === 'notifications' ? 'actions.sendNotification' : 'actions.create')}
-            </Button>
-          ) : null}
-        </div>
-      </div>
-      <Card className={`flex min-h-0 flex-1 flex-col rounded-3xl shadow-sm ${config.key === 'quizzes' ? 'quizy-quizzes-table-card' : ''}`}>
-        <CardHeader className="shrink-0 space-y-3 py-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="grid flex-1 gap-2 md:grid-cols-2 xl:grid-cols-4 lg:max-w-5xl">
-              <label className="relative block md:col-span-2 xl:col-span-1">
-                <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input className="h-10 ps-10" value={filters.search} placeholder={t('filters.searchPlaceholder')} onChange={(event) => updateSearch(event.target.value)} />
-              </label>
-              {relationFields.map((field) => {
-                const options = field.relationKey ? relations[field.relationKey] ?? [] : []
-                const selected = filters.relations[field.name] || ALL_FILTER_VALUE
-                return (
-                  <CustomSelect
-                    key={field.name}
-                    value={selected}
-                    variant="filter"
-                    icon={<SlidersHorizontal />}
-                    placeholder={t('filters.all', { field: t(field.labelKey) })}
-                    options={[{ value: ALL_FILTER_VALUE, label: t('filters.all', { field: t(field.labelKey) }) }, ...options.map((option) => ({ value: option.id, label: getRelationOptionLabel(option) }))]}
-                    onValueChange={(value) => updateRelationFilter(field.name, value)}
-                  />
-                )
-              })}
-            </div>
-            {config.key === 'pageContents' ? (
-              <div className="flex flex-wrap gap-2">
-                {PAGE_CONTENT_TABS.map((tab) => (
-                  <Button
-                    key={tab.value}
-                    type="button"
-                    size="sm"
-                    variant={pageContentType === tab.value ? 'default' : 'outline'}
-                    disabled={listQuery.isFetching}
-                    onClick={() => updatePageContentType(tab.value)}
-                  >
-                    {t(tab.labelKey)}
-                  </Button>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </CardHeader>
-        <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden pt-0">
+      <PageHeader
+        title={t(config.titleKey)}
+        description={t(config.descriptionKey)}
+        search={{ value: filters.search, placeholder: t('filters.searchPlaceholder'), onChange: updateSearch }}
+        controls={
+          <>
+            {relationFields.map((field) => {
+              const options = field.relationKey ? relations[field.relationKey] ?? [] : []
+              const selected = filters.relations[field.name] || ALL_FILTER_VALUE
+              return (
+                <CustomSelect
+                  key={field.name}
+                  className="h-9 min-w-40"
+                  value={selected}
+                  variant="filter"
+                  icon={<SlidersHorizontal />}
+                  placeholder={t('filters.all', { field: t(field.labelKey) })}
+                  options={[{ value: ALL_FILTER_VALUE, label: t('filters.all', { field: t(field.labelKey) }) }, ...options.map((option) => ({ value: option.id, label: getRelationOptionLabel(option) }))]}
+                  onValueChange={(value) => updateRelationFilter(field.name, value)}
+                />
+              )
+            })}
+            {config.key === 'pageContents' ? PAGE_CONTENT_TABS.map((tab) => (
+              <Button key={tab.value} type="button" variant={pageContentType === tab.value ? 'default' : 'outline'} disabled={listQuery.isFetching} onClick={() => updatePageContentType(tab.value)}>{t(tab.labelKey)}</Button>
+            )) : null}
+          </>
+        }
+        actions={<><Button type="button" variant="outline" onClick={() => listQuery.refetch()} disabled={listQuery.isFetching}><RefreshCcw />{t('actions.refresh')}</Button>{canCreate ? <Button type="button" onClick={openCreateForm}><Plus />{t(config.key === 'notifications' ? 'actions.sendNotification' : 'actions.create')}</Button> : null}</>}
+      />
+      <Card className={`flex min-h-0 flex-1 flex-col rounded-none border-0 bg-transparent shadow-none ${config.key === 'quizzes' ? 'quizy-quizzes-table-card' : ''}`}>
+        <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-0">
           {listQuery.isLoading ? (
             <div className="space-y-3">{[0, 1, 2, 3].map((index) => <Skeleton key={index} className="h-14 w-full rounded-2xl" />)}</div>
           ) : listQuery.isError ? (
@@ -795,70 +805,8 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
               <p className="mt-1 text-sm text-muted-foreground">{t('states.empty.description')}</p>
             </div>
           ) : (
-            <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-border bg-background/70">
-              <div className={`${tableScrollClass} min-h-0 overflow-auto`}>
-                <Table className={config.key === 'quizzes' ? 'min-w-[920px]' : 'min-w-[760px]'}>
-                  <TableHeader className="sticky top-0 z-10 bg-card/95 backdrop-blur">
-                    <TableRow>
-                      {config.columns.map((column) => <TableHead key={column.key}>{t(column.labelKey)}</TableHead>)}
-                      {isStudentModule ? <TableHead>{t('studentAccount.status')}</TableHead> : null}
-                      {showActionsColumn ? <TableHead className="w-32 text-center">{t('fields.actions')}</TableHead> : null}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {items.map((item) => {
-                      const studentStatus = isStudentModule ? studentStatusById.get(item.id) : undefined
-                      const studentActionBusy = studentAccountMutation.isPending && studentAccountMutation.variables?.id === item.id
-                      return (
-                        <TableRow key={item.id}>
-                          {config.columns.map((column) => (
-                            <TableCell key={column.key} className={column.key === RESOURCE_IMAGE_FIELD_NAME ? 'w-20' : 'max-w-[18rem] truncate'}>
-                              {renderTableCellContent(item, column)}
-                            </TableCell>
-                          ))}
-                          {isStudentModule ? <TableCell>{renderStudentStatus(item)}</TableCell> : null}
-                          <TableCell className={showActionsColumn ? undefined : 'hidden'}>
-                            <div className="flex justify-center gap-2">
-                              {canViewCourse ? (
-                                <Button type="button" size="icon-sm" variant="outline" onClick={() => navigate(`/courses/${item.id}`)}>
-                                  <Eye className="size-4" />
-                                </Button>
-                              ) : null}
-                              {canEdit ? (
-                                <Button type="button" size="icon-sm" variant="outline" onClick={() => openEditForm(item)}>
-                                  <Pencil className="size-4" />
-                                </Button>
-                              ) : null}
-                              {isStudentModule ? (
-                                <Button
-                                  type="button"
-                                  size="icon-sm"
-                                  variant="outline"
-                                  className={studentStatus?.isBlocked ? 'text-emerald-700 hover:text-emerald-700 dark:text-emerald-300' : 'text-amber-700 hover:text-amber-700 dark:text-amber-300'}
-                                  disabled={!studentStatus || studentStatusesQuery.isLoading || studentAccountMutation.isPending}
-                                  title={studentStatus?.isBlocked ? t('studentAccount.unblock') : t('studentAccount.block')}
-                                  aria-label={studentStatus?.isBlocked ? t('studentAccount.unblock') : t('studentAccount.block')}
-                                  onClick={() => {
-                                    if (!studentStatus) return
-                                    studentAccountMutation.mutate({ id: item.id, action: studentStatus.isBlocked ? 'unblock' : 'block' })
-                                  }}
-                                >
-                                  {studentActionBusy ? <Loader2 className="size-4 animate-spin" /> : studentStatus?.isBlocked ? <ShieldCheck className="size-4" /> : <Ban className="size-4" />}
-                                </Button>
-                              ) : null}
-                              {canDelete ? (
-                                <Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => handleDelete(item)}>
-                                  <Trash2 className="size-4" />
-                                </Button>
-                              ) : null}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+            <div className={`${tableScrollClass} min-h-72 flex-1 overflow-hidden bg-background/70`}>
+              <DataTable rows={items} columns={contentTableColumns} getRowId={(item) => item.id} />
             </div>
           )}
           <div className="mt-3 flex shrink-0 justify-end border-t border-border/70 pt-3">
@@ -870,18 +818,18 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
           </div>
         </CardContent>
       </Card>
-      <Dialog
+      <Sheet
         open={formState.open}
         onOpenChange={(open) => {
           if (!open && !saveMutation.isPending && !isResourceBusy) closeFormDialog()
           if (open) setFormState((current) => ({ ...current, open }))
         }}
       >
-        <DialogContent className="flex max-h-[88svh] max-w-4xl flex-col overflow-hidden">
-          <DialogHeader className="shrink-0">
-            <DialogTitle>{t(formState.mode === 'edit' ? 'form.editTitle' : 'form.createTitle', { entity: t(config.titleKey) })}</DialogTitle>
-            <DialogDescription>{t('form.description')}</DialogDescription>
-          </DialogHeader>
+        <SheetContent className="flex max-h-[88svh] max-w-4xl flex-col overflow-hidden">
+          <SheetHeader className="shrink-0">
+            <SheetTitle>{t(formState.mode === 'edit' ? 'form.editTitle' : 'form.createTitle', { entity: t(config.titleKey) })}</SheetTitle>
+            <SheetDescription>{t('form.description')}</SheetDescription>
+          </SheetHeader>
           <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto py-2 pe-1 sm:grid-cols-2 xl:grid-cols-3">
             {config.fields.map((field) => {
               const fieldError = formState.errors[field.name]
@@ -938,12 +886,12 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
               )
             })}
           </div>
-          <DialogFooter className="shrink-0 border-t border-border/70 pt-4">
+          <SheetFooter className="shrink-0 border-t border-border/70 pt-4">
             <Button type="button" variant="outline" disabled={saveMutation.isPending || isResourceBusy} onClick={closeFormDialog}>{t('actions.cancel')}</Button>
             <Button type="button" disabled={saveMutation.isPending || isResourceBusy} onClick={handleSubmit}>{saveMutation.isPending || isResourceBusy ? <Loader2 className="size-4 animate-spin" /> : null}{t(config.key === 'notifications' ? 'actions.send' : 'actions.save')}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
       <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteTarget(null) }}>
         <DialogContent className="max-w-md">
           <DialogHeader>

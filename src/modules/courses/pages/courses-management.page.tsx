@@ -1,6 +1,16 @@
-import { useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { BookOpen, Eye, Loader2, Pencil, Plus, RefreshCcw, Search, Trash2 } from 'lucide-react'
+import {
+  useMemo,
+  useState } from 'react'
+import { useMutation,
+  useQuery,
+  useQueryClient } from '@tanstack/react-query'
+import { BookOpen,
+  Eye,
+  Loader2,
+  Pencil,
+  Plus,
+  RefreshCcw,
+  Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
@@ -11,8 +21,6 @@ import { toast } from '@/shared/lib/toast'
 import {
   Badge,
   Button,
-  Card,
-  CardContent,
   CustomSelect,
   Dialog,
   DialogContent,
@@ -23,8 +31,16 @@ import {
   Input,
   Label,
   PaginatedDataTable,
+  PageHeader,
+  TableRowActionsMenu,
   Textarea,
   ToggleSwitch,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from '@/shared/ui'
 
 type CourseStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
@@ -206,25 +222,17 @@ export default function CoursesManagementPage() {
   ]
 
   return (
-    <section className="space-y-5">
-      <div className="flex flex-col gap-4 rounded-3xl border border-primary/10 bg-card p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-start gap-3">
-          <BookOpen className="mt-1 size-5 text-primary" />
-          <div><h1 className="text-2xl font-bold">{t('courses.title')}</h1><p className="mt-1 text-sm text-muted-foreground">{t('courses.description')}</p></div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" disabled={coursesQuery.isFetching} onClick={() => void coursesQuery.refetch()}><RefreshCcw className="size-4" />{t('common.refresh')}</Button>
-          <Button onClick={openCreate}><Plus className="size-4" />{t('courses.add')}</Button>
-        </div>
-      </div>
+    <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
+      <PageHeader
+        icon={<BookOpen />}
+        title={t('courses.title')}
+        description={t('courses.description')}
+        search={{ value: search, placeholder: t('courses.searchPlaceholder'), onChange: (value) => { setSearch(value); setPage(1) } }}
+        actions={<><Button variant="outline" disabled={coursesQuery.isFetching} onClick={() => void coursesQuery.refetch()}><RefreshCcw />{t('common.refresh')}</Button><Button onClick={openCreate}><Plus />{t('courses.add')}</Button></>}
+      />
 
-      <label className="relative block max-w-xl">
-        <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input className="ps-10" value={search} placeholder={t('courses.searchPlaceholder')} onChange={(event) => { setSearch(event.target.value); setPage(1) }} />
-      </label>
-
-      <Card className="rounded-3xl"><CardContent className="p-4">
-        <PaginatedDataTable<CourseRow>
+      <PaginatedDataTable<CourseRow>
+        className="min-h-0 flex-1"
           rows={rows}
           loading={coursesQuery.isLoading || coursesQuery.isFetching}
           getRowId={(row) => row.id}
@@ -238,14 +246,13 @@ export default function CoursesManagementPage() {
             { id: 'status', header: t('courses.statusLabel'), renderCell: (row) => <Badge variant="outline" color={row.status === 'PUBLISHED' ? 'emerald' : 'slate'}>{t(`courses.status.${row.status}`)}</Badge> },
             { id: 'price', header: t('courses.price'), renderCell: (row) => row.isFree ? t('courses.free') : `${row.price ?? 0} ${row.currency ?? ''}` },
             { id: 'sessions', header: t('courses.sessions'), renderCell: (row) => row.sessionsCount ?? 0 },
-            { id: 'actions', header: '', renderCell: (row) => <div className="flex justify-end gap-2"><Button size="sm" variant="outline" onClick={() => navigate(`/courses/${row.id}`)}><Eye className="size-4" />{t('courses.manageSessions')}</Button><Button size="sm" variant="outline" onClick={() => void openEdit(row)}><Pencil className="size-4" />{t('common.edit')}</Button><Button size="sm" variant="outline" className="text-destructive" onClick={() => setDeleteTarget(row)}><Trash2 className="size-4" />{t('common.delete')}</Button></div> },
+            { id: 'actions', header: '', renderCell: (row) => <div className="flex w-full justify-end"><TableRowActionsMenu row={row} triggerAriaLabel={t('common.actions')} actions={[{ key: 'sessions', label: t('courses.manageSessions'), icon: <Eye />, onClick: () => navigate(`/courses/${row.id}`) }, { key: 'edit', label: t('common.edit'), icon: <Pencil />, onClick: () => void openEdit(row) }, { key: 'delete', label: t('common.delete'), icon: <Trash2 />, variant: 'destructive', confirm: false, onClick: () => setDeleteTarget(row) }]} /></div> },
           ]}
-        />
-      </CardContent></Card>
+      />
 
-      <Dialog open={formOpen} onOpenChange={(open) => { if (!open && !saveMutation.isPending) closeForm() }}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader><DialogTitle>{t(editingId ? 'courses.editTitle' : 'courses.createTitle')}</DialogTitle><DialogDescription>{t('courses.formDescription')}</DialogDescription></DialogHeader>
+      <Sheet open={formOpen} onOpenChange={(open) => { if (!open && !saveMutation.isPending) closeForm() }}>
+        <SheetContent className="max-w-3xl">
+          <SheetHeader><SheetTitle>{t(editingId ? 'courses.editTitle' : 'courses.createTitle')}</SheetTitle><SheetDescription>{t('courses.formDescription')}</SheetDescription></SheetHeader>
           <div className="grid gap-4 py-2 md:grid-cols-2">
             <div className="space-y-2"><Label>{t('courses.subject')}</Label><CustomSelect value={form.subjectId || undefined} placeholder={t('courses.selectSubject')} options={subjectOptions} onValueChange={(value) => setForm((current) => ({ ...current, subjectId: String(value) }))} /></div>
             <div className="space-y-2"><Label>{t('courses.teacher')}</Label><CustomSelect value={form.teacherId || undefined} placeholder={t('courses.selectTeacher')} options={teacherOptions} onValueChange={(value) => setForm((current) => ({ ...current, teacherId: String(value) }))} /></div>
@@ -255,9 +262,9 @@ export default function CoursesManagementPage() {
             <div className="flex items-center justify-between rounded-2xl border border-border px-4 py-3"><span className="text-sm font-medium">{t('courses.free')}</span><ToggleSwitch checked={form.isFree} onCheckedChange={(isFree) => setForm((current) => ({ ...current, isFree }))} /></div>
             {!form.isFree ? <><div className="space-y-2"><Label>{t('courses.price')}</Label><Input type="number" min={0} step="0.01" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} /></div><div className="space-y-2"><Label>{t('courses.currency')}</Label><Input value={form.currency} maxLength={10} onChange={(event) => setForm((current) => ({ ...current, currency: event.target.value.toUpperCase() }))} /></div></> : null}
           </div>
-          <DialogFooter><Button variant="outline" disabled={saveMutation.isPending} onClick={closeForm}>{t('common.cancel')}</Button><Button disabled={!canSave} onClick={() => saveMutation.mutate()}>{saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('common.save')}</Button></DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <SheetFooter><Button variant="outline" disabled={saveMutation.isPending} onClick={closeForm}>{t('common.cancel')}</Button><Button disabled={!canSave} onClick={() => saveMutation.mutate()}>{saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('common.save')}</Button></SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteTarget(null) }}>
         <DialogContent className="max-w-md"><DialogHeader><DialogTitle>{t('courses.deleteTitle')}</DialogTitle><DialogDescription>{deleteTarget ? t('courses.deleteConfirm', { name: deleteTarget.title }) : ''}</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" disabled={deleteMutation.isPending} onClick={() => setDeleteTarget(null)}>{t('common.cancel')}</Button><Button className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={deleteMutation.isPending} onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}>{deleteMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('common.delete')}</Button></DialogFooter></DialogContent>

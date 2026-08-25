@@ -1,27 +1,35 @@
-import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Download, FileUp, HardDrive, RefreshCcw, Trash2 } from 'lucide-react'
+import {
+  useState } from 'react'
+import { useMutation,
+  useQuery,
+  useQueryClient } from '@tanstack/react-query'
+import { Download,
+  FileUp,
+  HardDrive,
+  RefreshCcw,
+  Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import {
   resourcesService,
   type AdminResource,
   type AdminResourceVisibility,
-} from '@/modules/resources/resources.service'
+  } from '@/modules/resources/resources.service'
 import {
   Badge,
   Button,
   ConfirmDialog,
   CustomFileInput,
   CustomSelect,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
   FormField,
   PaginatedDataTable,
+  PageHeader,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from '@/shared/ui'
 
 const PAGE_SIZE = 20
@@ -39,13 +47,14 @@ export default function ResourcesManagementPage() {
   const { t } = useTranslation('admin-pages')
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [visibility, setVisibility] = useState<AdminResourceVisibility>('PUBLIC')
 
   const listQuery = useQuery({
-    queryKey: ['admin-resources', page],
-    queryFn: () => resourcesService.list(page, PAGE_SIZE),
+    queryKey: ['admin-resources', page, search],
+    queryFn: () => resourcesService.list(page, PAGE_SIZE, search),
   })
   const uploadMutation = useMutation({
     mutationFn: () => {
@@ -99,22 +108,21 @@ export default function ResourcesManagementPage() {
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
 
   return (
-    <section className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-3xl border border-primary/15 bg-card p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-start gap-4">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"><HardDrive className="size-6" /></div>
-          <div>
-            <h1 className="text-2xl font-bold">{t('resources.title')}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{t('resources.description')}</p>
-          </div>
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-          <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void listQuery.refetch()}>{t('common.refresh')}</Button>
-          <Button icon={<FileUp className="size-4" />} onClick={openUploadDialog}>{t('resources.upload')}</Button>
-        </div>
-      </div>
+    <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
+      <PageHeader
+        icon={<HardDrive />}
+        title={t('resources.title')}
+        description={t('resources.description')}
+        search={{
+          value: search,
+          placeholder: t('common.search'),
+          onChange: (value) => { setSearch(value); setPage(1) },
+        }}
+        actions={<><Button variant="outline" icon={<RefreshCcw />} onClick={() => void listQuery.refetch()}>{t('common.refresh')}</Button><Button icon={<FileUp />} onClick={openUploadDialog}>{t('resources.upload')}</Button></>}
+      />
 
       <PaginatedDataTable<AdminResource>
+        className="min-h-0 flex-1"
         rows={rows}
         loading={listQuery.isLoading || listQuery.isFetching}
         getRowId={(row) => row.id}
@@ -170,7 +178,7 @@ export default function ResourcesManagementPage() {
                   confirmLabel={t('common.delete')}
                   confirmingLabel={t('common.delete')}
                   cancelLabel={t('common.cancel')}
-                  onConfirm={() => removeMutation.mutateAsync(row.id)}
+                  onConfirm={async () => { await removeMutation.mutateAsync(row.id) }}
                   trigger={
                     <Button
                       size="sm"
@@ -188,12 +196,12 @@ export default function ResourcesManagementPage() {
         ]}
       />
 
-      <Dialog open={uploadDialogOpen} onOpenChange={(open) => { if (open) setUploadDialogOpen(true); else closeUploadDialog() }}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><FileUp className="size-5 text-primary" />{t('resources.uploadTitle')}</DialogTitle>
-            <DialogDescription>{t('resources.uploadDescription')}</DialogDescription>
-          </DialogHeader>
+      <Sheet open={uploadDialogOpen} onOpenChange={(open) => { if (open) setUploadDialogOpen(true); else closeUploadDialog() }}>
+        <SheetContent className="max-w-2xl">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2"><FileUp className="size-5 text-primary" />{t('resources.uploadTitle')}</SheetTitle>
+            <SheetDescription>{t('resources.uploadDescription')}</SheetDescription>
+          </SheetHeader>
           <div className="space-y-4">
             <FormField label={t('resources.file')}>
               <CustomFileInput
@@ -218,12 +226,12 @@ export default function ResourcesManagementPage() {
               />
             </FormField>
           </div>
-          <DialogFooter>
+          <SheetFooter>
             <Button type="button" variant="outline" disabled={uploadMutation.isPending} onClick={closeUploadDialog}>{t('common.cancel')}</Button>
             <Button type="button" loading={uploadMutation.isPending} disabled={!file} icon={<FileUp className="size-4" />} onClick={() => uploadMutation.mutate()}>{t('resources.upload')}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </section>
   )
 }

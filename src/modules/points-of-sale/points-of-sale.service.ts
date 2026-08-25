@@ -13,7 +13,7 @@ export type PointOfSale = {
 
 export type PointOfSaleInput = {
   name: string
-  location?: string | null
+  location: string
 }
 
 export const pointsOfSaleService = {

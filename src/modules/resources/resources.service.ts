@@ -25,8 +25,13 @@ export type AdminResource = {
 }
 
 export const resourcesService = {
-  list: (page: number, perPage: number) => {
-    const params: LegacyPaginationQuery = { Page: page, PerPage: perPage }
+  list: (page: number, perPage: number, search?: string) => {
+    const normalizedSearch = search?.trim()
+    const params: LegacyPaginationQuery & { search?: string } = {
+      Page: page,
+      PerPage: perPage,
+      ...(normalizedSearch ? { search: normalizedSearch } : {}),
+    }
     return api.get<PagedResponse<AdminResource>>(API_ENDPOINTS.resources.list, { params })
   },
   upload: (file: File, visibility: AdminResourceVisibility) => {

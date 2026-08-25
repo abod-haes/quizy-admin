@@ -3,16 +3,11 @@ import { useTranslation } from 'react-i18next'
 
 import { toDateLabel } from '@/shared/lib/data-value.helpers'
 import { formatUiDisplayValue } from '@/shared/lib/display-format.helpers'
-import { cn } from '@/lib/utils'
 import {
+  DataTable,
   TableRowActionsMenu,
+  type DataTableColumn,
   type TableRowActionItem,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
 } from '@/shared/ui'
 
 export type CrudTableColumn<TRow> = {
@@ -38,54 +33,28 @@ function toScalarLabel(value: unknown): string {
 }
 
 function formatObjectSummary(rawValue: Record<string, unknown>): string {
-  const displayValue =
-    rawValue.title ??
-    rawValue.name ??
-    rawValue.label ??
-    rawValue.slug ??
-    rawValue.value
-
-  if (displayValue !== undefined && displayValue !== null) {
-    return toScalarLabel(displayValue)
-  }
-
+  const displayValue = rawValue.title ?? rawValue.name ?? rawValue.label ?? rawValue.slug ?? rawValue.value
+  if (displayValue !== undefined && displayValue !== null) return toScalarLabel(displayValue)
   const keys = Object.keys(rawValue)
-  if (!keys.length) {
-    return '-'
-  }
-
-  return `${keys.length} fields`
+  return keys.length ? `${keys.length} fields` : '-'
 }
 
 function formatArraySummary(rawValue: unknown[]): string {
-  if (!rawValue.length) {
-    return '-'
-  }
-
+  if (!rawValue.length) return '-'
   const firstItem = rawValue[0]
-
   if (typeof firstItem !== 'object' || !firstItem || Array.isArray(firstItem)) {
     return rawValue.map((item) => toScalarLabel(item)).filter(Boolean).join(', ')
   }
 
   const translationsLike = rawValue.filter(
-    (item) =>
-      item &&
-      typeof item === 'object' &&
-      !Array.isArray(item) &&
-      typeof (item as Record<string, unknown>).lang === 'string'
+    (item) => item && typeof item === 'object' && !Array.isArray(item) && typeof (item as Record<string, unknown>).lang === 'string'
   ) as Record<string, unknown>[]
 
   if (translationsLike.length) {
     return translationsLike
       .map((item) => {
         const lang = toScalarLabel(item.lang).toUpperCase()
-        const label =
-          toScalarLabel(item.title) ||
-          toScalarLabel(item.name) ||
-          toScalarLabel(item.label) ||
-          toScalarLabel(item.description)
-
+        const label = toScalarLabel(item.title) || toScalarLabel(item.name) || toScalarLabel(item.label) || toScalarLabel(item.description)
         return label ? `${lang}: ${label}` : lang
       })
       .filter(Boolean)
@@ -101,22 +70,10 @@ function renderDefaultCellValue(
   locale: string,
   booleanLabels: { trueLabel: string; falseLabel: string }
 ): ReactNode {
-  if (isDate) {
-    return toDateLabel(rawValue, { locale })
-  }
-
-  if (typeof rawValue === 'boolean') {
-    return rawValue ? booleanLabels.trueLabel : booleanLabels.falseLabel
-  }
-
-  if (Array.isArray(rawValue)) {
-    return formatArraySummary(rawValue)
-  }
-
-  if (rawValue && typeof rawValue === 'object') {
-    return formatObjectSummary(rawValue as Record<string, unknown>)
-  }
-
+  if (isDate) return toDateLabel(rawValue, { locale })
+  if (typeof rawValue === 'boolean') return rawValue ? booleanLabels.trueLabel : booleanLabels.falseLabel
+  if (Array.isArray(rawValue)) return formatArraySummary(rawValue)
+  if (rawValue && typeof rawValue === 'object') return formatObjectSummary(rawValue as Record<string, unknown>)
   return formatUiDisplayValue(rawValue)
 }
 
@@ -130,70 +87,45 @@ export function CrudEntityTable<TRow>({
   actions = [],
 }: CrudEntityTableProps<TRow>) {
   const { t } = useTranslation()
-  const hasActions = actions.length > 0
   const booleanLabels = {
     trueLabel: t('common.boolean.yes', { ns: 'translation', defaultValue: 'Yes' }),
     falseLabel: t('common.boolean.no', { ns: 'translation', defaultValue: 'No' }),
   }
 
+  const gridColumns: DataTableColumn<TRow>[] = columns.map((column) => ({
+      id: column.key,
+      header: column.label,
+      cellClassName: column.className,
+      renderCell: (row) => {
+        const rawValue = (row as Record<string, unknown>)[column.key]
+        return column.render
+          ? column.render(row)
+          : renderDefaultCellValue(rawValue, Boolean(column.isDate), locale, booleanLabels)
+      },
+    }))
+
+  if (actions.length) {
+    gridColumns.push({
+        id: 'actions',
+        header: actionsLabel,
+        headerClassName: 'text-end',
+        cellClassName: 'text-end',
+        renderCell: (row) => (
+          <div className="flex w-full justify-end">
+            <TableRowActionsMenu row={row} actions={actions} triggerAriaLabel={actionsLabel} />
+          </div>
+        ),
+    })
+  }
+
   return (
-    <Table
-      containerClassName="overflow-x-auto rounded-md border border-border bg-card"
-      className="min-w-[920px]"
-    >
-      <TableHeader>
-        <TableRow className="bg-accent hover:bg-accent">
-          {columns.map((column) => (
-            <TableHead key={column.key} className="h-11 text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground">
-              {column.label}
-            </TableHead>
-          ))}
-          {hasActions ? (
-            <TableHead className="h-11 w-20 text-right text-xs font-semibold uppercase tracking-[0.05em] text-muted-foreground">
-              {actionsLabel}
-            </TableHead>
-          ) : null}
-        </TableRow>
-      </TableHeader>
-
-      <TableBody>
-        {rows.map((row, index) => (
-          <TableRow key={getRowId(row)} className={cn('align-top', index % 2 === 0 ? 'bg-background' : 'bg-muted/10')}>
-            {columns.map((column) => {
-              const rawValue = (row as Record<string, unknown>)[column.key]
-              const cellValue = column.render
-                ? column.render(row)
-                : renderDefaultCellValue(rawValue, Boolean(column.isDate), locale, booleanLabels)
-
-              return (
-                <TableCell key={column.key} className={cn('py-3', column.className)}>
-                  {cellValue}
-                </TableCell>
-              )
-            })}
-            {hasActions ? (
-              <TableCell className="py-3 text-right">
-                <TableRowActionsMenu
-                  row={row}
-                  actions={actions}
-                  triggerAriaLabel={actionsLabel}
-                />
-              </TableCell>
-            ) : null}
-          </TableRow>
-        ))}
-
-        {rows.length === 0 ? (
-          <TableRow>
-            <TableCell
-              colSpan={columns.length + (hasActions ? 1 : 0)}
-              className="py-8 text-center text-sm text-muted-foreground"
-            >
-              {emptyLabel}
-            </TableCell>
-          </TableRow>
-        ) : null}
-      </TableBody>
-    </Table>
+    <div className="h-[min(60vh,40rem)] min-h-72 overflow-hidden rounded-md border border-border bg-card">
+      <DataTable
+        rows={rows}
+        columns={gridColumns}
+        getRowId={getRowId}
+        emptyMessage={emptyLabel}
+      />
+    </div>
   )
 }

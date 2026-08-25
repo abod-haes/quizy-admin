@@ -19,6 +19,8 @@ import {
   DialogHeader,
   DialogTitle,
   PaginatedDataTable,
+  PageHeader,
+  TableRowActionsMenu,
 } from '@/shared/ui'
 
 type AiDocumentRow = {
@@ -142,16 +144,14 @@ export default function AiDocumentsPage() {
   })
 
   return (
-    <section className="space-y-5">
-      <div className="flex flex-col gap-4 rounded-3xl border border-primary/10 bg-card p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{t('aiDocuments.title')}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t('aiDocuments.description')}</p>
-        </div>
-        <Button variant="outline" disabled={documentsQuery.isFetching} onClick={() => void documentsQuery.refetch()}><RefreshCcw className="size-4" />{t('common.refresh')}</Button>
-      </div>
+    <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
+      <PageHeader
+        title={t('aiDocuments.title')}
+        description={t('aiDocuments.description')}
+        actions={<Button variant="outline" disabled={documentsQuery.isFetching} onClick={() => void documentsQuery.refetch()}><RefreshCcw />{t('common.refresh')}</Button>}
+      />
 
-      <Card className="rounded-3xl"><CardContent className="grid gap-4 p-5 md:grid-cols-[1fr_auto] md:items-end">
+      <Card className="shrink-0 rounded-2xl"><CardContent className="grid gap-3 p-4 md:grid-cols-[1fr_auto] md:items-end">
         <CustomFileInput
           value={selectedFile?.name ?? ''}
           uploadLabel={t('aiDocuments.chooseFile')}
@@ -164,8 +164,8 @@ export default function AiDocumentsPage() {
         <Button disabled={!selectedFile || uploadMutation.isPending} onClick={() => uploadMutation.mutate()}>{uploadMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <FileUp className="size-4" />}{t('aiDocuments.upload')}</Button>
       </CardContent></Card>
 
-      <Card className="rounded-3xl"><CardContent className="p-4">
-        <PaginatedDataTable<AiDocumentRow>
+      <PaginatedDataTable<AiDocumentRow>
+        className="min-h-0 flex-1"
           rows={rows}
           loading={documentsQuery.isLoading || documentsQuery.isFetching}
           getRowId={(row) => row.id}
@@ -176,10 +176,9 @@ export default function AiDocumentsPage() {
             { id: 'name', header: t('aiDocuments.name'), renderCell: (row) => <span className="font-semibold">{row.name}</span> },
             { id: 'status', header: t('aiDocuments.status'), renderCell: (row) => <Badge variant="outline" color="primary">{statusOverrides[row.id] || row.status}</Badge> },
             { id: 'createdAt', header: t('aiDocuments.createdAt'), renderCell: (row) => row.createdAt ? new Date(row.createdAt).toLocaleString() : '-' },
-            { id: 'actions', header: '', renderCell: (row) => <div className="flex justify-end gap-2"><Button size="sm" variant="outline" disabled={statusMutation.isPending} onClick={() => statusMutation.mutate(row.id)}><RefreshCcw className="size-4" />{t('aiDocuments.checkStatus')}</Button><Button size="sm" variant="outline" disabled={retryMutation.isPending} onClick={() => retryMutation.mutate(row.id)}><RotateCcw className="size-4" />{t('aiDocuments.retry')}</Button><Button size="sm" variant="outline" className="text-destructive" onClick={() => setDeleteTarget(row)}><Trash2 className="size-4" />{t('common.delete')}</Button></div> },
+            { id: 'actions', header: '', renderCell: (row) => <div className="flex w-full justify-end"><TableRowActionsMenu row={row} triggerAriaLabel={t('common.actions')} actions={[{ key: 'status', label: t('aiDocuments.checkStatus'), icon: <RefreshCcw />, disabled: statusMutation.isPending, onClick: () => statusMutation.mutate(row.id) }, { key: 'retry', label: t('aiDocuments.retry'), icon: <RotateCcw />, disabled: retryMutation.isPending, onClick: () => retryMutation.mutate(row.id) }, { key: 'delete', label: t('common.delete'), icon: <Trash2 />, variant: 'destructive', confirm: false, onClick: () => setDeleteTarget(row) }]} /></div> },
           ]}
-        />
-      </CardContent></Card>
+      />
 
       <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteTarget(null) }}>
         <DialogContent className="max-w-md">

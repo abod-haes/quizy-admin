@@ -63,12 +63,25 @@ export async function getContentResourcesByEntity(
 }
 
 export async function uploadContentResource(payload: {
-  entityId: string
+  entityId?: string | null
   file: File
 }): Promise<ContentResource> {
   const response = await api.upload<ApiEnvelope<ContentResource>>(
     API_ENDPOINTS.resources.upload,
     createImageResourceFormData(payload.entityId, payload.file),
+  )
+  return unwrapApiPayload(response)
+}
+
+export async function attachContentResourceToEntity(
+  id: string,
+  entityId: string,
+): Promise<ContentResource> {
+  const formData = new FormData()
+  formData.append('entityId', entityId)
+  const response = await api.put<ApiEnvelope<ContentResource>, FormData>(
+    API_ENDPOINTS.resources.update(id),
+    formData,
   )
   return unwrapApiPayload(response)
 }

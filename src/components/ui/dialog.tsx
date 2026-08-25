@@ -1,63 +1,15 @@
 "use client"
 
-/* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "radix-ui"
-import { AnimatePresence, motion } from "framer-motion"
-
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
-const dialogMotionTransition = {
-  duration: 0.16,
-  ease: [0.2, 0.8, 0.2, 1],
-} as const
-
-const DialogMotionContext = React.createContext({ open: false })
-const DialogPortalContainerContext = React.createContext<HTMLElement | null>(null)
-
-function useDialogMotion() {
-  return React.useContext(DialogMotionContext)
-}
-
-function useDialogPortalContainer() {
-  return React.useContext(DialogPortalContainerContext)
-}
+import { cn } from "@/lib/utils"
 
 function Dialog({
-  open: controlledOpen,
-  defaultOpen,
-  onOpenChange,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
-  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(Boolean(defaultOpen))
-  const isControlled = controlledOpen !== undefined
-  const open = controlledOpen ?? uncontrolledOpen
-
-  const handleOpenChange = React.useCallback(
-    (nextOpen: boolean) => {
-      if (!isControlled) {
-        setUncontrolledOpen(nextOpen)
-      }
-
-      onOpenChange?.(nextOpen)
-    },
-    [isControlled, onOpenChange]
-  )
-  const rootControlProps = isControlled ? {} : { defaultOpen }
-
-  return (
-    <DialogMotionContext.Provider value={{ open }}>
-      <DialogPrimitive.Root
-        data-slot="dialog"
-        open={open}
-        {...rootControlProps}
-        onOpenChange={handleOpenChange}
-        {...props}
-      />
-    </DialogMotionContext.Provider>
-  )
+  return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
 function DialogTrigger({
@@ -85,18 +37,12 @@ function DialogOverlay({
   return (
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
-      forceMount
-      asChild
+      className={cn(
+        "fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        className
+      )}
       {...props}
-    >
-      <motion.div
-        className={cn("fixed inset-0 isolate z-50 bg-black/25 backdrop-blur-[2px]", className)}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={dialogMotionTransition}
-      />
-    </DialogPrimitive.Overlay>
+    />
   )
 }
 
@@ -108,57 +54,33 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
 }) {
-  const { open } = useDialogMotion()
-  const [portalContainer, setPortalContainer] = React.useState<HTMLElement | null>(null)
-
   return (
-    <DialogPortal forceMount>
-      <AnimatePresence initial={false}>
-        {open ? (
-          <React.Fragment key="dialog-motion">
-            <DialogOverlay key="dialog-overlay" />
-            <DialogPrimitive.Content
-              data-slot="dialog-content"
-              forceMount
-              asChild
-              {...props}
-            >
-              <motion.div
-                ref={setPortalContainer}
-                className={cn(
-                  "fixed top-1/2 left-1/2 z-50 min-w-0 w-full max-w-[calc(100%-1rem)] !overflow-visible rounded-[1.5rem] border border-primary/10 bg-popover p-4 text-sm text-popover-foreground shadow-[var(--quizy-card-shadow)] outline-none sm:max-w-5xl",
-                  className
-                )}
-                initial={{ opacity: 0, x: "-50%", y: "calc(-50% + 8px)", scale: 0.985 }}
-                animate={{ opacity: 1, x: "-50%", y: "-50%", scale: 1 }}
-                exit={{ opacity: 0, x: "-50%", y: "calc(-50% + 6px)", scale: 0.99 }}
-                transition={dialogMotionTransition}
-              >
-                <DialogPortalContainerContext.Provider value={portalContainer}>
-                  <div
-                    data-slot="dialog-scroll-area"
-                    className="grid max-h-[calc(100dvh-1.5rem)] min-h-0 min-w-0 gap-4 overflow-x-hidden overflow-y-auto overscroll-contain pe-1 sm:max-h-[calc(100dvh-2.5rem)] [&>.overflow-auto]:overflow-visible [&>.overflow-y-auto]:overflow-y-visible"
-                  >
-                    {children}
-                  </div>
-                  {showCloseButton && (
-                    <DialogPrimitive.Close data-slot="dialog-close" asChild>
-                      <Button
-                        variant="ghost"
-                        className="absolute top-2 end-2 z-10"
-                        size="icon-sm"
-                      >
-                        <XIcon />
-                        <span className="sr-only">Close</span>
-                      </Button>
-                    </DialogPrimitive.Close>
-                  )}
-                </DialogPortalContainerContext.Provider>
-              </motion.div>
-            </DialogPrimitive.Content>
-          </React.Fragment>
+    <DialogPortal>
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        data-slot="dialog-content"
+        className={cn(
+          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-1rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-[1.5rem] border border-primary/10 bg-popover p-4 text-sm text-popover-foreground shadow-[var(--quizy-card-shadow)] outline-none duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:max-w-5xl sm:p-6",
+          className
+        )}
+        {...props}
+      >
+        <div
+          data-slot="dialog-scroll-area"
+          className="grid max-h-[calc(100dvh-1.5rem)] min-h-0 min-w-0 gap-4 overflow-x-hidden overflow-y-auto overscroll-contain pe-1 sm:max-h-[calc(100dvh-2.5rem)] [&>.overflow-auto]:overflow-visible [&>.overflow-y-auto]:overflow-y-visible"
+        >
+          {children}
+        </div>
+        {showCloseButton ? (
+          <DialogPrimitive.Close
+            data-slot="dialog-close"
+            className="absolute top-3 end-3 inline-flex size-8 items-center justify-center rounded-md text-muted-foreground opacity-70 outline-none transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+          >
+            <XIcon />
+            <span className="sr-only">Close</span>
+          </DialogPrimitive.Close>
         ) : null}
-      </AnimatePresence>
+      </DialogPrimitive.Content>
     </DialogPortal>
   )
 }
@@ -167,7 +89,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex min-w-0 flex-col gap-2 pe-10", className)}
+      className={cn("flex min-w-0 flex-col gap-2 text-start pe-10", className)}
       {...props}
     />
   )
@@ -185,17 +107,17 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "flex min-w-0 flex-col-reverse gap-2 rounded-2xl border-t border-border/70 bg-muted/35 p-4 sm:flex-row sm:flex-wrap sm:justify-end",
+        "flex min-w-0 flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:justify-end",
         className
       )}
       {...props}
     >
       {children}
-      {showCloseButton && (
+      {showCloseButton ? (
         <DialogPrimitive.Close asChild>
-          <Button variant="outline">Close</Button>
+          <button type="button">Close</button>
         </DialogPrimitive.Close>
-      )}
+      ) : null}
     </div>
   )
 }
@@ -243,5 +165,4 @@ export {
   DialogPortal,
   DialogTitle,
   DialogTrigger,
-  useDialogPortalContainer,
 }

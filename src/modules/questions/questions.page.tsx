@@ -1,6 +1,15 @@
-import { useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { FileQuestion, Loader2, Pencil, Plus, RefreshCcw, Search, Trash2 } from 'lucide-react'
+import {
+  useMemo,
+  useState } from 'react'
+import { useMutation,
+  useQuery,
+  useQueryClient } from '@tanstack/react-query'
+import { FileQuestion,
+  Loader2,
+  Pencil,
+  Plus,
+  RefreshCcw,
+  Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
@@ -10,8 +19,6 @@ import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 import { toast } from '@/shared/lib/toast'
 import {
   Button,
-  Card,
-  CardContent,
   CustomMultiSelect,
   Dialog,
   DialogContent,
@@ -22,8 +29,15 @@ import {
   Input,
   Label,
   PaginatedDataTable,
+  PageHeader,
   Textarea,
   ToggleSwitch,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from '@/shared/ui'
 
 type QuestionRow = {
@@ -197,36 +211,28 @@ export default function QuestionsManagementPage() {
   const canSave = Boolean(form.title.trim()) && !saveMutation.isPending
 
   return (
-    <section className="space-y-5">
-      <div className="flex flex-col gap-4 rounded-3xl border border-primary/10 bg-card p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-center gap-3">
-          <FileQuestion className="size-5 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold">{t('questions.title')}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{t('questions.description')}</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" disabled={questionsQuery.isFetching} onClick={() => void questionsQuery.refetch()}>
-            <RefreshCcw className="size-4" />{t('common.refresh')}
-          </Button>
-          <Button onClick={openCreate}><Plus className="size-4" />{t('questions.add')}</Button>
-        </div>
-      </div>
+    <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
+      <PageHeader
+        icon={<FileQuestion />}
+        title={t('questions.title')}
+        description={t('questions.description')}
+        search={{
+          value: search,
+          placeholder: t('questions.searchPlaceholder'),
+          onChange: (value) => { setSearch(value); setPage(1) },
+        }}
+        actions={
+          <>
+            <Button variant="outline" disabled={questionsQuery.isFetching} onClick={() => void questionsQuery.refetch()}>
+              <RefreshCcw />{t('common.refresh')}
+            </Button>
+            <Button onClick={openCreate}><Plus />{t('questions.add')}</Button>
+          </>
+        }
+      />
 
-      <label className="relative block max-w-xl">
-        <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          className="ps-10"
-          value={search}
-          placeholder={t('questions.searchPlaceholder')}
-          onChange={(event) => { setSearch(event.target.value); setPage(1) }}
-        />
-      </label>
-
-      <Card className="rounded-3xl">
-        <CardContent className="p-4">
-          <PaginatedDataTable<QuestionRow>
+      <PaginatedDataTable<QuestionRow>
+        className="min-h-0 flex-1"
             rows={rows}
             loading={questionsQuery.isLoading || questionsQuery.isFetching}
             getRowId={(row) => row.id}
@@ -257,16 +263,14 @@ export default function QuestionsManagementPage() {
                 ),
               },
             ]}
-          />
-        </CardContent>
-      </Card>
+      />
 
-      <Dialog open={formOpen} onOpenChange={(open) => { if (!open && !saveMutation.isPending) closeForm() }}>
-        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{t(editingId ? 'questions.editTitle' : 'questions.createTitle')}</DialogTitle>
-            <DialogDescription>{t('questions.formDescription')}</DialogDescription>
-          </DialogHeader>
+      <Sheet open={formOpen} onOpenChange={(open) => { if (!open && !saveMutation.isPending) closeForm() }}>
+        <SheetContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>{t(editingId ? 'questions.editTitle' : 'questions.createTitle')}</SheetTitle>
+            <SheetDescription>{t('questions.formDescription')}</SheetDescription>
+          </SheetHeader>
           <div className="grid gap-5 py-2">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
@@ -312,12 +316,12 @@ export default function QuestionsManagementPage() {
               ))}
             </div>
           </div>
-          <DialogFooter>
+          <SheetFooter>
             <Button variant="outline" disabled={saveMutation.isPending} onClick={closeForm}>{t('common.cancel')}</Button>
             <Button disabled={!canSave} onClick={() => saveMutation.mutate()}>{saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('common.save')}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteTarget(null) }}>
         <DialogContent className="max-w-md">

@@ -33,7 +33,7 @@ type CustomMultiSelectProps<T extends string | number = string> = {
 }
 
 const DEFAULT_TRIGGER_CLASS =
-  'h-11 w-full min-w-0 rounded-xl border border-primary/10 bg-[var(--quizy-surface-strong)] px-3.5 text-sm font-medium text-foreground shadow-[var(--quizy-control-shadow)] outline-none transition-[transform,background-color,border-color,box-shadow] duration-200 hover:border-primary/25 hover:bg-card focus-visible:-translate-y-px focus-visible:border-primary/50 focus-visible:shadow-[var(--quizy-control-focus-shadow)] data-[state=open]:border-primary/50 data-[state=open]:shadow-[var(--quizy-control-focus-shadow)] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-70'
+  'h-11 w-full min-w-0 rounded-xl border border-input bg-[var(--quizy-surface-strong)] px-3.5 text-sm font-medium text-foreground shadow-sm outline-none transition-[color,background-color,border-color,box-shadow] duration-150 hover:border-primary/25 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] data-[state=open]:border-ring data-[state=open]:ring-ring/50 data-[state=open]:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-50'
 
 function displayLabel(value: unknown, fallback: unknown): string {
   const label = typeof value === 'string' && value.trim() ? value : fallback
@@ -142,7 +142,7 @@ export function CustomMultiSelect<T extends string | number = string>({
                 {selectedKeys.length}
               </span>
             ) : null}
-            <ChevronDownIcon className="size-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            <ChevronDownIcon className="size-4 text-muted-foreground" />
           </div>
         </button>
       </DropdownMenuTrigger>

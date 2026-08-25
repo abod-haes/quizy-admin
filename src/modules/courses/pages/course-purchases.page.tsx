@@ -1,6 +1,14 @@
-import { useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CreditCard, Loader2, Plus, RefreshCcw, Trash2 } from 'lucide-react'
+import {
+  useMemo,
+  useState } from 'react'
+import { useMutation,
+  useQuery,
+  useQueryClient } from '@tanstack/react-query'
+import { CreditCard,
+  Loader2,
+  Plus,
+  RefreshCcw,
+  Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { api } from '@/shared/api/api-client'
@@ -10,8 +18,6 @@ import { toast } from '@/shared/lib/toast'
 import {
   Badge,
   Button,
-  Card,
-  CardContent,
   CustomSelect,
   Dialog,
   DialogContent,
@@ -22,6 +28,13 @@ import {
   Input,
   Label,
   PaginatedDataTable,
+  PageHeader,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from '@/shared/ui'
 
 type CourseOption = { id: string; title?: string | null; name?: string | null }
@@ -120,16 +133,17 @@ export default function CoursePurchasesPage() {
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
   return (
-    <section className="space-y-5">
-      <div className="flex flex-col gap-4 rounded-3xl border border-primary/10 bg-card p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-start gap-3"><CreditCard className="mt-1 size-5 text-primary" /><div><h1 className="text-2xl font-bold">{t('coursePurchases.title')}</h1><p className="mt-1 text-sm text-muted-foreground">{t('coursePurchases.description')}</p></div></div>
-        <div className="flex flex-wrap gap-2"><Button variant="outline" disabled={!courseId || purchasesQuery.isFetching} onClick={() => void purchasesQuery.refetch()}><RefreshCcw className="size-4" />{t('common.refresh')}</Button><Button disabled={!courseId} onClick={() => setGrantOpen(true)}><Plus className="size-4" />{t('coursePurchases.grant')}</Button></div>
-      </div>
+    <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
+      <PageHeader
+        icon={<CreditCard />}
+        title={t('coursePurchases.title')}
+        description={t('coursePurchases.description')}
+        controls={<CustomSelect className="h-9 min-w-56" value={courseId || undefined} placeholder={t('coursePurchases.selectCourse')} options={courseOptions} onValueChange={(value) => { setCourseId(String(value)); setPage(1) }} />}
+        actions={<><Button variant="outline" disabled={!courseId || purchasesQuery.isFetching} onClick={() => void purchasesQuery.refetch()}><RefreshCcw />{t('common.refresh')}</Button><Button disabled={!courseId} onClick={() => setGrantOpen(true)}><Plus />{t('coursePurchases.grant')}</Button></>}
+      />
 
-      <Card className="rounded-3xl"><CardContent className="p-5"><div className="max-w-xl space-y-2"><Label>{t('coursePurchases.course')}</Label><CustomSelect value={courseId || undefined} placeholder={t('coursePurchases.selectCourse')} options={courseOptions} onValueChange={(value) => { setCourseId(String(value)); setPage(1) }} /></div></CardContent></Card>
-
-      <Card className="rounded-3xl"><CardContent className="p-4">
-        {!courseId ? <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">{t('coursePurchases.selectCourseFirst')}</div> : <PaginatedDataTable<CoursePurchase>
+      {!courseId ? <div className="flex min-h-0 flex-1 items-center justify-center border border-dashed border-border bg-muted/20 p-10 text-center text-sm text-muted-foreground">{t('coursePurchases.selectCourseFirst')}</div> : <PaginatedDataTable<CoursePurchase>
+        className="min-h-0 flex-1"
           rows={rows}
           loading={purchasesQuery.isLoading || purchasesQuery.isFetching}
           getRowId={(row) => row.id}
@@ -144,12 +158,11 @@ export default function CoursePurchasesPage() {
             { id: 'date', header: t('coursePurchases.purchasedAt'), renderCell: (row) => row.purchasedAt ? new Date(row.purchasedAt).toLocaleString() : '-' },
             { id: 'actions', header: '', renderCell: (row) => <Button size="sm" variant="outline" className="text-destructive" onClick={() => setRevokeTarget(row)}><Trash2 className="size-4" />{t('coursePurchases.revoke')}</Button> },
           ]}
-        />}
-      </CardContent></Card>
+      />}
 
-      <Dialog open={grantOpen} onOpenChange={(open) => { if (!open && !grantMutation.isPending) closeGrant() }}>
-        <DialogContent className="max-w-lg"><DialogHeader><DialogTitle>{t('coursePurchases.grantTitle')}</DialogTitle><DialogDescription>{t('coursePurchases.grantDescription', { course: selectedCourseName })}</DialogDescription></DialogHeader><div className="grid gap-4 py-2"><div className="space-y-2"><Label>{t('coursePurchases.student')}</Label><CustomSelect value={studentId || undefined} placeholder={t('coursePurchases.selectStudent')} options={studentOptions} onValueChange={(value) => setStudentId(String(value))} /></div><div className="space-y-2"><Label>{t('coursePurchases.paymentMethod')}</Label><Input maxLength={100} value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value)} /></div><div className="space-y-2"><Label>{t('coursePurchases.transactionId')}</Label><Input maxLength={150} value={transactionId} onChange={(event) => setTransactionId(event.target.value)} /></div></div><DialogFooter><Button variant="outline" disabled={grantMutation.isPending} onClick={closeGrant}>{t('common.cancel')}</Button><Button disabled={!studentId || grantMutation.isPending} onClick={() => grantMutation.mutate()}>{grantMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('coursePurchases.grant')}</Button></DialogFooter></DialogContent>
-      </Dialog>
+      <Sheet open={grantOpen} onOpenChange={(open) => { if (!open && !grantMutation.isPending) closeGrant() }}>
+        <SheetContent className="max-w-lg"><SheetHeader><SheetTitle>{t('coursePurchases.grantTitle')}</SheetTitle><SheetDescription>{t('coursePurchases.grantDescription', { course: selectedCourseName })}</SheetDescription></SheetHeader><div className="grid gap-4 py-2"><div className="space-y-2"><Label>{t('coursePurchases.student')}</Label><CustomSelect value={studentId || undefined} placeholder={t('coursePurchases.selectStudent')} options={studentOptions} onValueChange={(value) => setStudentId(String(value))} /></div><div className="space-y-2"><Label>{t('coursePurchases.paymentMethod')}</Label><Input maxLength={100} value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value)} /></div><div className="space-y-2"><Label>{t('coursePurchases.transactionId')}</Label><Input maxLength={150} value={transactionId} onChange={(event) => setTransactionId(event.target.value)} /></div></div><SheetFooter><Button variant="outline" disabled={grantMutation.isPending} onClick={closeGrant}>{t('common.cancel')}</Button><Button disabled={!studentId || grantMutation.isPending} onClick={() => grantMutation.mutate()}>{grantMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('coursePurchases.grant')}</Button></SheetFooter></SheetContent>
+      </Sheet>
 
       <Dialog open={Boolean(revokeTarget)} onOpenChange={(open) => { if (!open && !revokeMutation.isPending) setRevokeTarget(null) }}>
         <DialogContent className="max-w-md"><DialogHeader><DialogTitle>{t('coursePurchases.revokeTitle')}</DialogTitle><DialogDescription>{revokeTarget ? t('coursePurchases.revokeConfirm', { name: revokeTarget.studentName || revokeTarget.studentId }) : ''}</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" disabled={revokeMutation.isPending} onClick={() => setRevokeTarget(null)}>{t('common.cancel')}</Button><Button className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={revokeMutation.isPending} onClick={() => revokeTarget && revokeMutation.mutate(revokeTarget.id)}>{revokeMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('coursePurchases.revoke')}</Button></DialogFooter></DialogContent>

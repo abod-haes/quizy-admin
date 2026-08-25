@@ -1,6 +1,14 @@
-import { useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { BadgeCheck, Ban, Loader2, Plus, RefreshCcw, Search } from 'lucide-react'
+import {
+  useMemo,
+  useState } from 'react'
+import { useMutation,
+  useQuery,
+  useQueryClient } from '@tanstack/react-query'
+import { BadgeCheck,
+  Ban,
+  Loader2,
+  Plus,
+  RefreshCcw, } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { api } from '@/shared/api/api-client'
@@ -9,8 +17,6 @@ import { toast } from '@/shared/lib/toast'
 import {
   Badge,
   Button,
-  Card,
-  CardContent,
   CustomSelect,
   Dialog,
   DialogContent,
@@ -21,7 +27,14 @@ import {
   Input,
   Label,
   PaginatedDataTable,
+  PageHeader,
   ToggleSwitch,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from '@/shared/ui'
 
 type AiPlan = {
@@ -179,29 +192,17 @@ export default function AiSubscriptionsPage() {
   ]
 
   return (
-    <section className="space-y-5">
-      <div className="flex flex-col gap-4 rounded-3xl border border-primary/10 bg-card p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{t('aiSubscriptions.title')}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t('aiSubscriptions.description')}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" disabled={assignmentsQuery.isFetching} onClick={() => void assignmentsQuery.refetch()}><RefreshCcw className="size-4" />{t('common.refresh')}</Button>
-          <Button onClick={() => setAssignOpen(true)}><Plus className="size-4" />{t('aiSubscriptions.assign')}</Button>
-        </div>
-      </div>
+    <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
+      <PageHeader
+        title={t('aiSubscriptions.title')}
+        description={t('aiSubscriptions.description')}
+        search={{ value: search, placeholder: t('aiSubscriptions.searchPlaceholder'), onChange: (value) => { setSearch(value); setPage(1) } }}
+        controls={<><CustomSelect className="h-9 min-w-44" value={planFilter} options={[{ value: ALL, label: t('aiSubscriptions.allPlans') }, ...planOptions]} onValueChange={(value) => { setPlanFilter(String(value)); setPage(1) }} /><CustomSelect className="h-9 min-w-40" value={statusFilter} options={statusOptions} onValueChange={(value) => { setStatusFilter(String(value)); setPage(1) }} /></>}
+        actions={<><Button variant="outline" disabled={assignmentsQuery.isFetching} onClick={() => void assignmentsQuery.refetch()}><RefreshCcw />{t('common.refresh')}</Button><Button onClick={() => setAssignOpen(true)}><Plus />{t('aiSubscriptions.assign')}</Button></>}
+      />
 
-      <div className="grid gap-2 lg:grid-cols-[1fr_16rem_14rem]">
-        <label className="relative block">
-          <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input className="ps-10" value={search} placeholder={t('aiSubscriptions.searchPlaceholder')} onChange={(event) => { setSearch(event.target.value); setPage(1) }} />
-        </label>
-        <CustomSelect value={planFilter} options={[{ value: ALL, label: t('aiSubscriptions.allPlans') }, ...planOptions]} onValueChange={(value) => { setPlanFilter(String(value)); setPage(1) }} />
-        <CustomSelect value={statusFilter} options={statusOptions} onValueChange={(value) => { setStatusFilter(String(value)); setPage(1) }} />
-      </div>
-
-      <Card className="rounded-3xl"><CardContent className="p-4">
-        <PaginatedDataTable<AiSubscriptionAssignment>
+      <PaginatedDataTable<AiSubscriptionAssignment>
+        className="min-h-0 flex-1"
           rows={rows}
           loading={assignmentsQuery.isLoading || assignmentsQuery.isFetching}
           getRowId={(row) => row.id}
@@ -216,21 +217,20 @@ export default function AiSubscriptionsPage() {
             { id: 'expiry', header: t('aiSubscriptions.expiresAt'), renderCell: (row) => row.expiresAt ? new Date(row.expiresAt).toLocaleDateString() : t('aiSubscriptions.noExpiry') },
             { id: 'actions', header: '', renderCell: (row) => row.status === 'active' ? <Button size="sm" variant="outline" className="text-destructive" onClick={() => setCancelTarget(row)}><Ban className="size-4" />{t('aiSubscriptions.cancelSubscription')}</Button> : null },
           ]}
-        />
-      </CardContent></Card>
+      />
 
-      <Dialog open={assignOpen} onOpenChange={(open) => { if (!open && !assignMutation.isPending) closeAssign() }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>{t('aiSubscriptions.assignTitle')}</DialogTitle><DialogDescription>{t('aiSubscriptions.assignDescription')}</DialogDescription></DialogHeader>
+      <Sheet open={assignOpen} onOpenChange={(open) => { if (!open && !assignMutation.isPending) closeAssign() }}>
+        <SheetContent className="max-w-lg">
+          <SheetHeader><SheetTitle>{t('aiSubscriptions.assignTitle')}</SheetTitle><SheetDescription>{t('aiSubscriptions.assignDescription')}</SheetDescription></SheetHeader>
           <div className="grid gap-4 py-2">
             <div className="space-y-2"><Label>{t('aiSubscriptions.user')}</Label><CustomSelect value={userId || undefined} placeholder={t('aiSubscriptions.selectUser')} options={studentOptions} onValueChange={(value) => setUserId(String(value))} /></div>
             <div className="space-y-2"><Label>{t('aiSubscriptions.plan')}</Label><CustomSelect value={planId || undefined} placeholder={t('aiSubscriptions.selectPlan')} options={activePlanOptions} onValueChange={(value) => setPlanId(String(value))} /></div>
             <div className="space-y-2"><Label>{t('aiSubscriptions.durationDays')}</Label><Input type="number" min={1} max={3650} value={durationDays} placeholder={t('aiSubscriptions.defaultDuration')} onChange={(event) => setDurationDays(event.target.value)} /></div>
             <div className="flex items-center justify-between rounded-2xl border border-border px-4 py-3"><span className="text-sm font-medium">{t('aiSubscriptions.autoRenew')}</span><ToggleSwitch checked={autoRenewTokens} onCheckedChange={setAutoRenewTokens} /></div>
           </div>
-          <DialogFooter><Button variant="outline" disabled={assignMutation.isPending} onClick={closeAssign}>{t('common.cancel')}</Button><Button disabled={!userId || !planId || assignMutation.isPending} onClick={() => assignMutation.mutate()}>{assignMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <BadgeCheck className="size-4" />}{t('aiSubscriptions.assign')}</Button></DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <SheetFooter><Button variant="outline" disabled={assignMutation.isPending} onClick={closeAssign}>{t('common.cancel')}</Button><Button disabled={!userId || !planId || assignMutation.isPending} onClick={() => assignMutation.mutate()}>{assignMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <BadgeCheck className="size-4" />}{t('aiSubscriptions.assign')}</Button></SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={Boolean(cancelTarget)} onOpenChange={(open) => { if (!open && !cancelMutation.isPending) setCancelTarget(null) }}>
         <DialogContent className="max-w-md">

@@ -1,17 +1,27 @@
-import type { ReactNode } from 'react'
-import { ArrowDown, ArrowUp, ArrowUpDown, Inbox } from 'lucide-react'
-
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Skeleton } from '@/components/ui/skeleton'
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from 'react'
+import { useTranslation } from 'react-i18next'
+import {
+  AllCommunityModule,
+  ModuleRegistry,
+  themeQuartz,
+  type ColDef,
+  type GetRowIdParams,
+  type RowClassParams,
+  type SortChangedEvent,
+} from 'ag-grid-community'
+import { AgGridReact } from 'ag-grid-react'
+import { Inbox } from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 import { formatUiDisplayValue } from '@/shared/lib/display-format.helpers'
+
+ModuleRegistry.registerModules([AllCommunityModule])
 
 const AUTO_TRUNCATE_TEXT_LENGTH = 90
 const PHONE_LIKE_COLUMN_KEYWORDS = ['phone', 'fax', 'mobile', 'landline', 'tel', 'whatsapp']
@@ -38,7 +48,11 @@ function renderHoverableTruncatedContent(value: ReactNode) {
   if (typeof value !== 'string' && typeof value !== 'number') return value
   const normalized = String(value).trim()
   if (!normalized || normalized.length <= AUTO_TRUNCATE_TEXT_LENGTH) return normalized || value
-  return <span className="block max-w-[22rem] truncate" title={normalized}>{normalized}</span>
+  return (
+    <span className="block max-w-full truncate" title={normalized}>
+      {normalized}
+    </span>
+  )
 }
 
 export type DataTableColumn<T> = {
@@ -62,6 +76,8 @@ type DataTableProps<T> = {
   rowClassName?: string | ((row: T) => string | undefined)
   tableClassName?: string
   tableContainerClassName?: string
+  rowDragManaged?: boolean
+  onRowOrderChange?: (rows: T[]) => void
 }
 
 export function DataTable<T>({
@@ -76,110 +92,221 @@ export function DataTable<T>({
   rowClassName,
   tableClassName,
   tableContainerClassName,
+  rowDragManaged = false,
+  onRowOrderChange,
 }: DataTableProps<T>) {
+  const { i18n } = useTranslation()
+  const isRtl = i18n.dir() === 'rtl'
+  const gridRef = useRef<AgGridReact<T>>(null)
   const normalizedSort = typeof sort === 'string' ? sort.trim() : ''
 
-  return (
-    <Table className={tableClassName} containerClassName={tableContainerClassName}>
-      <TableHeader>
-        <TableRow className="border-b border-primary/10 hover:bg-transparent">
-          {columns.map((column) => (
-            <TableHead
-              key={column.id}
-              className={cn(
-                'sticky top-0 z-10 h-11 bg-accent/70 text-[0.72rem] font-semibold tracking-[0.06em] text-muted-foreground uppercase backdrop-blur',
-                column.headerClassName
-              )}
-            >
-              {column.sortKey && onSortChange ? (
-                <button
-                  type="button"
-                  className="group inline-flex min-h-8 w-full items-center gap-2 rounded-lg text-start outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/20"
-                  onClick={() => {
-                    const key = column.sortKey ?? ''
-                    if (!key) return
-                    const asc = key
-                    const desc = `-${key}`
-                    const next = normalizedSort === desc ? undefined : normalizedSort === asc ? desc : asc
-                    onSortChange(next)
-                  }}
-                >
-                  <span className="min-w-0 truncate">{column.header}</span>
-                  <span className="shrink-0 text-muted-foreground/70 transition-colors group-hover:text-primary">
-                    {normalizedSort === `-${column.sortKey}` ? (
-                      <ArrowDown className="size-3.5" />
-                    ) : normalizedSort === column.sortKey ? (
-                      <ArrowUp className="size-3.5" />
-                    ) : (
-                      <ArrowUpDown className="size-3.5 opacity-55" />
-                    )}
+  const sortableColumnById = useMemo(
+    () => new Map(columns.filter((column) => column.sortKey).map((column) => [column.id, column])),
+    [columns]
+  )
+
+  const columnDefs = useMemo<ColDef<T>[]>(
+    () =>
+      columns.map((column, columnIndex) => {
+        const isActionsColumn = column.id === 'actions'
+        const isImageColumn = /(^|[-_])image($|[-_])|photo|thumbnail/i.test(column.id)
+        const canSort = Boolean(column.sortKey && onSortChange)
+        const sortDirection = column.sortKey
+          ? normalizedSort === `-${column.sortKey}`
+            ? 'desc'
+            : normalizedSort === column.sortKey
+              ? 'asc'
+              : null
+          : null
+
+        return {
+          colId: column.id,
+          headerName:
+            typeof column.header === 'string' || typeof column.header === 'number'
+              ? String(column.header)
+              : '',
+          headerComponent:
+            typeof column.header === 'string' || typeof column.header === 'number'
+              ? undefined
+              : () => <span className="min-w-0 truncate">{column.header}</span>,
+          headerClass: column.headerClassName,
+          sortable: canSort,
+          sort: sortDirection,
+          comparator: canSort ? () => 0 : undefined,
+          suppressMovable: isActionsColumn,
+          resizable: !isActionsColumn,
+          rowDrag: rowDragManaged && columnIndex === 0,
+          flex: isActionsColumn || isImageColumn ? undefined : 1,
+          pinned: isActionsColumn ? (isRtl ? 'left' : 'right') : undefined,
+          lockPinned: isActionsColumn,
+          width: isActionsColumn ? 210 : isImageColumn ? 120 : undefined,
+          minWidth: isActionsColumn ? 210 : isImageColumn ? 100 : 140,
+          maxWidth: isActionsColumn ? 240 : isImageColumn ? 180 : undefined,
+          cellClass: (params) => {
+            if (!params.data) return undefined
+            return typeof column.cellClassName === 'function'
+              ? column.cellClassName(params.data)
+              : column.cellClassName
+          },
+          cellRenderer: (params: { data?: T }) => {
+            if (!params.data) return null
+            const rawCellContent = column.renderCell(params.data)
+            const cellContent = formatCellContent(column.id, rawCellContent)
+            const displayedCellContent = renderHoverableTruncatedContent(cellContent)
+
+            return (
+              <div
+                className={cn(
+                  'flex h-full min-w-0 items-center',
+                  isActionsColumn ? 'w-full justify-end overflow-visible pe-1' : 'overflow-hidden'
+                )}
+              >
+                {shouldForceLtrContent(column.id, cellContent) ? (
+                  <span
+                    dir="ltr"
+                    className="inline-block min-w-0 max-w-full truncate [direction:ltr] [unicode-bidi:isolate]"
+                  >
+                    {displayedCellContent}
                   </span>
-                </button>
-              ) : column.header}
-            </TableHead>
-          ))}
-        </TableRow>
-      </TableHeader>
-
-      <TableBody>
-        {loading ? Array.from({ length: 7 }).map((_, rowIndex) => (
-          <TableRow key={`skeleton-${rowIndex}`} className="border-primary/5 hover:bg-transparent">
-            {columns.map((column, columnIndex) => (
-              <TableCell key={`${column.id}-skeleton-${rowIndex}`} className="py-3.5">
-                <Skeleton
-                  className="h-4 rounded-full"
-                  style={{ width: `${Math.max(38, 88 - ((columnIndex + rowIndex) % 4) * 12)}%`, maxWidth: 220 }}
-                />
-              </TableCell>
-            ))}
-          </TableRow>
-        )) : null}
-
-        {!loading ? rows.map((row) => (
-          <TableRow
-            key={getRowId(row)}
-            className={cn(
-              'border-primary/5 transition-colors duration-150 hover:bg-primary/[0.025]',
-              typeof rowClassName === 'function' ? rowClassName(row) : rowClassName
-            )}
-          >
-            {columns.map((column) => {
-              const rawCellContent = column.renderCell(row)
-              const cellContent = formatCellContent(column.id, rawCellContent)
-              const displayedCellContent = renderHoverableTruncatedContent(cellContent)
-
-              return (
-                <TableCell
-                  key={column.id}
-                  className={cn(
-                    'py-3.5 align-middle',
-                    typeof column.cellClassName === 'function' ? column.cellClassName(row) : column.cellClassName
-                  )}
-                >
-                  {shouldForceLtrContent(column.id, cellContent) ? (
-                    <span dir="ltr" className="inline-block max-w-full [direction:ltr] [unicode-bidi:isolate]">
-                      {displayedCellContent}
-                    </span>
-                  ) : displayedCellContent}
-                </TableCell>
-              )
-            })}
-          </TableRow>
-        )) : null}
-
-        {!loading && rows.length === 0 && emptyMessage ? (
-          <TableRow className="hover:bg-transparent">
-            <TableCell colSpan={columns.length} className={cn('p-4', emptyStateClassName)}>
-              <div className="flex min-h-48 flex-col items-center justify-center rounded-2xl border border-dashed border-primary/15 bg-primary/[0.02] px-6 py-10 text-center">
-                <span className="mb-3 flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <Inbox className="size-5" />
-                </span>
-                <div className="max-w-md text-sm font-medium leading-6 text-muted-foreground">{emptyMessage}</div>
+                ) : (
+                  displayedCellContent
+                )}
               </div>
-            </TableCell>
-          </TableRow>
-        ) : null}
-      </TableBody>
-    </Table>
+            )
+          },
+        }
+      }),
+    [columns, isRtl, normalizedSort, onSortChange, rowDragManaged]
+  )
+
+  useEffect(() => {
+    const api = gridRef.current?.api
+    if (!api) return
+
+    const state = columns
+      .filter((column) => column.sortKey)
+      .map((column) => ({
+        colId: column.id,
+        sort:
+          normalizedSort === `-${column.sortKey}`
+            ? ('desc' as const)
+            : normalizedSort === column.sortKey
+              ? ('asc' as const)
+              : null,
+      }))
+
+    api.applyColumnState({ state, defaultState: { sort: null } })
+  }, [columns, normalizedSort])
+
+  const handleSortChanged = useCallback(
+    (event: SortChangedEvent<T>) => {
+      if (!onSortChange) return
+      const active = event.api.getColumnState().find((state) => state.sort)
+      if (!active) {
+        if (normalizedSort) onSortChange(undefined)
+        return
+      }
+
+      const column = sortableColumnById.get(active.colId)
+      if (!column?.sortKey) return
+      const nextSort = active.sort === 'desc' ? `-${column.sortKey}` : column.sortKey
+      if (nextSort !== normalizedSort) onSortChange(nextSort)
+    },
+    [normalizedSort, onSortChange, sortableColumnById]
+  )
+
+  const handleRowDragEnd = useCallback(() => {
+    if (!onRowOrderChange) return
+    const api = gridRef.current?.api
+    if (!api) return
+    const nextRows: T[] = []
+    api.forEachNodeAfterFilterAndSort((node) => {
+      if (node.data) nextRows.push(node.data)
+    })
+    onRowOrderChange(nextRows)
+  }, [onRowOrderChange])
+
+  const getAgRowId = useCallback(
+    (params: GetRowIdParams<T>) => getRowId(params.data),
+    [getRowId]
+  )
+
+  const getRowClass = useCallback(
+    (params: RowClassParams<T>) => {
+      if (!params.data) return undefined
+      return typeof rowClassName === 'function' ? rowClassName(params.data) : rowClassName
+    },
+    [rowClassName]
+  )
+
+  return (
+    <div
+      data-slot="ag-data-table"
+      className={cn(
+        'quizy-ag-grid relative h-full min-h-72 w-full min-w-0 overflow-hidden bg-card',
+        tableContainerClassName,
+        tableClassName
+      )}
+    >
+      <AgGridReact<T>
+        ref={gridRef}
+        theme={themeQuartz}
+        rowData={rows}
+        columnDefs={columnDefs}
+        getRowId={getAgRowId}
+        getRowClass={getRowClass}
+        enableRtl={isRtl}
+        headerHeight={48}
+        rowHeight={54}
+        animateRows={!rowDragManaged}
+        rowDragManaged={rowDragManaged}
+        suppressMoveWhenRowDragging={rowDragManaged}
+        onRowDragEnd={rowDragManaged ? handleRowDragEnd : undefined}
+        onSortChanged={handleSortChanged}
+        enableCellTextSelection
+        ensureDomOrder
+        suppressNoRowsOverlay
+        suppressLoadingOverlay
+      />
+
+      {loading ? (
+        <div className="absolute inset-x-0 top-12 bottom-0 z-10 w-full bg-card">
+          {Array.from({ length: 7 }).map((_, rowIndex) => (
+            <div
+              key={`ag-skeleton-${rowIndex}`}
+              className="flex h-[54px] w-full items-center gap-4 border-b border-border/50 px-4"
+            >
+              {columns.map((column) => (
+                <div
+                  key={`${column.id}-ag-skeleton-${rowIndex}`}
+                  className={cn(
+                    'h-3.5 min-w-0 animate-pulse rounded-xl bg-muted',
+                    column.id === 'actions' ? 'w-40 shrink-0' : 'flex-1'
+                  )}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {!loading && rows.length === 0 && emptyMessage ? (
+        <div
+          className={cn(
+            'absolute inset-x-0 top-12 bottom-0 z-10 flex items-center justify-center bg-card/95 p-4',
+            emptyStateClassName
+          )}
+        >
+          <div className="flex min-h-48 w-full max-w-xl flex-col items-center justify-center rounded-2xl border border-dashed border-primary/15 bg-primary/[0.02] px-6 py-10 text-center">
+            <span className="mb-3 flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <Inbox className="size-5" />
+            </span>
+            <div className="max-w-md text-sm font-medium leading-6 text-muted-foreground">
+              {emptyMessage}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
   )
 }

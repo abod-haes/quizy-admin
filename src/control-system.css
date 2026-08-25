@@ -2,8 +2,8 @@
 
 .app-shell-root [data-slot='input'],
 .app-shell-root [data-slot='select-trigger'],
-[data-slot='dialog-content'] [data-slot='input'],
-[data-slot='dialog-content'] [data-slot='select-trigger'] {
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='input'],
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='select-trigger'] {
   height: 2.75rem !important;
   min-height: 2.75rem;
   width: 100%;
@@ -11,32 +11,32 @@
   border-radius: 0.75rem !important;
   border-color: color-mix(in srgb, var(--primary) 10%, var(--border)) !important;
   background: var(--quizy-surface-strong) !important;
-  padding-inline: 0.875rem;
+  padding-inline: 1rem !important;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--foreground);
   box-shadow: var(--quizy-control-shadow);
-  transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
 }
 
 /* Shared controls normally own their padding, but inputs/selects with embedded
    icons need explicit logical inset space so RTL/LTR icons never overlap text. */
 .app-shell-root [data-slot='input'][data-leading-icon],
-[data-slot='dialog-content'] [data-slot='input'][data-leading-icon],
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='input'][data-leading-icon],
 .app-shell-root label.relative > svg[class*='start-3'] + [data-slot='input'],
-[data-slot='dialog-content'] label.relative > svg[class*='start-3'] + [data-slot='input'] {
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) label.relative > svg[class*='start-3'] + [data-slot='input'] {
   padding-inline-start: 2.5rem !important;
 }
 
 .app-shell-root [data-slot='input'][data-trailing-icon],
-[data-slot='dialog-content'] [data-slot='input'][data-trailing-icon] {
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='input'][data-trailing-icon] {
   padding-inline-end: 2.5rem !important;
 }
 
 /* CustomSelect renders its decorative icon as the sibling immediately before
    the Radix trigger. The global control padding must not collapse that inset. */
 .app-shell-root .group\/custom-select > span + [data-slot='select-trigger'],
-[data-slot='dialog-content'] .group\/custom-select > span + [data-slot='select-trigger'] {
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) .group\/custom-select > span + [data-slot='select-trigger'] {
   padding-inline-start: 2.75rem !important;
 }
 
@@ -51,31 +51,30 @@
 }
 
 .app-shell-root [data-slot='input']::placeholder,
-[data-slot='dialog-content'] [data-slot='input']::placeholder {
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='input']::placeholder {
   color: color-mix(in srgb, var(--muted-foreground) 76%, transparent);
 }
 
 .app-shell-root [data-slot='input']:hover:not(:disabled),
 .app-shell-root [data-slot='select-trigger']:hover:not(:disabled),
-[data-slot='dialog-content'] [data-slot='input']:hover:not(:disabled),
-[data-slot='dialog-content'] [data-slot='select-trigger']:hover:not(:disabled) {
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='input']:hover:not(:disabled),
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='select-trigger']:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--primary) 26%, var(--border)) !important;
 }
 
 .app-shell-root [data-slot='input']:focus-visible,
 .app-shell-root [data-slot='select-trigger']:focus-visible,
-[data-slot='dialog-content'] [data-slot='input']:focus-visible,
-[data-slot='dialog-content'] [data-slot='select-trigger']:focus-visible,
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='input']:focus-visible,
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='select-trigger']:focus-visible,
 .app-shell-root [data-slot='select-trigger'][data-state='open'],
-[data-slot='dialog-content'] [data-slot='select-trigger'][data-state='open'] {
-  transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--primary) 52%, var(--border)) !important;
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='select-trigger'][data-state='open'] {
+  border-color: color-mix(in srgb, var(--ring) 52%, var(--border)) !important;
   outline: none;
-  box-shadow: var(--quizy-control-focus-shadow) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 22%, transparent) !important;
 }
 
 .app-shell-root [data-slot='textarea'],
-[data-slot='dialog-content'] [data-slot='textarea'] {
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='textarea'] {
   min-height: 7rem;
   width: 100%;
   min-width: 0;
@@ -88,33 +87,34 @@
   line-height: 1.65;
   color: var(--foreground);
   box-shadow: var(--quizy-control-shadow);
-  transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
 }
 
 /* JSON/code editors must stay visually LTR even when the dashboard shell is RTL. */
 .app-shell-root [data-slot='textarea'][dir='ltr'],
-[data-slot='dialog-content'] [data-slot='textarea'][dir='ltr'] {
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='textarea'][dir='ltr'] {
   direction: ltr !important;
   text-align: left !important;
   unicode-bidi: plaintext;
 }
 
 .app-shell-root [data-slot='textarea']:hover:not(:disabled),
-[data-slot='dialog-content'] [data-slot='textarea']:hover:not(:disabled) {
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='textarea']:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--primary) 26%, var(--border)) !important;
 }
 
 .app-shell-root [data-slot='textarea']:focus-visible,
-[data-slot='dialog-content'] [data-slot='textarea']:focus-visible {
-  border-color: color-mix(in srgb, var(--primary) 52%, var(--border)) !important;
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='textarea']:focus-visible {
+  border-color: color-mix(in srgb, var(--ring) 52%, var(--border)) !important;
   outline: none;
-  box-shadow: var(--quizy-control-focus-shadow) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 22%, transparent) !important;
 }
 
 [data-slot='select-content'],
-[data-slot='dropdown-menu-content'] {
+[data-slot='dropdown-menu-content'],
+[data-slot='popover-content'] {
   z-index: 1000 !important;
-  border-radius: 0.875rem !important;
+  border-radius: 0.75rem !important;
   border-color: color-mix(in srgb, var(--primary) 12%, var(--border)) !important;
   background: var(--popover) !important;
   box-shadow: 0 20px 60px rgba(45, 27, 90, 0.2) !important;
@@ -132,8 +132,8 @@
 [data-slot='dropdown-menu-item'],
 [data-slot='dropdown-menu-checkbox-item'] {
   min-height: 2.5rem;
-  border-radius: 0.625rem !important;
-  padding-block: 0.5rem;
+  border-radius: 0.75rem !important;
+  padding: 0.5rem 0.75rem !important;
 }
 
 [data-slot='select-item']:focus,
@@ -148,7 +148,7 @@ button[data-slot='dropdown-menu-trigger'][class*='w-full'] {
   border-radius: 0.75rem !important;
   border-color: color-mix(in srgb, var(--primary) 10%, var(--border)) !important;
   background: var(--quizy-surface-strong) !important;
-  padding-inline: 0.875rem !important;
+  padding-inline: 1rem !important;
   font-size: 0.875rem !important;
   font-weight: 500;
   box-shadow: var(--quizy-control-shadow) !important;
@@ -156,6 +156,6 @@ button[data-slot='dropdown-menu-trigger'][class*='w-full'] {
 
 button[data-slot='dropdown-menu-trigger'][class*='w-full']:hover,
 button[data-slot='dropdown-menu-trigger'][class*='w-full'][data-state='open'] {
-  border-color: color-mix(in srgb, var(--primary) 28%, var(--border)) !important;
-  box-shadow: var(--quizy-control-focus-shadow) !important;
+  border-color: color-mix(in srgb, var(--ring) 40%, var(--border)) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 18%, transparent) !important;
 }

@@ -23,6 +23,46 @@ type TableShellProps = {
   className?: string
 }
 
+type PaginationItem = number | 'ellipsis-start' | 'ellipsis-end'
+
+function getPaginationItems(currentPage: number, totalPages: number): PaginationItem[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1)
+  }
+
+  const pages = new Set<number>([1, totalPages])
+  for (let page = currentPage - 1; page <= currentPage + 1; page += 1) {
+    if (page > 1 && page < totalPages) pages.add(page)
+  }
+
+  if (currentPage <= 3) {
+    pages.add(2)
+    pages.add(3)
+    pages.add(4)
+  }
+
+  if (currentPage >= totalPages - 2) {
+    pages.add(totalPages - 1)
+    pages.add(totalPages - 2)
+    pages.add(totalPages - 3)
+  }
+
+  const ordered = [...pages]
+    .filter((page) => page > 0 && page <= totalPages)
+    .sort((a, b) => a - b)
+  const items: PaginationItem[] = []
+
+  ordered.forEach((page, index) => {
+    const previous = ordered[index - 1]
+    if (index > 0 && previous && page - previous > 1) {
+      items.push(previous === 1 ? 'ellipsis-start' : 'ellipsis-end')
+    }
+    items.push(page)
+  })
+
+  return items
+}
+
 export function TableShell({
   children,
   summaryText,
@@ -61,19 +101,18 @@ export function TableShell({
     typeof pageSize === 'number' && pageSize > 0
       ? String(Math.trunc(pageSize))
       : String(normalizedPageSizeOptions[0] ?? '')
+  const paginationItems = getPaginationItems(currentPage, totalPages)
 
   return (
     <section
       className={cn(
-        'flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-[1.35rem] border border-border bg-card',
+        'flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden',
         className
       )}
     >
-      {/* DataTable owns the only scrolling viewport. Keeping this wrapper clipped
-          avoids nested scrollbars and keeps its sticky thead attached to the body. */}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">{children}</div>
 
-      <div className="shrink-0 border-t border-border/80 bg-card px-3 py-3 sm:px-4">
+      <div className="shrink-0 border-t border-border/70 bg-background/55 px-3 py-3 sm:px-4">
         <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
             {showPageSizeSelector ? (
@@ -87,17 +126,15 @@ export function TableShell({
                   <CustomSelect
                     value={selectedPageSize}
                     ariaLabel={pageSizeAriaLabel}
-                    className="h-8 rounded-md px-2 py-1 text-xs md:text-xs"
-                    contentClassName="rounded-md p-1"
+                    className="h-8 rounded-xl px-2 py-1 text-xs md:text-xs"
+                    contentClassName="rounded-xl p-1"
                     options={normalizedPageSizeOptions.map((size) => ({
                       value: String(size),
                       label: pageNumberFormatter.format(size),
                     }))}
                     onValueChange={(value) => {
                       const parsed = Number(value)
-                      if (!Number.isFinite(parsed) || parsed <= 0) {
-                        return
-                      }
+                      if (!Number.isFinite(parsed) || parsed <= 0) return
                       onPageSizeChange?.(Math.trunc(parsed))
                     }}
                   />
@@ -109,13 +146,13 @@ export function TableShell({
             </p>
           </div>
 
-          <div className="max-w-full overflow-x-auto pb-0.5">
-            <div className="flex w-max items-center gap-1">
+          <nav className="max-w-full" aria-label="Pagination">
+            <div className="flex w-fit max-w-full items-center gap-1 rounded-xl bg-muted/55 p-1.5 shadow-sm">
               <Button
                 type="button"
                 variant="outline"
                 size="icon-xs"
-                className="size-8 shrink-0"
+                className="size-8 shrink-0 rounded-xl bg-card shadow-none"
                 disabled={currentPage <= 1}
                 onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                 aria-label={previousLabel}
@@ -123,21 +160,35 @@ export function TableShell({
                 <PreviousIcon className="size-3.5" />
               </Button>
 
-              {Array.from({ length: totalPages }).map((_, index) => {
-                const page = index + 1
-                const isActive = page === currentPage
+              {paginationItems.map((item) => {
+                if (typeof item !== 'number') {
+                  return (
+                    <span
+                      key={item}
+                      aria-hidden="true"
+                      className="flex size-8 shrink-0 items-center justify-center text-xs font-semibold text-muted-foreground"
+                    >
+                      …
+                    </span>
+                  )
+                }
 
+                const isActive = item === currentPage
                 return (
                   <Button
-                    key={page}
+                    key={item}
                     type="button"
                     variant={isActive ? 'default' : 'outline'}
                     size="icon-xs"
-                    className="size-8 shrink-0 text-xs"
-                    onClick={() => onPageChange(page)}
-                    aria-label={getPageLabel(page)}
+                    className={cn(
+                      'size-8 shrink-0 rounded-xl text-xs shadow-none',
+                      !isActive && 'bg-card'
+                    )}
+                    onClick={() => onPageChange(item)}
+                    aria-current={isActive ? 'page' : undefined}
+                    aria-label={getPageLabel(item)}
                   >
-                    {pageNumberFormatter.format(page)}
+                    {pageNumberFormatter.format(item)}
                   </Button>
                 )
               })}
@@ -146,7 +197,7 @@ export function TableShell({
                 type="button"
                 variant="outline"
                 size="icon-xs"
-                className="size-8 shrink-0"
+                className="size-8 shrink-0 rounded-xl bg-card shadow-none"
                 disabled={currentPage >= totalPages}
                 onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
                 aria-label={nextLabel}
@@ -154,7 +205,7 @@ export function TableShell({
                 <NextIcon className="size-3.5" />
               </Button>
             </div>
-          </div>
+          </nav>
         </div>
       </div>
     </section>

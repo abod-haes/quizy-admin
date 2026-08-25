@@ -21,6 +21,16 @@ export {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+export {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 export { ConfirmDialog } from '@/components/ui/confirm-dialog'
 export { DatePicker } from '@/components/ui/date-picker'
 export { CustomSelect, type CustomSelectOption } from '@/components/ui/custom-select'

@@ -1,6 +1,12 @@
-import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { KeyRound, Loader2, RefreshCcw, ShieldCheck } from 'lucide-react'
+import {
+  useState } from 'react'
+import { useMutation,
+  useQuery,
+  useQueryClient } from '@tanstack/react-query'
+import { KeyRound,
+  Loader2,
+  RefreshCcw,
+  ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { toast } from '@/shared/lib/toast'
@@ -13,12 +19,8 @@ import {
   CustomSelect,
   Input,
   Label,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  DataTable,
+  type DataTableColumn,
 } from '@/shared/ui'
 import {
   otpSettingsService,
@@ -99,7 +101,33 @@ export default function OtpSettingsPage() {
   const clients = clientsQuery.data ?? []
   const apiKeys = apiKeysQuery.data ?? []
   const requests = requestsQuery.data?.items ?? []
-  const isLoading = clientsQuery.isLoading || apiKeysQuery.isLoading || requestsQuery.isLoading
+
+  const clientColumns: DataTableColumn<(typeof clients)[number]>[] = [
+    { id: 'name', header: t('clients.name'), renderCell: (client) => client.name },
+    { id: 'slug', header: t('clients.slug'), renderCell: (client) => <span dir="ltr">{client.slug}</span> },
+    { id: 'hourlyLimit', header: t('clients.hourlyLimit'), renderCell: (client) => client.hourlyOtpLimit },
+    { id: 'dailyLimit', header: t('clients.dailyLimit'), renderCell: (client) => client.dailyOtpLimit },
+    { id: 'keys', header: t('clients.keys'), renderCell: (client) => client.apiKeyCount },
+    { id: 'status', header: t('clients.status'), renderCell: (client) => client.isActive ? t('status.active') : t('status.inactive') },
+    { id: 'actions', header: t('actions.actions'), renderCell: (client) => <Button size="sm" variant="outline" disabled={toggleClientMutation.isPending} onClick={() => toggleClientMutation.mutate({ id: client.id, isActive: !client.isActive })}>{client.isActive ? t('actions.disable') : t('actions.enable')}</Button> },
+  ]
+
+  const apiKeyColumns: DataTableColumn<(typeof apiKeys)[number]>[] = [
+    { id: 'name', header: t('keys.name'), renderCell: (key) => key.name },
+    { id: 'client', header: t('keys.client'), renderCell: (key) => key.client.name },
+    { id: 'prefix', header: t('keys.prefix'), renderCell: (key) => <span dir="ltr">{key.prefix}</span> },
+    { id: 'status', header: t('keys.status'), renderCell: (key) => key.status },
+    { id: 'lastUsed', header: t('keys.lastUsed'), renderCell: (key) => key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleString() : '-' },
+    { id: 'actions', header: t('actions.actions'), renderCell: (key) => key.status === 'ACTIVE' ? <Button size="sm" variant="outline" disabled={revokeKeyMutation.isPending} onClick={() => revokeKeyMutation.mutate(key.id)}>{t('actions.revoke')}</Button> : '-' },
+  ]
+
+  const requestColumns: DataTableColumn<(typeof requests)[number]>[] = [
+    { id: 'phone', header: t('requests.phone'), renderCell: (request) => <span dir="ltr">{request.phoneNumber}</span> },
+    { id: 'client', header: t('requests.client'), renderCell: (request) => request.client?.name ?? '-' },
+    { id: 'purpose', header: t('requests.purpose'), renderCell: (request) => request.purpose },
+    { id: 'status', header: t('requests.status'), renderCell: (request) => request.status },
+    { id: 'createdAt', header: t('requests.createdAt'), renderCell: (request) => new Date(request.createdAt).toLocaleString() },
+  ]
 
   return (
     <section className="flex min-h-0 w-full flex-col gap-4 overflow-auto pb-4">
@@ -153,30 +181,21 @@ export default function OtpSettingsPage() {
       <Card>
         <CardHeader><CardTitle>{t('clients.title')}</CardTitle></CardHeader>
         <CardContent className="overflow-x-auto">
-          <Table><TableHeader><TableRow><TableHead>{t('clients.name')}</TableHead><TableHead>{t('clients.slug')}</TableHead><TableHead>{t('clients.hourlyLimit')}</TableHead><TableHead>{t('clients.dailyLimit')}</TableHead><TableHead>{t('clients.keys')}</TableHead><TableHead>{t('clients.status')}</TableHead><TableHead>{t('actions.actions')}</TableHead></TableRow></TableHeader>
-            <TableBody>{clients.map((client) => <TableRow key={client.id}><TableCell>{client.name}</TableCell><TableCell dir="ltr">{client.slug}</TableCell><TableCell>{client.hourlyOtpLimit}</TableCell><TableCell>{client.dailyOtpLimit}</TableCell><TableCell>{client.apiKeyCount}</TableCell><TableCell>{client.isActive ? t('status.active') : t('status.inactive')}</TableCell><TableCell><Button size="sm" variant="outline" disabled={toggleClientMutation.isPending} onClick={() => toggleClientMutation.mutate({ id: client.id, isActive: !client.isActive })}>{client.isActive ? t('actions.disable') : t('actions.enable')}</Button></TableCell></TableRow>)}</TableBody>
-          </Table>
-          {!isLoading && clients.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">{t('clients.empty')}</p> : null}
+          <div className="h-80 overflow-hidden rounded-xl border border-border"><DataTable rows={clients} columns={clientColumns} getRowId={(client) => client.id} loading={clientsQuery.isLoading} emptyMessage={t('clients.empty')} /></div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader><CardTitle>{t('keys.title')}</CardTitle></CardHeader>
         <CardContent className="overflow-x-auto">
-          <Table><TableHeader><TableRow><TableHead>{t('keys.name')}</TableHead><TableHead>{t('keys.client')}</TableHead><TableHead>{t('keys.prefix')}</TableHead><TableHead>{t('keys.status')}</TableHead><TableHead>{t('keys.lastUsed')}</TableHead><TableHead>{t('actions.actions')}</TableHead></TableRow></TableHeader>
-            <TableBody>{apiKeys.map((key) => <TableRow key={key.id}><TableCell>{key.name}</TableCell><TableCell>{key.client.name}</TableCell><TableCell dir="ltr">{key.prefix}</TableCell><TableCell>{key.status}</TableCell><TableCell>{key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleString() : '-'}</TableCell><TableCell>{key.status === 'ACTIVE' ? <Button size="sm" variant="outline" disabled={revokeKeyMutation.isPending} onClick={() => revokeKeyMutation.mutate(key.id)}>{t('actions.revoke')}</Button> : '-'}</TableCell></TableRow>)}</TableBody>
-          </Table>
-          {!isLoading && apiKeys.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">{t('keys.empty')}</p> : null}
+          <div className="h-80 overflow-hidden rounded-xl border border-border"><DataTable rows={apiKeys} columns={apiKeyColumns} getRowId={(key) => key.id} loading={apiKeysQuery.isLoading} emptyMessage={t('keys.empty')} /></div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader><CardTitle>{t('requests.title')}</CardTitle></CardHeader>
         <CardContent className="overflow-x-auto">
-          <Table><TableHeader><TableRow><TableHead>{t('requests.phone')}</TableHead><TableHead>{t('requests.client')}</TableHead><TableHead>{t('requests.purpose')}</TableHead><TableHead>{t('requests.status')}</TableHead><TableHead>{t('requests.createdAt')}</TableHead></TableRow></TableHeader>
-            <TableBody>{requests.map((request) => <TableRow key={request.requestId}><TableCell dir="ltr">{request.phoneNumber}</TableCell><TableCell>{request.client?.name ?? '-'}</TableCell><TableCell>{request.purpose}</TableCell><TableCell>{request.status}</TableCell><TableCell>{new Date(request.createdAt).toLocaleString()}</TableCell></TableRow>)}</TableBody>
-          </Table>
-          {!isLoading && requests.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">{t('requests.empty')}</p> : null}
+          <div className="h-80 overflow-hidden rounded-xl border border-border"><DataTable rows={requests} columns={requestColumns} getRowId={(request) => request.requestId} loading={requestsQuery.isLoading} emptyMessage={t('requests.empty')} /></div>
         </CardContent>
       </Card>
     </section>

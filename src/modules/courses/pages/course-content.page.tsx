@@ -1,6 +1,11 @@
-import { useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useMemo,
+  useState } from 'react'
+import { useNavigate,
+  useParams } from 'react-router-dom'
+import { useMutation,
+  useQuery,
+  useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
   Download,
@@ -10,11 +15,12 @@ import {
   Pencil,
   Plus,
   Trash2,
-} from 'lucide-react'
+  } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { api } from '@/shared/api/api-client'
-import type { PagedResponse, UUID } from '@/shared/api/api.types'
+import type { PagedResponse,
+  UUID } from '@/shared/api/api.types'
 import { env } from '@/shared/config/env'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 import { toast } from '@/shared/lib/toast'
@@ -35,6 +41,12 @@ import {
   Label,
   Skeleton,
   Textarea,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from '@/shared/ui'
 
 type NamedItem = { id: UUID; title?: string | null; name?: string | null }
@@ -753,17 +765,17 @@ export default function CourseContentPage() {
         </CardContent>
       </Card>
 
-      <Dialog
+      <Sheet
         open={dialog.open}
         onOpenChange={(open) => {
           if (!saveMutation.isPending) setDialog((current) => ({ ...current, open }))
         }}
       >
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{dialogTitle}</DialogTitle>
-            <DialogDescription>{dialog.kind === 'material' ? t('form.fileHint') : t('description')}</DialogDescription>
-          </DialogHeader>
+        <SheetContent className="max-w-2xl">
+          <SheetHeader>
+            <SheetTitle>{dialogTitle}</SheetTitle>
+            <SheetDescription>{dialog.kind === 'material' ? t('form.fileHint') : t('description')}</SheetDescription>
+          </SheetHeader>
 
           {dialog.kind === 'material' ? (
             <div className="grid gap-4 py-2">
@@ -930,7 +942,7 @@ export default function CourseContentPage() {
             </div>
           )}
 
-          <DialogFooter>
+          <SheetFooter>
             <Button
               type="button"
               variant="outline"
@@ -943,9 +955,9 @@ export default function CourseContentPage() {
               {saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
               {t('actions.save')}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       <Dialog
         open={Boolean(deleteTarget)}

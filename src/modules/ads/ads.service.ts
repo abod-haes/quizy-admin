@@ -2,6 +2,7 @@ import type { PagedResponse } from '@/shared/api/api.types'
 import { api } from '@/shared/api/api-client'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 import {
+  attachContentResourceToEntity,
   deleteContentResource,
   updateContentResourceFile,
   uploadContentResource,
@@ -10,7 +11,7 @@ import {
 
 export type AdminAd = {
   id: string
-  title: string
+  title: string | null
   description: string | null
   imageId: string | null
   image?: ContentResource | null
@@ -19,9 +20,11 @@ export type AdminAd = {
 }
 
 export type AdInput = {
-  title: string
+  title?: string | null
   description?: string | null
 }
+
+type AdWritePayload = AdInput & { imageId: string }
 
 async function loadImage(imageId: string | null | undefined) {
   if (!imageId) return null
@@ -33,9 +36,14 @@ async function loadImage(imageId: string | null | undefined) {
 }
 
 export const adsService = {
-  async list(page: number, perPage: number): Promise<PagedResponse<AdminAd>> {
+  async list(page: number, perPage: number, search?: string): Promise<PagedResponse<AdminAd>> {
+    const normalizedSearch = search?.trim()
     const response = await api.get<PagedResponse<AdminAd>>(API_ENDPOINTS.ads.list, {
-      params: { page, perPage },
+      params: {
+        page,
+        perPage,
+        ...(normalizedSearch ? { search: normalizedSearch } : {}),
+      },
     })
     const items = await Promise.all(
       response.items.map(async (ad) => ({ ...ad, image: await loadImage(ad.imageId) })),
@@ -43,16 +51,22 @@ export const adsService = {
     return { ...response, items }
   },
 
-  async create(payload: AdInput, imageFile?: File | null): Promise<AdminAd> {
-    const ad = await api.post<AdminAd, AdInput>(API_ENDPOINTS.ads.create, payload)
-    if (!imageFile) return ad
+  async create(payload: AdInput, imageFile: File): Promise<AdminAd> {
+    const image = await uploadContentResource({ entityId: null, file: imageFile })
 
-    const image = await uploadContentResource({ entityId: ad.id, file: imageFile })
-    const updated = await api.patch<AdminAd, { imageId: string }>(
-      API_ENDPOINTS.ads.update(ad.id),
-      { imageId: image.id },
-    )
-    return { ...updated, image }
+    try {
+      const ad = await api.post<AdminAd, AdWritePayload>(API_ENDPOINTS.ads.create, {
+        ...payload,
+        imageId: image.id,
+      })
+      const attachedImage = await attachContentResourceToEntity(image.id, ad.id).catch(
+        () => image,
+      )
+      return { ...ad, image: attachedImage }
+    } catch (error) {
+      await deleteContentResource(image.id).catch(() => undefined)
+      throw error
+    }
   },
 
   async update(ad: AdminAd, payload: AdInput, imageFile?: File | null): Promise<AdminAd> {
@@ -73,9 +87,11 @@ export const adsService = {
       }
     }
 
-    const updated = await api.patch<AdminAd, AdInput & { imageId?: string | null }>(
+    if (!imageId) throw new Error('Ad image is required')
+
+    const updated = await api.patch<AdminAd, AdWritePayload>(
       API_ENDPOINTS.ads.update(ad.id),
-      { ...payload, ...(imageId ? { imageId } : {}) },
+      { ...payload, imageId },
     )
     return { ...updated, image }
   },

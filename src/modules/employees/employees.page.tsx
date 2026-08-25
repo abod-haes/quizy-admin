@@ -1,6 +1,18 @@
-import { useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { KeyRound, Pencil, RefreshCcw, Send, ShieldCheck, Trash2, UserPlus, UserRoundCheck, UserRoundX } from 'lucide-react'
+import {
+  useMemo,
+  useState } from 'react'
+import { useMutation,
+  useQuery,
+  useQueryClient } from '@tanstack/react-query'
+import { KeyRound,
+  Pencil,
+  RefreshCcw,
+  Send,
+  ShieldCheck,
+  Trash2,
+  UserPlus,
+  UserRoundCheck,
+  UserRoundX } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { employeesService } from '@/modules/employees/employees.service'
@@ -8,29 +20,25 @@ import type {
   AdminEmployee,
   AdminEmployeeStatus,
   CreateAdminEmployeeInput,
-} from '@/modules/employees/employees.types'
+  } from '@/modules/employees/employees.types'
 import type { AdminPermissionCode } from '@/shared/auth/admin-permissions'
 import {
   Alert,
   AlertTitle,
   Badge,
   Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  ConfirmDialog,
   CustomSelect,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
   FormField,
   Input,
   PaginatedDataTable,
+  PageHeader,
+  TableRowActionsMenu,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from '@/shared/ui'
 
 const PAGE_SIZE = 20
@@ -152,7 +160,7 @@ export default function EmployeesPage() {
     { value: 'INVITED', label: statusLabel('INVITED') },
     { value: 'DISABLED', label: statusLabel('DISABLED') },
   ]
-  const permissions = permissionsQuery.data ?? []
+  const permissions = useMemo(() => permissionsQuery.data ?? [], [permissionsQuery.data])
   const anyActionPending =
     disableMutation.isPending || enableMutation.isPending || resendMutation.isPending || deleteMutation.isPending
 
@@ -162,32 +170,19 @@ export default function EmployeesPage() {
   )
 
   return (
-    <section className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-3xl border border-primary/15 bg-card p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-start gap-4">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"><ShieldCheck className="size-6" /></div>
-          <div><h1 className="text-2xl font-bold">{t('employees.title')}</h1><p className="mt-1 text-sm text-muted-foreground">{t('employees.description')}</p></div>
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-          <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void employeesQuery.refetch()}>{t('common.refresh')}</Button>
-          <Button icon={<UserPlus className="size-4" />} onClick={openCreateDialog}>{t('employees.add')}</Button>
-        </div>
-      </div>
+    <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
+      <PageHeader
+        icon={<ShieldCheck />}
+        title={t('employees.title')}
+        description={t('employees.description')}
+        search={{ value: search, placeholder: t('employees.searchPlaceholder'), onChange: (value) => { setSearch(value); setPage(1) } }}
+        controls={<CustomSelect className="h-9 min-w-44" value={status} options={statusOptions} onValueChange={(value) => { setStatus(value as AdminEmployeeStatus | 'ALL'); setPage(1) }} />}
+        actions={<><Button variant="outline" icon={<RefreshCcw />} onClick={() => void employeesQuery.refetch()}>{t('common.refresh')}</Button><Button icon={<UserPlus />} onClick={openCreateDialog}>{t('employees.add')}</Button></>}
+      />
 
-      {editing ? (
-        <Card className="rounded-3xl border-primary/20">
-          <CardHeader><CardTitle>{t('employees.editTitle', { name: `${editing.firstName} ${editing.lastName ?? ''}`.trim() })}</CardTitle><CardDescription>{t('employees.editDescription')}</CardDescription></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2"><FormField label={t('employees.firstName')}><Input value={editing.firstName} onChange={(e) => setEditing({ ...editing, firstName: e.target.value })} /></FormField><FormField label={t('employees.lastName')}><Input value={editing.lastName ?? ''} onChange={(e) => setEditing({ ...editing, lastName: e.target.value })} /></FormField></div>
-            <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">{permissions.map((permission) => <label key={permission.code} className="flex items-center gap-2 rounded-xl border border-border p-3 text-sm"><input type="checkbox" checked={editing.permissions.includes(permission.code)} onChange={() => togglePermission(permission.code, true)} />{permission.name}</label>)}</div>
-            <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => setEditing(null)}>{t('common.cancel')}</Button><Button loading={updateMutation.isPending} onClick={() => updateMutation.mutate({ id: editing.id, firstName: editing.firstName, lastName: editing.lastName ?? '', permissions: editing.permissions })}>{t('common.save')}</Button></div>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      <div className="grid gap-3 md:grid-cols-[1fr_14rem]"><Input value={search} placeholder={t('employees.searchPlaceholder')} onChange={(e) => { setSearch(e.target.value); setPage(1) }} /><CustomSelect value={status} options={statusOptions} onValueChange={(value) => { setStatus(value as AdminEmployeeStatus | 'ALL'); setPage(1) }} /></div>
 
       <PaginatedDataTable<AdminEmployee>
+        className="min-h-0 flex-1"
         rows={rows}
         loading={employeesQuery.isLoading || employeesQuery.isFetching}
         getRowId={(row) => row.id}
@@ -202,27 +197,18 @@ export default function EmployeesPage() {
             id: 'actions',
             header: '',
             renderCell: (row) => (
-              <div className="flex flex-wrap justify-end gap-1">
-                <Button size="sm" variant="outline" icon={<Pencil className="size-3.5" />} onClick={() => setEditing({ ...row })}>{t('common.edit')}</Button>
-                {row.status === 'DISABLED' ? (
-                  <Button size="sm" variant="outline" icon={<UserRoundCheck className="size-3.5" />} disabled={anyActionPending} onClick={() => enableMutation.mutate(row.id)}>{t('employees.enable')}</Button>
-                ) : (
-                  <Button size="sm" variant="outline" icon={<UserRoundX className="size-3.5" />} disabled={anyActionPending} onClick={() => disableMutation.mutate(row.id)}>{t('employees.disable')}</Button>
-                )}
-                {row.status === 'INVITED' ? (
-                  <Button size="sm" variant="outline" icon={<Send className="size-3.5" />} disabled={anyActionPending} onClick={() => resendMutation.mutate(row.id)}>{t('employees.resendInvitation')}</Button>
-                ) : null}
-                <ConfirmDialog
-                  title={t('common.delete')}
-                  confirmLabel={t('common.delete')}
-                  confirmingLabel={t('common.delete')}
-                  cancelLabel={t('common.cancel')}
-                  onConfirm={() => deleteMutation.mutateAsync(row.id)}
-                  trigger={
-                    <Button size="sm" variant="outline" icon={<Trash2 className="size-3.5" />} disabled={anyActionPending}>
-                      {t('common.delete')}
-                    </Button>
-                  }
+              <div className="flex w-full justify-end">
+                <TableRowActionsMenu
+                  row={row}
+                  triggerAriaLabel={t('common.actions')}
+                  actions={[
+                    { key: 'edit', label: t('common.edit'), icon: <Pencil />, onClick: () => setEditing({ ...row }) },
+                    row.status === 'DISABLED'
+                      ? { key: 'enable', label: t('employees.enable'), icon: <UserRoundCheck />, disabled: anyActionPending, onClick: () => enableMutation.mutate(row.id) }
+                      : { key: 'disable', label: t('employees.disable'), icon: <UserRoundX />, disabled: anyActionPending, onClick: () => disableMutation.mutate(row.id) },
+                    ...(row.status === 'INVITED' ? [{ key: 'resend', label: t('employees.resendInvitation'), icon: <Send />, disabled: anyActionPending, onClick: () => resendMutation.mutate(row.id) }] : []),
+                    { key: 'delete', label: t('common.delete'), icon: <Trash2 />, variant: 'destructive' as const, disabled: anyActionPending, confirm: { title: t('common.delete'), confirmLabel: t('common.delete'), cancelLabel: t('common.cancel') }, onClick: async () => { await deleteMutation.mutateAsync(row.id) } },
+                  ]}
                 />
               </div>
             ),
@@ -232,18 +218,71 @@ export default function EmployeesPage() {
 
       <div className="rounded-2xl border border-border bg-muted/30 p-4 text-xs text-muted-foreground"><KeyRound className="me-2 inline size-4" />{t('employees.tokenHint')}</div>
 
-      <Dialog
+      <Sheet
+        open={Boolean(editing)}
+        onOpenChange={(open) => {
+          if (!open && !updateMutation.isPending) setEditing(null)
+        }}
+      >
+        <SheetContent className="max-w-3xl">
+          <SheetHeader>
+            <SheetTitle>{editing ? t('employees.editTitle', { name: `${editing.firstName} ${editing.lastName ?? ''}`.trim() }) : t('employees.editTitle', { name: '' })}</SheetTitle>
+            <SheetDescription>{t('employees.editDescription')}</SheetDescription>
+          </SheetHeader>
+          {editing ? (
+            <div className="space-y-5">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField label={t('employees.firstName')}>
+                  <Input value={editing.firstName} onChange={(event) => setEditing({ ...editing, firstName: event.target.value })} />
+                </FormField>
+                <FormField label={t('employees.lastName')}>
+                  <Input value={editing.lastName ?? ''} onChange={(event) => setEditing({ ...editing, lastName: event.target.value })} />
+                </FormField>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-foreground">{t('employees.permissions')}</p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {permissions.map((permission) => {
+                    const checked = editing.permissions.includes(permission.code)
+                    return (
+                      <label key={permission.code} className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 text-sm transition-colors ${checked ? 'border-primary/35 bg-primary/[0.05]' : 'border-border bg-background hover:border-primary/20 hover:bg-muted/25'}`}>
+                        <input className="mt-1 size-4 shrink-0 accent-primary" type="checkbox" checked={checked} onChange={() => togglePermission(permission.code, true)} />
+                        <span className="min-w-0">
+                          <span className="block font-semibold text-foreground">{permission.name}</span>
+                          <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">{permission.description ?? permission.code}</span>
+                        </span>
+                      </label>
+                    )
+                  })}
+                </div>
+              </div>
+              <SheetFooter>
+                <Button variant="outline" disabled={updateMutation.isPending} onClick={() => setEditing(null)}>{t('common.cancel')}</Button>
+                <Button
+                  loading={updateMutation.isPending}
+                  disabled={!editing.firstName.trim()}
+                  onClick={() => updateMutation.mutate({ id: editing.id, firstName: editing.firstName.trim(), lastName: editing.lastName?.trim() ?? '', permissions: editing.permissions })}
+                >
+                  {t('common.save')}
+                </Button>
+              </SheetFooter>
+            </div>
+          ) : null}
+        </SheetContent>
+      </Sheet>
+
+      <Sheet
         open={createDialogOpen}
         onOpenChange={(open) => {
           if (open) setCreateDialogOpen(true)
           else closeCreateDialog()
         }}
       >
-        <DialogContent className="max-w-5xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><UserPlus className="size-5 text-primary" />{t('employees.createTitle')}</DialogTitle>
-            <DialogDescription>{t('employees.createDescription')}</DialogDescription>
-          </DialogHeader>
+        <SheetContent className="max-w-5xl">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2"><UserPlus className="size-5 text-primary" />{t('employees.createTitle')}</SheetTitle>
+            <SheetDescription>{t('employees.createDescription')}</SheetDescription>
+          </SheetHeader>
 
           <div className="space-y-5">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -280,12 +319,12 @@ export default function EmployeesPage() {
             {createMutation.isError ? <Alert variant="destructive"><AlertTitle>{t('employees.createError')}</AlertTitle></Alert> : null}
           </div>
 
-          <DialogFooter>
+          <SheetFooter>
             <Button type="button" variant="outline" disabled={createMutation.isPending} onClick={closeCreateDialog}>{t('common.cancel')}</Button>
             <Button type="button" loading={createMutation.isPending} icon={<UserPlus className="size-4" />} onClick={submitCreate}>{t('employees.add')}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </section>
   )
 }

@@ -1,6 +1,12 @@
-import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { BellRing, Loader2, Plus, RefreshCcw } from 'lucide-react'
+import {
+  useState } from 'react'
+import { useMutation,
+  useQuery,
+  useQueryClient } from '@tanstack/react-query'
+import {
+  Loader2,
+  Plus,
+  RefreshCcw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { api } from '@/shared/api/api-client'
@@ -11,27 +17,20 @@ import { generateResourceContentUrl } from '@/shared/utils/file-url'
 import { resourcesService } from '@/modules/resources/resources.service'
 import {
   Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
   CustomFileInput,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
   Input,
   Label,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
   Textarea,
   ToggleSwitch,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  PaginatedDataTable,
+  PageHeader,
+  type DataTableColumn,
 } from '@/shared/ui'
 
 type NotificationItem = {
@@ -92,14 +91,21 @@ export default function NotificationsPage() {
   const { t, i18n } = useTranslation('content-crud')
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState<NotificationForm>(EMPTY_FORM)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [formError, setFormError] = useState('')
 
   const listQuery = useQuery({
-    queryKey: ['notifications', page],
-    queryFn: () => api.get<PagedResponse<NotificationItem>>(API_ENDPOINTS.notifications.list, { params: { Page: page, PerPage: 20 } }),
+    queryKey: ['notifications', page, search],
+    queryFn: () => api.get<PagedResponse<NotificationItem>>(API_ENDPOINTS.notifications.list, {
+      params: {
+        Page: page,
+        PerPage: 20,
+        ...(search.trim() ? { search: search.trim() } : {}),
+      },
+    }),
   })
 
   const sendMutation = useMutation({
@@ -163,48 +169,50 @@ export default function NotificationsPage() {
     setFormError('')
   }
 
+  const notificationColumns: DataTableColumn<NotificationItem>[] = [
+    { id: 'title', header: t('fields.title'), renderCell: (item) => item.title },
+    { id: 'body', header: t('fields.body'), renderCell: (item) => item.body },
+    { id: 'image', header: t('fields.image'), renderCell: (item) => item.imageUrl ? <a className="text-primary underline" href={item.imageUrl} target="_blank" rel="noreferrer">{t('fields.image')}</a> : '-' },
+    { id: 'isBroadcast', header: t('fields.isBroadcast'), renderCell: (item) => item.isBroadcast ? '✓' : '—' },
+    { id: 'sentAt', header: t('fields.sentAt'), renderCell: (item) => item.sentAt ? new Date(item.sentAt).toLocaleString() : '-' },
+    { id: 'targetUserIds', header: t('fields.targetUserIds'), renderCell: (item) => Array.isArray(item.targetUserIds) ? item.targetUserIds.length : '-' },
+  ]
+
   return (
     <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t('modules.notifications.title')}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t('modules.notifications.description')}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void listQuery.refetch()}>{t('actions.refresh')}</Button>
-          <Button icon={<Plus className="size-4" />} onClick={() => setOpen(true)}>{t('actions.sendNotification')}</Button>
-        </div>
-      </div>
+      <PageHeader
+        title={t('modules.notifications.title')}
+        description={t('modules.notifications.description')}
+        search={{
+          value: search,
+          placeholder: t('filters.searchPlaceholder'),
+          onChange: (value) => { setSearch(value); setPage(1) },
+        }}
+        actions={<><Button variant="outline" icon={<RefreshCcw />} onClick={() => void listQuery.refetch()}>{t('actions.refresh')}</Button><Button icon={<Plus />} onClick={() => setOpen(true)}>{t('actions.sendNotification')}</Button></>}
+      />
 
-      <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <CardHeader className="shrink-0"><CardTitle>{t('table.title')}</CardTitle><p className="text-sm text-muted-foreground">{t('table.description', { count: totalCount })}</p></CardHeader>
-        <CardContent className="min-h-0 flex-1 overflow-auto">
-          <Table>
-            <TableHeader><TableRow><TableHead>{t('fields.title')}</TableHead><TableHead>{t('fields.body')}</TableHead><TableHead>{t('fields.image')}</TableHead><TableHead>{t('fields.isBroadcast')}</TableHead><TableHead>{t('fields.sentAt')}</TableHead><TableHead>{t('fields.targetUserIds')}</TableHead></TableRow></TableHeader>
-            <TableBody>
-              {items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.title}</TableCell>
-                  <TableCell className="max-w-md whitespace-normal">{item.body}</TableCell>
-                  <TableCell>{item.imageUrl ? <a className="text-primary underline" href={item.imageUrl} target="_blank" rel="noreferrer">{t('fields.image')}</a> : '-'}</TableCell>
-                  <TableCell>{item.isBroadcast ? '✓' : '—'}</TableCell>
-                  <TableCell>{item.sentAt ? new Date(item.sentAt).toLocaleString() : '-'}</TableCell>
-                  <TableCell>{Array.isArray(item.targetUserIds) ? item.targetUserIds.length : '-'}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          {!listQuery.isLoading && items.length === 0 ? <div className="flex flex-col items-center gap-2 py-12 text-center text-muted-foreground"><BellRing className="size-8" /><p>{t('states.empty.title')}</p></div> : null}
-        </CardContent>
-        <div className="flex shrink-0 items-center justify-between border-t border-border p-3">
-          <span className="text-sm text-muted-foreground">{t('table.page', { page, totalPages })}</span>
-          <div className="flex gap-2"><Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>{t('pagination.previous')}</Button><Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => setPage((current) => Math.min(totalPages, current + 1))}>{t('pagination.next')}</Button></div>
-        </div>
-      </Card>
+      <PaginatedDataTable<NotificationItem>
+        className="min-h-0 flex-1"
+        rows={items}
+        columns={notificationColumns}
+        getRowId={(item) => item.id}
+        loading={listQuery.isLoading || listQuery.isFetching}
+        summaryText={t('table.description', { count: totalCount })}
+        emptyMessage={t('states.empty.title')}
+        pagination={{
+          currentPage: page,
+          totalPages,
+          pageSize,
+          onPageChange: setPage,
+          previousLabel: t('pagination.previous'),
+          nextLabel: t('pagination.next'),
+          getPageLabel: (pageNumber) => t('table.page', { page: pageNumber, totalPages }),
+        }}
+      />
 
-      <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) closeDialog() }}>
-        <DialogContent className="flex max-h-[88svh] max-w-3xl flex-col overflow-hidden">
-          <DialogHeader><DialogTitle>{t('actions.sendNotification')}</DialogTitle><DialogDescription>{t('modules.notifications.description')}</DialogDescription></DialogHeader>
+      <Sheet open={open} onOpenChange={(nextOpen) => { if (!nextOpen) closeDialog() }}>
+        <SheetContent className="flex max-h-[88svh] max-w-3xl flex-col overflow-hidden">
+          <SheetHeader><SheetTitle>{t('actions.sendNotification')}</SheetTitle><SheetDescription>{t('modules.notifications.description')}</SheetDescription></SheetHeader>
           <div className="grid min-h-0 gap-4 overflow-y-auto py-2 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2"><Label htmlFor="notification-title">{t('fields.title')}</Label><Input id="notification-title" value={form.title} onChange={(event) => updateForm('title', event.target.value)} /></div>
             <div className="space-y-2 sm:col-span-2"><Label htmlFor="notification-body">{t('fields.body')}</Label><Textarea id="notification-body" value={form.body} onChange={(event) => updateForm('body', event.target.value)} /></div>
@@ -217,9 +225,9 @@ export default function NotificationsPage() {
             <div className="space-y-2 sm:col-span-2"><Label htmlFor="notification-data">{t('fields.data')}</Label><Textarea id="notification-data" value={form.data} placeholder={t('placeholders.notificationData')} onChange={(event) => updateForm('data', event.target.value)} /></div>
             {formError ? <p className="text-sm text-destructive sm:col-span-2">{formError}</p> : null}
           </div>
-          <DialogFooter className="border-t border-border pt-4"><Button variant="outline" disabled={sendMutation.isPending} onClick={closeDialog}>{t('actions.cancel')}</Button><Button disabled={sendMutation.isPending} onClick={() => sendMutation.mutate()}>{sendMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('actions.send')}</Button></DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <SheetFooter className="border-t border-border pt-4"><Button variant="outline" disabled={sendMutation.isPending} onClick={closeDialog}>{t('actions.cancel')}</Button><Button disabled={sendMutation.isPending} onClick={() => sendMutation.mutate()}>{sendMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('actions.send')}</Button></SheetFooter>
+        </SheetContent>
+      </Sheet>
     </section>
   )
 }

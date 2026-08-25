@@ -10,7 +10,7 @@ type InputProps = React.ComponentProps<"input"> & {
 }
 
 const INPUT_BASE_CLASS =
-  "h-11 w-full rounded-2xl border border-primary/10 bg-[var(--quizy-surface-strong)] px-4 text-sm font-medium text-foreground shadow-[var(--quizy-control-shadow)] outline-none transition-[transform,background-color,border-color,box-shadow] duration-200 placeholder:text-muted-foreground/75 hover:border-primary/25 focus-visible:-translate-y-px focus-visible:border-primary/55 focus-visible:shadow-[var(--quizy-control-focus-shadow)] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-70 aria-invalid:border-destructive aria-invalid:shadow-[0_0_0_4px_rgba(220,38,38,0.12)]"
+  "h-11 w-full rounded-xl border border-input bg-[var(--quizy-surface-strong)] px-3.5 text-sm font-medium text-foreground shadow-sm outline-none transition-[color,background-color,border-color,box-shadow] duration-150 placeholder:text-muted-foreground hover:border-primary/25 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-invalid:ring-[3px]"
 
 const DEFAULT_INPUT_CLASS = INPUT_BASE_CLASS
 const FILTER_INPUT_CLASS = INPUT_BASE_CLASS

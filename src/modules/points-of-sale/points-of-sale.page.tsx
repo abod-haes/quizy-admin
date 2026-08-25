@@ -1,43 +1,49 @@
-import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { MapPin, Pencil, Plus, RefreshCcw, Save, Trash2, X } from 'lucide-react'
+import {
+  useState } from 'react'
+import { useMutation,
+  useQuery,
+  useQueryClient } from '@tanstack/react-query'
+import { MapPin,
+  Pencil,
+  Plus,
+  RefreshCcw,
+  Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import {
   pointsOfSaleService,
   type PointOfSale,
   type PointOfSaleInput,
-} from '@/modules/points-of-sale/points-of-sale.service'
+  } from '@/modules/points-of-sale/points-of-sale.service'
 import {
   Badge,
   Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
   ConfirmDialog,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
   FormField,
   Input,
   PaginatedDataTable,
+  PageHeader,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from '@/shared/ui'
 
 const PAGE_SIZE = 20
 const EMPTY_FORM: PointOfSaleInput = { name: '', location: '' }
+type PointOfSaleDialogMode = 'create' | 'edit'
 
 export default function PointsOfSaleManagementPage() {
   const { t } = useTranslation('admin-pages')
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
-  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogMode, setDialogMode] = useState<PointOfSaleDialogMode>('create')
   const [form, setForm] = useState<PointOfSaleInput>(EMPTY_FORM)
-  const [editing, setEditing] = useState<PointOfSale | null>(null)
+  const [editingPointOfSale, setEditingPointOfSale] = useState<PointOfSale | null>(null)
 
   const listQuery = useQuery({
     queryKey: ['points-of-sale', page, search],
@@ -48,104 +54,83 @@ export default function PointsOfSaleManagementPage() {
         ...(search.trim() ? { search: search.trim() } : {}),
       }),
   })
+
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['points-of-sale'] })
-  const createMutation = useMutation({
-    mutationFn: pointsOfSaleService.create,
+
+  const saveMutation = useMutation({
+    mutationFn: () => {
+      const payload: PointOfSaleInput = {
+        name: form.name.trim(),
+        location: form.location.trim(),
+      }
+
+      if (dialogMode === 'create') return pointsOfSaleService.create(payload)
+      if (!editingPointOfSale) throw new Error('Missing point of sale')
+      return pointsOfSaleService.update(editingPointOfSale.id, payload)
+    },
     onSuccess: async () => {
+      setDialogOpen(false)
       setForm(EMPTY_FORM)
-      setCreateDialogOpen(false)
+      setEditingPointOfSale(null)
       await invalidate()
     },
   })
-  const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: PointOfSaleInput }) =>
-      pointsOfSaleService.update(id, payload),
-    onSuccess: async () => {
-      setEditing(null)
-      await invalidate()
-    },
-  })
+
   const removeMutation = useMutation({
     mutationFn: pointsOfSaleService.remove,
     onSuccess: invalidate,
   })
 
+  const openCreateDialog = () => {
+    saveMutation.reset()
+    setDialogMode('create')
+    setEditingPointOfSale(null)
+    setForm(EMPTY_FORM)
+    setDialogOpen(true)
+  }
+
+  const openEditDialog = (pointOfSale: PointOfSale) => {
+    saveMutation.reset()
+    setDialogMode('edit')
+    setEditingPointOfSale(pointOfSale)
+    setForm({ name: pointOfSale.name, location: pointOfSale.location ?? '' })
+    setDialogOpen(true)
+  }
+
+  const closeDialog = () => {
+    if (saveMutation.isPending) return
+    setDialogOpen(false)
+    setForm(EMPTY_FORM)
+    setEditingPointOfSale(null)
+    saveMutation.reset()
+  }
+
   const rows = listQuery.data?.items ?? []
   const totalCount = listQuery.data?.totalCount ?? 0
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
-
-  const resetCreate = () => {
-    setForm(EMPTY_FORM)
-    createMutation.reset()
-  }
-
-  const openCreateDialog = () => {
-    resetCreate()
-    setCreateDialogOpen(true)
-  }
-
-  const closeCreateDialog = () => {
-    if (createMutation.isPending) return
-    setCreateDialogOpen(false)
-    resetCreate()
-  }
-
-  const create = () => {
-    if (!form.name.trim()) return
-    createMutation.mutate({ name: form.name.trim(), location: form.location?.trim() || null })
-  }
+  const canSave = Boolean(form.name.trim() && form.location.trim())
 
   return (
-    <section className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-3xl border border-primary/15 bg-card p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-start gap-4">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <MapPin className="size-6" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">{t('pointsOfSale.title')}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{t('pointsOfSale.description')}</p>
-          </div>
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-          <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void listQuery.refetch()}>
-            {t('common.refresh')}
-          </Button>
-          <Button icon={<Plus className="size-4" />} onClick={openCreateDialog}>{t('common.create')}</Button>
-        </div>
-      </div>
-
-      {editing ? (
-        <Card className="rounded-3xl border-primary/20">
-          <CardHeader><CardTitle>{t('pointsOfSale.editTitle')}</CardTitle></CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-[1fr_1.5fr_auto] md:items-end">
-            <FormField label={t('pointsOfSale.name')}><Input value={editing.name} onChange={(event) => setEditing({ ...editing, name: event.target.value })} /></FormField>
-            <FormField label={t('pointsOfSale.location')}><Input value={editing.location ?? ''} onChange={(event) => setEditing({ ...editing, location: event.target.value })} /></FormField>
-            <div className="flex gap-2">
-              <Button variant="outline" icon={<X className="size-4" />} onClick={() => setEditing(null)}>{t('common.cancel')}</Button>
-              <Button
-                icon={<Save className="size-4" />}
-                loading={updateMutation.isPending}
-                disabled={!editing.name.trim()}
-                onClick={() => updateMutation.mutate({ id: editing.id, payload: { name: editing.name.trim(), location: editing.location?.trim() || null } })}
-              >
-                {t('common.save')}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      <Input
-        value={search}
-        placeholder={t('pointsOfSale.searchPlaceholder')}
-        onChange={(event) => {
-          setSearch(event.target.value)
-          setPage(1)
+    <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
+      <PageHeader
+        icon={<MapPin />}
+        title={t('pointsOfSale.title')}
+        description={t('pointsOfSale.description')}
+        search={{
+          value: search,
+          placeholder: t('pointsOfSale.searchPlaceholder'),
+          onChange: (value) => { setSearch(value); setPage(1) },
         }}
+        actions={
+          <>
+            <Button variant="outline" icon={<RefreshCcw />} onClick={() => void listQuery.refetch()}>{t('common.refresh')}</Button>
+            <Button icon={<Plus />} onClick={openCreateDialog}>{t('common.create')}</Button>
+          </>
+        }
       />
 
       <PaginatedDataTable<PointOfSale>
+        className="min-h-0 flex-1"
         rows={rows}
         loading={listQuery.isLoading || listQuery.isFetching}
         getRowId={(row) => row.id}
@@ -161,23 +146,51 @@ export default function PointsOfSaleManagementPage() {
           getPageLabel: (pageNumber) => t('common.page', { page: pageNumber }),
         }}
         columns={[
-          { id: 'name', header: t('pointsOfSale.name'), renderCell: (row) => <span className="font-semibold">{row.name}</span> },
-          { id: 'location', header: t('pointsOfSale.location'), renderCell: (row) => row.location || '—' },
-          { id: 'qrs', header: t('pointsOfSale.qrCount'), renderCell: (row) => <Badge variant="outline" color="primary">{row.qrCodeCount ?? 0}</Badge> },
+          {
+            id: 'name',
+            header: t('pointsOfSale.name'),
+            renderCell: (row) => <span className="font-semibold">{row.name}</span>,
+          },
+          {
+            id: 'location',
+            header: t('pointsOfSale.location'),
+            renderCell: (row) => row.location || '—',
+          },
+          {
+            id: 'qrs',
+            header: t('pointsOfSale.qrCount'),
+            renderCell: (row) => (
+              <Badge variant="outline" color="primary">
+                {row.qrCodeCount ?? 0}
+              </Badge>
+            ),
+          },
           {
             id: 'actions',
             header: '',
             renderCell: (row) => (
               <div className="flex justify-end gap-2">
-                <Button size="sm" variant="outline" icon={<Pencil className="size-3.5" />} onClick={() => setEditing({ ...row })}>{t('common.edit')}</Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  icon={<Pencil className="size-3.5" />}
+                  onClick={() => openEditDialog(row)}
+                >
+                  {t('common.edit')}
+                </Button>
                 <ConfirmDialog
                   title={t('common.delete')}
                   confirmLabel={t('common.delete')}
                   confirmingLabel={t('common.delete')}
                   cancelLabel={t('common.cancel')}
-                  onConfirm={() => removeMutation.mutateAsync(row.id)}
+                  onConfirm={async () => { await removeMutation.mutateAsync(row.id) }}
                   trigger={
-                    <Button size="sm" variant="outline" icon={<Trash2 className="size-3.5" />} disabled={removeMutation.isPending}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      icon={<Trash2 className="size-3.5" />}
+                      disabled={removeMutation.isPending}
+                    >
                       {t('common.delete')}
                     </Button>
                   }
@@ -188,26 +201,90 @@ export default function PointsOfSaleManagementPage() {
         ]}
       />
 
-      <Dialog open={createDialogOpen} onOpenChange={(open) => { if (open) setCreateDialogOpen(true); else closeCreateDialog() }}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Plus className="size-5 text-primary" />{t('pointsOfSale.createTitle')}</DialogTitle>
-            <DialogDescription>{t('pointsOfSale.createDescription')}</DialogDescription>
-          </DialogHeader>
+      <Sheet
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          if (open) setDialogOpen(true)
+          else closeDialog()
+        }}
+      >
+        <SheetContent className="max-w-xl">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              {dialogMode === 'create' ? (
+                <Plus className="size-5 text-primary" />
+              ) : (
+                <Pencil className="size-5 text-primary" />
+              )}
+              {t(
+                dialogMode === 'create'
+                  ? 'pointsOfSale.createTitle'
+                  : 'pointsOfSale.editTitle',
+              )}
+            </SheetTitle>
+            <SheetDescription>
+              {t(
+                dialogMode === 'create'
+                  ? 'pointsOfSale.createDescription'
+                  : 'pointsOfSale.editDescription',
+              )}
+            </SheetDescription>
+          </SheetHeader>
+
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label={t('pointsOfSale.name')}>
-              <Input autoFocus value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} />
+            <FormField
+              label={
+                <>
+                  {t('pointsOfSale.name')} <span className="text-destructive">*</span>
+                </>
+              }
+            >
+              <Input
+                required
+                autoFocus
+                value={form.name}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, name: event.target.value }))
+                }
+              />
             </FormField>
-            <FormField label={t('pointsOfSale.location')}>
-              <Input value={form.location ?? ''} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value }))} />
+            <FormField
+              label={
+                <>
+                  {t('pointsOfSale.location')} <span className="text-destructive">*</span>
+                </>
+              }
+            >
+              <Input
+                required
+                value={form.location}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, location: event.target.value }))
+                }
+              />
             </FormField>
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" disabled={createMutation.isPending} onClick={closeCreateDialog}>{t('common.cancel')}</Button>
-            <Button type="button" loading={createMutation.isPending} disabled={!form.name.trim()} onClick={create}>{t('common.create')}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+          <SheetFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={saveMutation.isPending}
+              onClick={closeDialog}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              type="button"
+              loading={saveMutation.isPending}
+              disabled={!canSave}
+              onClick={() => saveMutation.mutate()}
+            >
+              {t(dialogMode === 'create' ? 'common.create' : 'common.save')}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </section>
   )
 }

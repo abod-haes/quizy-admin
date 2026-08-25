@@ -1,14 +1,48 @@
-import { useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, BookOpenCheck, Eye, Loader2, Pencil, Plus, RefreshCcw, Trash2 } from 'lucide-react'
+import {
+  useMemo,
+  useState } from 'react'
+import { useNavigate,
+  useParams } from 'react-router-dom'
+import { useMutation,
+  useQuery,
+  useQueryClient } from '@tanstack/react-query'
+import { ArrowLeft,
+  BookOpenCheck,
+  Eye,
+  Loader2,
+  Pencil,
+  Plus,
+  RefreshCcw,
+  Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from '@/shared/lib/toast'
 
 import { api } from '@/shared/api/api-client'
-import type { PagedResponse, UUID } from '@/shared/api/api.types'
+import type { PagedResponse,
+  UUID } from '@/shared/api/api.types'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
-import { Badge, Button, Card, CardContent, CardHeader, CustomSelect, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input, Label, Skeleton, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Textarea, ToggleSwitch } from '@/shared/ui'
+import { Button,
+  CustomSelect,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Label,
+  Textarea,
+  ToggleSwitch,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  PaginatedDataTable,
+  PageHeader,
+  type DataTableColumn,
+} from '@/shared/ui'
 
 type CourseOption = { id: UUID; title?: string | null; name?: string | null; subjectName?: string | null; teacherName?: string | null }
 type CourseSession = { id: UUID; title?: string | null; description?: string | null; order?: number | null; isFree?: boolean | null; accessStatus?: string | null }
@@ -59,8 +93,6 @@ export default function CourseSessionsPage() {
   const totalCount = sessionsQuery.data?.totalCount ?? 0
   const pageSize = sessionsQuery.data?.pageSize ?? DEFAULT_PAGE_SIZE
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
-  const startItem = totalCount === 0 ? 0 : (page - 1) * pageSize + 1
-  const endItem = Math.min(page * pageSize, totalCount)
 
   const saveMutation = useMutation({
     mutationFn: async (values: SessionFormValues) => {
@@ -89,13 +121,69 @@ export default function CourseSessionsPage() {
   }
   const handleDelete = (item: CourseSession) => setDeleteTarget(item)
   const confirmDelete = () => { if (deleteTarget) deleteMutation.mutate(deleteTarget) }
-  const goToPage = (nextPage: number) => setPage(Math.min(totalPages, Math.max(1, nextPage)))
+
+  const sessionColumns: DataTableColumn<CourseSession>[] = [
+    { id: 'title', header: t('fields.title'), renderCell: (item) => item.title || '-' },
+    { id: 'description', header: t('fields.description'), renderCell: (item) => item.description || '-' },
+    { id: 'order', header: t('fields.order'), renderCell: (item) => typeof item.order === 'number' ? item.order : '-' },
+    { id: 'isFree', header: t('fields.isFree'), renderCell: (item) => item.isFree ? '✓' : '—' },
+    {
+      id: 'actions',
+      header: t('fields.actions'),
+      headerClassName: 'text-center',
+      cellClassName: 'text-center',
+      renderCell: (item) => (
+        <div className="flex w-full justify-center gap-2">
+          <Button type="button" size="icon-sm" variant="outline" disabled={!selectedCourseId} onClick={() => navigate(`/courses/${selectedCourseId}/sessions/${item.id}/materials`)}><Eye className="size-4" /></Button>
+          <Button type="button" size="icon-sm" variant="outline" onClick={() => openEditForm(item)}><Pencil className="size-4" /></Button>
+          <Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => handleDelete(item)}><Trash2 className="size-4" /></Button>
+        </div>
+      ),
+    },
+  ]
 
   return (
-    <section className="flex min-h-0 w-full flex-col gap-6 overflow-hidden">
-      <div className="rounded-[2rem] border border-primary/10 bg-card p-6 shadow-sm sm:p-8"><div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"><div className="max-w-3xl space-y-3">{isCourseDetailRoute ? <Button type="button" variant="ghost" size="sm" className="-ms-2" onClick={() => navigate('/courses')}><ArrowLeft className="size-4 rtl:rotate-180" />{t('modules.courses.title')}</Button> : null}<Badge variant="outline" color="primary" className="rounded-full px-3">{t('status.connected')}</Badge><h1 className="text-3xl font-bold tracking-tight text-foreground">{isCourseDetailRoute ? selectedCourseLabel : t('modules.courseSessions.title')}</h1><p className="text-base leading-7 text-muted-foreground">{t('modules.courseSessions.description')}</p></div><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => sessionsQuery.refetch()} disabled={!selectedCourseId || sessionsQuery.isFetching}><RefreshCcw className="size-4" />{t('actions.refresh')}</Button><Button type="button" onClick={openCreateForm} disabled={!selectedCourseId}><Plus className="size-4" />{t('actions.create')}</Button></div></div></div>
-      <Card className="flex min-h-0 flex-1 flex-col rounded-3xl shadow-sm">{!isCourseDetailRoute ? <CardHeader className="shrink-0 gap-4"><div className="grid gap-3 lg:grid-cols-[minmax(18rem,26rem)_1fr] lg:items-end"><div className="space-y-2"><Label>{t('fields.course')}</Label><CustomSelect value={selectedCourseId || undefined} placeholder={t('sessions.coursePlaceholder')} options={courseOptions} onValueChange={(value) => { setSelectedCourseId(value); setPage(1) }} /></div></div></CardHeader> : null}<CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden">{!selectedCourseId ? <div className="flex min-h-[22rem] flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-muted/30 p-10 text-center"><BookOpenCheck className="mb-3 size-10 text-muted-foreground" /><h2 className="text-lg font-semibold text-foreground">{t('sessions.emptySelectTitle')}</h2><p className="mt-1 text-sm text-muted-foreground">{t('sessions.emptySelectDescription')}</p></div> : sessionsQuery.isLoading ? <div className="space-y-3">{[0, 1, 2, 3].map((index) => <Skeleton key={index} className="h-14 w-full rounded-2xl" />)}</div> : items.length === 0 ? <div className="rounded-3xl border border-dashed border-border bg-muted/30 p-10 text-center"><BookOpenCheck className="mx-auto mb-3 size-10 text-muted-foreground" /><h2 className="text-lg font-semibold text-foreground">{t('states.empty.title')}</h2><p className="mt-1 text-sm text-muted-foreground">{t('states.empty.description')}</p></div> : <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-border bg-background/70"><div className="max-h-[min(62vh,46rem)] overflow-auto"><Table className="min-w-[760px]"><TableHeader className="sticky top-0 z-10 bg-card/95 backdrop-blur"><TableRow><TableHead>{t('fields.title')}</TableHead><TableHead>{t('fields.description')}</TableHead><TableHead>{t('fields.order')}</TableHead><TableHead>{t('fields.isFree')}</TableHead><TableHead className="w-40 text-center">{t('fields.actions')}</TableHead></TableRow></TableHeader><TableBody>{items.map((item) => <TableRow key={item.id}><TableCell className="max-w-[18rem] truncate">{item.title || '-'}</TableCell><TableCell className="max-w-[22rem] truncate">{item.description || '-'}</TableCell><TableCell>{typeof item.order === 'number' ? item.order : '-'}</TableCell><TableCell>{item.isFree ? '✓' : '—'}</TableCell><TableCell><div className="flex justify-center gap-2"><Button type="button" size="icon-sm" variant="outline" disabled={!selectedCourseId} onClick={() => navigate(`/courses/${selectedCourseId}/sessions/${item.id}/materials`)}><Eye className="size-4" /></Button><Button type="button" size="icon-sm" variant="outline" onClick={() => openEditForm(item)}><Pencil className="size-4" /></Button><Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => handleDelete(item)}><Trash2 className="size-4" /></Button></div></TableCell></TableRow>)}</TableBody></Table></div></div>}{selectedCourseId ? <div className="mt-4 flex shrink-0 flex-col gap-3 border-t border-border/70 pt-4 lg:flex-row lg:items-center lg:justify-between"><p className="text-sm text-muted-foreground">{t('pagination.range', { start: startItem, end: endItem, total: totalCount })}</p><div className="flex flex-wrap items-center gap-2"><Button type="button" variant="outline" disabled={page <= 1 || sessionsQuery.isFetching} onClick={() => goToPage(page - 1)}>{t('pagination.previous')}</Button><Badge variant="outline" className="rounded-full px-3">{t('pagination.summary', { page, totalPages })}</Badge><Button type="button" variant="outline" disabled={page >= totalPages || sessionsQuery.isFetching} onClick={() => goToPage(page + 1)}>{t('pagination.next')}</Button></div></div> : null}</CardContent></Card>
-      <Dialog open={formState.open} onOpenChange={(open) => setFormState((current) => ({ ...current, open }))}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>{t(formState.mode === 'edit' ? 'form.editTitle' : 'form.createTitle', { entity: t('modules.courseSessions.title') })}</DialogTitle><DialogDescription>{t('form.description')}</DialogDescription></DialogHeader><div className="grid gap-4 py-2"><div className="space-y-2"><Label htmlFor="session-title">{t('fields.title')}</Label><Input id="session-title" value={formState.values.title} onChange={(event) => updateField('title', event.target.value)} />{formState.errors.title ? <p className="text-sm text-destructive">{t(formState.errors.title)}</p> : null}</div><div className="space-y-2"><Label htmlFor="session-description">{t('fields.description')}</Label><Textarea id="session-description" value={formState.values.description} onChange={(event) => updateField('description', event.target.value)} />{formState.errors.description ? <p className="text-sm text-destructive">{t(formState.errors.description)}</p> : null}</div><div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="session-order">{t('fields.order')}</Label><Input id="session-order" type="number" value={String(formState.values.order)} onChange={(event) => updateField('order', Number(event.target.value))} />{formState.errors.order ? <p className="text-sm text-destructive">{t(formState.errors.order)}</p> : null}</div><div className="space-y-2"><Label>{t('fields.isFree')}</Label><div className="flex h-11 items-center justify-between gap-3 rounded-2xl border border-border bg-background px-4 text-sm"><span>{t('fields.isFree')}</span><ToggleSwitch checked={formState.values.isFree} onCheckedChange={(checked) => updateField('isFree', checked)} /></div></div></div></div><DialogFooter><Button type="button" variant="outline" onClick={() => setFormState((current) => ({ ...current, open: false }))}>{t('actions.cancel')}</Button><Button type="button" disabled={saveMutation.isPending} onClick={handleSubmit}>{saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('actions.save')}</Button></DialogFooter></DialogContent></Dialog>
+    <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
+      <PageHeader
+        icon={<BookOpenCheck />}
+        title={isCourseDetailRoute ? selectedCourseLabel : t('modules.courseSessions.title')}
+        description={t('modules.courseSessions.description')}
+        controls={
+          <>
+            {isCourseDetailRoute ? <Button type="button" variant="ghost" onClick={() => navigate('/courses')}><ArrowLeft className="rtl:rotate-180" />{t('modules.courses.title')}</Button> : <CustomSelect className="h-9 min-w-56" value={selectedCourseId || undefined} placeholder={t('sessions.coursePlaceholder')} options={courseOptions} onValueChange={(value) => { setSelectedCourseId(value); setPage(1) }} />}
+          </>
+        }
+        actions={<><Button type="button" variant="outline" onClick={() => sessionsQuery.refetch()} disabled={!selectedCourseId || sessionsQuery.isFetching}><RefreshCcw />{t('actions.refresh')}</Button><Button type="button" onClick={openCreateForm} disabled={!selectedCourseId}><Plus />{t('actions.create')}</Button></>}
+      />
+
+      {!selectedCourseId ? (
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center border border-dashed border-border bg-muted/20 p-10 text-center">
+          <BookOpenCheck className="mb-3 size-10 text-muted-foreground" />
+          <h2 className="text-lg font-semibold text-foreground">{t('sessions.emptySelectTitle')}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t('sessions.emptySelectDescription')}</p>
+        </div>
+      ) : (
+        <PaginatedDataTable<CourseSession>
+          className="min-h-0 flex-1"
+          rows={items}
+          columns={sessionColumns}
+          getRowId={(item) => item.id}
+          loading={sessionsQuery.isLoading || sessionsQuery.isFetching}
+          summaryText={t('pagination.range', { start: totalCount === 0 ? 0 : (page - 1) * pageSize + 1, end: Math.min(page * pageSize, totalCount), total: totalCount })}
+          emptyMessage={t('states.empty.description')}
+          pagination={{
+            currentPage: page,
+            totalPages,
+            pageSize,
+            onPageChange: setPage,
+            previousLabel: t('pagination.previous'),
+            nextLabel: t('pagination.next'),
+            getPageLabel: (pageNumber) => t('pagination.summary', { page: pageNumber, totalPages }),
+          }}
+        />
+      )}
+
+      <Sheet open={formState.open} onOpenChange={(open) => setFormState((current) => ({ ...current, open }))}><SheetContent className="max-w-2xl"><SheetHeader><SheetTitle>{t(formState.mode === 'edit' ? 'form.editTitle' : 'form.createTitle', { entity: t('modules.courseSessions.title') })}</SheetTitle><SheetDescription>{t('form.description')}</SheetDescription></SheetHeader><div className="grid gap-4 py-2"><div className="space-y-2"><Label htmlFor="session-title">{t('fields.title')}</Label><Input id="session-title" value={formState.values.title} onChange={(event) => updateField('title', event.target.value)} />{formState.errors.title ? <p className="text-sm text-destructive">{t(formState.errors.title)}</p> : null}</div><div className="space-y-2"><Label htmlFor="session-description">{t('fields.description')}</Label><Textarea id="session-description" value={formState.values.description} onChange={(event) => updateField('description', event.target.value)} />{formState.errors.description ? <p className="text-sm text-destructive">{t(formState.errors.description)}</p> : null}</div><div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="session-order">{t('fields.order')}</Label><Input id="session-order" type="number" value={String(formState.values.order)} onChange={(event) => updateField('order', Number(event.target.value))} />{formState.errors.order ? <p className="text-sm text-destructive">{t(formState.errors.order)}</p> : null}</div><div className="space-y-2"><Label>{t('fields.isFree')}</Label><div className="flex h-11 items-center justify-between gap-3 rounded-2xl border border-border bg-background px-4 text-sm"><span>{t('fields.isFree')}</span><ToggleSwitch checked={formState.values.isFree} onCheckedChange={(checked) => updateField('isFree', checked)} /></div></div></div></div><SheetFooter><Button type="button" variant="outline" onClick={() => setFormState((current) => ({ ...current, open: false }))}>{t('actions.cancel')}</Button><Button type="button" disabled={saveMutation.isPending} onClick={handleSubmit}>{saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('actions.save')}</Button></SheetFooter></SheetContent></Sheet>
       <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteTarget(null) }}><DialogContent className="max-w-md"><DialogHeader><DialogTitle>{t('messages.deleteTitle')}</DialogTitle><DialogDescription>{deleteTarget ? t('messages.deleteConfirm', { name: deleteTarget.title || t('messages.item') }) : ''}</DialogDescription></DialogHeader><DialogFooter><Button type="button" variant="outline" disabled={deleteMutation.isPending} onClick={() => setDeleteTarget(null)}>{t('actions.cancel')}</Button><Button type="button" disabled={deleteMutation.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={confirmDelete}>{deleteMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('actions.delete')}</Button></DialogFooter></DialogContent></Dialog>
     </section>
   )

@@ -1,6 +1,17 @@
-import { useMemo, useState, type Dispatch, type SetStateAction } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Download, PackagePlus, Printer, QrCode, RefreshCcw, Trash2 } from 'lucide-react'
+import {
+  useMemo,
+  useState,
+  type Dispatch,
+  type SetStateAction } from 'react'
+import { useMutation,
+  useQuery,
+  useQueryClient } from '@tanstack/react-query'
+import { Download,
+  PackagePlus,
+  Printer,
+  QrCode,
+  RefreshCcw,
+  Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { aiQrCodesService } from '@/modules/ai-qr-codes/services/ai-qr-codes.service'
@@ -9,7 +20,7 @@ import type {
   CreateUnifiedQrRequest,
   QrGrantMode,
   UnifiedQrItem,
-} from '@/modules/ai-qr-codes/types/ai-qr-codes.types'
+  } from '@/modules/ai-qr-codes/types/ai-qr-codes.types'
 import {
   Alert,
   AlertTitle,
@@ -26,6 +37,13 @@ import {
   FormField,
   Input,
   PaginatedDataTable,
+  PageHeader,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from '@/shared/ui'
 
 const PAGE_SIZE = 20
@@ -305,25 +323,16 @@ export default function AiQrCodesPage() {
   }
 
   return (
-    <section className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-3xl border border-primary/15 bg-card p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-start gap-4">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <QrCode className="size-6" />
-          </div>
-          <div>
-            <div className="mb-1 text-sm font-semibold text-primary">{t('badge')}</div>
-            <h1 className="text-2xl font-bold">{t('title')}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{t('description')}</p>
-          </div>
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-          <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void qrQuery.refetch()}>{t('actions.refresh')}</Button>
-          <Button icon={<PackagePlus className="size-4" />} onClick={openCreateDialog}>{t('actions.create')}</Button>
-        </div>
-      </div>
+    <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
+      <PageHeader
+        icon={<QrCode />}
+        title={t('title')}
+        description={t('description')}
+        actions={<><Button variant="outline" icon={<RefreshCcw />} onClick={() => void qrQuery.refetch()}>{t('actions.refresh')}</Button><Button icon={<PackagePlus />} onClick={openCreateDialog}>{t('actions.create')}</Button></>}
+      />
 
       <PaginatedDataTable<UnifiedQrItem>
+        className="min-h-0 flex-1"
         rows={rows}
         loading={qrQuery.isLoading || qrQuery.isFetching}
         getRowId={(row) => row.id}
@@ -346,7 +355,7 @@ export default function AiQrCodesPage() {
                   confirmLabel={t('actions.delete')}
                   confirmingLabel={t('actions.delete')}
                   cancelLabel={t('actions.close')}
-                  onConfirm={() => deleteMutation.mutateAsync(row.id)}
+                  onConfirm={async () => { await deleteMutation.mutateAsync(row.id) }}
                   trigger={
                     <Button size="sm" variant="outline" disabled={Boolean(row.redeemed) || deleteMutation.isPending} icon={<Trash2 className="size-4" />}>
                       {t('actions.delete')}
@@ -359,12 +368,12 @@ export default function AiQrCodesPage() {
         ]}
       />
 
-      <Dialog open={createDialogOpen} onOpenChange={(open) => { if (!createMutation.isPending) setCreateDialogOpen(open) }}>
-        <DialogContent className="max-w-6xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><PackagePlus className="size-5 text-primary" />{t('create.title')}</DialogTitle>
-            <DialogDescription>{t('create.description')}</DialogDescription>
-          </DialogHeader>
+      <Sheet open={createDialogOpen} onOpenChange={(open) => { if (!createMutation.isPending) setCreateDialogOpen(open) }}>
+        <SheetContent className="max-w-6xl">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2"><PackagePlus className="size-5 text-primary" />{t('create.title')}</SheetTitle>
+            <SheetDescription>{t('create.description')}</SheetDescription>
+          </SheetHeader>
 
           <div className="space-y-5">
             <div className="grid gap-4 xl:grid-cols-2">
@@ -416,12 +425,12 @@ export default function AiQrCodesPage() {
             {createMutation.isError ? <Alert variant="destructive"><AlertTitle>{t('messages.createFailed')}</AlertTitle></Alert> : null}
           </div>
 
-          <DialogFooter>
+          <SheetFooter>
             <Button type="button" variant="outline" disabled={createMutation.isPending} onClick={() => setCreateDialogOpen(false)}>{t('actions.close')}</Button>
             <Button type="button" loading={createMutation.isPending} icon={<QrCode className="size-4" />} onClick={handleCreate}>{t('actions.create')}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={generatedDialogOpen} onOpenChange={setGeneratedDialogOpen}>
         <DialogContent className="max-w-6xl">
