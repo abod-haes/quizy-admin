@@ -166,6 +166,8 @@ function extractPermissions(payload: Record<string, unknown>): AppPermission[] {
 function extractRoles(payload: Record<string, unknown>): AppRole[] {
   const directRoles = normalizeRoles(payload.roles)
   if (directRoles.length) return directRoles
+  const directRole = normalizeRoles(payload.role)
+  if (directRole.length) return directRole
 
   const user = toRecord(payload.user)
   if (user) {
