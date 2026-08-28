@@ -9,13 +9,14 @@ const RESOURCES = ['resources.manage'] as const
 const NOTIFICATIONS = ['notifications.manage'] as const
 const AI = ['ai.manage'] as const
 const QR = ['qr.manage'] as const
+const TEACHER_DASHBOARD_ROLES = ['SuperAdmin', 'AdminEmployee', 'Teacher'] as const
 
 export const APP_ROUTES = {
   login: { key: 'login', path: '/login', protected: false, breadcrumbKeys: [] },
   root: { key: 'root', path: '/', protected: true, breadcrumbKeys: [] },
   dashboard: { key: 'dashboard', path: '/dashboard', protected: true, breadcrumbKeys: [] },
   quizBuilder: { key: 'quizBuilder', path: '/quiz-builder', protected: true, permissions: QUIZZES, breadcrumbKeys: [] },
-  quizzes: { key: 'quizzes', path: '/quizzes', protected: true, permissions: QUIZZES, breadcrumbKeys: [] },
+  quizzes: { key: 'quizzes', path: '/quizzes', protected: true, roles: TEACHER_DASHBOARD_ROLES, permissions: QUIZZES, breadcrumbKeys: [] },
   questions: { key: 'questions', path: '/questions', protected: true, permissions: QUIZZES, breadcrumbKeys: [] },
   questionDetail: { key: 'questionDetail', path: '/questions/:questionId', protected: true, permissions: QUIZZES, breadcrumbKeys: [] },
   classes: { key: 'classes', path: '/classes', protected: true, permissions: CONTENT, breadcrumbKeys: [] },
@@ -25,11 +26,11 @@ export const APP_ROUTES = {
   teachers: { key: 'teachers', path: '/teachers', protected: true, permissions: CONTENT, breadcrumbKeys: [] },
   students: { key: 'students', path: '/students', protected: true, permissions: CONTENT, breadcrumbKeys: [] },
   managementUsers: { key: 'managementUsers', path: '/management-users', protected: true, permissions: EMPLOYEES, breadcrumbKeys: [] },
-  courses: { key: 'courses', path: '/courses', protected: true, permissions: COURSES, breadcrumbKeys: [] },
-  courseDetail: { key: 'courseDetail', path: '/courses/:courseId', protected: true, permissions: COURSES, breadcrumbKeys: [] },
+  courses: { key: 'courses', path: '/courses', protected: true, roles: TEACHER_DASHBOARD_ROLES, permissions: COURSES, breadcrumbKeys: [] },
+  courseDetail: { key: 'courseDetail', path: '/courses/:courseId', protected: true, roles: TEACHER_DASHBOARD_ROLES, permissions: COURSES, breadcrumbKeys: [] },
   courseSessions: { key: 'courseSessions', path: '/courses/sessions', protected: true, permissions: COURSES, breadcrumbKeys: [] },
   coursePurchases: { key: 'coursePurchases', path: '/courses/purchases', protected: true, permissions: COURSES, breadcrumbKeys: [] },
-  courseSessionDetail: { key: 'courseSessionDetail', path: '/courses/:courseId/sessions/:sessionId/:contentTab?', protected: true, permissions: COURSES, breadcrumbKeys: [] },
+  courseSessionDetail: { key: 'courseSessionDetail', path: '/courses/:courseId/sessions/:sessionId/:contentTab?', protected: true, roles: TEACHER_DASHBOARD_ROLES, permissions: COURSES, breadcrumbKeys: [] },
   courseContent: { key: 'courseContent', path: '/courses/content', protected: true, permissions: COURSES, breadcrumbKeys: [] },
   resources: { key: 'resources', path: '/resources', protected: true, permissions: RESOURCES, breadcrumbKeys: [] },
   ads: { key: 'ads', path: '/ads', protected: true, permissions: CONTENT, breadcrumbKeys: [] },
