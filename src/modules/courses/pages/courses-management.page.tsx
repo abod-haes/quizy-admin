@@ -42,6 +42,7 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
+  type TableRowActionItem,
 } from '@/shared/ui'
 
 type CourseStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
@@ -228,6 +229,39 @@ export default function CoursesManagementPage() {
     { value: 'ARCHIVED', label: t('courses.status.ARCHIVED') },
   ]
 
+  const getCourseActions = (row: CourseRow): TableRowActionItem<CourseRow>[] => {
+    if (isTeacher) {
+      return [{
+        key: 'sessions',
+        label: t('courses.manageSessions'),
+        icon: <Eye />,
+        onClick: () => navigate(`/courses/${row.id}`),
+      }]
+    }
+    return [
+      {
+        key: 'sessions',
+        label: t('courses.manageSessions'),
+        icon: <Eye />,
+        onClick: () => navigate(`/courses/${row.id}`),
+      },
+      {
+        key: 'edit',
+        label: t('common.edit'),
+        icon: <Pencil />,
+        onClick: () => void openEdit(row),
+      },
+      {
+        key: 'delete',
+        label: t('common.delete'),
+        icon: <Trash2 />,
+        variant: 'destructive',
+        confirm: false,
+        onClick: () => setDeleteTarget(row),
+      },
+    ]
+  }
+
   return (
     <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
       <PageHeader
@@ -253,7 +287,7 @@ export default function CoursesManagementPage() {
             { id: 'status', header: t('courses.statusLabel'), renderCell: (row) => <Badge variant="outline" color={row.status === 'PUBLISHED' ? 'emerald' : 'slate'}>{t(`courses.status.${row.status}`)}</Badge> },
             { id: 'price', header: t('courses.price'), renderCell: (row) => row.isFree ? t('courses.free') : `${row.price ?? 0} ${row.currency ?? ''}` },
             { id: 'sessions', header: t('courses.sessions'), renderCell: (row) => row.sessionsCount ?? 0 },
-            { id: 'actions', header: '', renderCell: (row) => <div className="flex w-full justify-end"><TableRowActionsMenu row={row} triggerAriaLabel={t('common.actions')} actions={isTeacher ? [{ key: 'sessions', label: t('courses.manageSessions'), icon: <Eye />, onClick: () => navigate(`/courses/${row.id}`) }] : [{ key: 'sessions', label: t('courses.manageSessions'), icon: <Eye />, onClick: () => navigate(`/courses/${row.id}`) }, { key: 'edit', label: t('common.edit'), icon: <Pencil />, onClick: () => void openEdit(row) }, { key: 'delete', label: t('common.delete'), icon: <Trash2 />, variant: 'destructive', confirm: false, onClick: () => setDeleteTarget(row) }]} /></div> },
+            { id: 'actions', header: '', renderCell: (row) => <div className="flex w-full justify-end"><TableRowActionsMenu row={row} triggerAriaLabel={t('common.actions')} actions={getCourseActions(row)} /></div> },
           ]}
       />
 
