@@ -131,7 +131,10 @@ export default function CourseSessionsPage() {
     { id: 'description', header: t('fields.description'), renderCell: (item) => item.description || '-' },
     { id: 'order', header: t('fields.order'), renderCell: (item) => typeof item.order === 'number' ? item.order : '-' },
     { id: 'isFree', header: t('fields.isFree'), renderCell: (item) => item.isFree ? '✓' : '—' },
-    {
+  ]
+
+  if (!isTeacher) {
+    sessionColumns.push({
       id: 'actions',
       header: t('fields.actions'),
       headerClassName: 'text-center',
@@ -139,11 +142,12 @@ export default function CourseSessionsPage() {
       renderCell: (item) => (
         <div className="flex w-full justify-center gap-2">
           <Button type="button" size="icon-sm" variant="outline" disabled={!selectedCourseId} onClick={() => navigate(`/courses/${selectedCourseId}/sessions/${item.id}/materials`)}><Eye className="size-4" /></Button>
-          {!isTeacher ? <><Button type="button" size="icon-sm" variant="outline" onClick={() => openEditForm(item)}><Pencil className="size-4" /></Button><Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => handleDelete(item)}><Trash2 className="size-4" /></Button></> : null}
+          <Button type="button" size="icon-sm" variant="outline" onClick={() => openEditForm(item)}><Pencil className="size-4" /></Button>
+          <Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => handleDelete(item)}><Trash2 className="size-4" /></Button>
         </div>
       ),
-    },
-  ]
+    })
+  }
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
