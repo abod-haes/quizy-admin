@@ -20,6 +20,7 @@ import {
   DialogTitle,
   PaginatedDataTable,
   PageHeader,
+  type DataTableColumn,
 } from '@/shared/ui'
 
 type QuizRow = {
@@ -111,6 +112,25 @@ export default function QuizzesPage() {
   const quizTitle = (quiz: QuizRow) => quiz.title?.trim() || t('quizzes.untitled')
   const hasFilters = Boolean(search.trim()) || (!isTeacher && teacherId !== ALL_VALUE)
 
+  const columns: DataTableColumn<QuizRow>[] = [
+    { id: 'title', header: t('quizzes.quizName'), renderCell: (row) => <span className="font-semibold">{quizTitle(row)}</span> },
+    { id: 'teacher', header: t('quizzes.teacher'), renderCell: (row) => quizTeacher(row, teachers) },
+    { id: 'questions', header: t('quizzes.questionsCount'), renderCell: questionsCount },
+    { id: 'status', header: t('quizzes.status'), renderCell: (row) => row.isFree ? t('quizzes.free') : t('quizzes.paid') },
+  ]
+  if (!isTeacher) {
+    columns.push({
+      id: 'actions',
+      header: '',
+      renderCell: (row) => (
+        <div className="flex justify-end gap-2">
+          <Button size="sm" variant="outline" icon={<Edit3 className="size-4" />} onClick={() => navigate(`/quiz-builder?quizId=${encodeURIComponent(row.id)}`)}>{t('common.edit')}</Button>
+          <Button size="sm" variant="outline" className="text-destructive" icon={<Trash2 className="size-4" />} onClick={() => setDeleteTarget(row)}>{t('common.delete')}</Button>
+        </div>
+      ),
+    })
+  }
+
   return (
     <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
       <PageHeader
@@ -123,19 +143,13 @@ export default function QuizzesPage() {
 
       <PaginatedDataTable<QuizRow>
         className="min-h-0 flex-1"
-          rows={rows}
-          loading={quizzesQuery.isLoading || quizzesQuery.isFetching}
-          getRowId={(row) => row.id}
-          summaryText={t('quizzes.title') + `: ${totalCount}`}
-          emptyMessage={t('quizzes.empty')}
-          pagination={{ currentPage: page, totalPages, pageSize: PAGE_SIZE, onPageChange: setPage, previousLabel: t('common.previous'), nextLabel: t('common.next'), getPageLabel: (pageNumber) => t('common.page', { page: pageNumber }) }}
-          columns={[
-            { id: 'title', header: t('quizzes.quizName'), renderCell: (row) => <span className="font-semibold">{quizTitle(row)}</span> },
-            { id: 'teacher', header: t('quizzes.teacher'), renderCell: (row) => quizTeacher(row, teachers) },
-            { id: 'questions', header: t('quizzes.questionsCount'), renderCell: questionsCount },
-            { id: 'status', header: t('quizzes.status'), renderCell: (row) => row.isFree ? t('quizzes.free') : t('quizzes.paid') },
-            ...(!isTeacher ? [{ id: 'actions', header: '', renderCell: (row: QuizRow) => <div className="flex justify-end gap-2"><Button size="sm" variant="outline" icon={<Edit3 className="size-4" />} onClick={() => navigate(`/quiz-builder?quizId=${encodeURIComponent(row.id)}`)}>{t('common.edit')}</Button><Button size="sm" variant="outline" className="text-destructive" icon={<Trash2 className="size-4" />} onClick={() => setDeleteTarget(row)}>{t('common.delete')}</Button></div> }] : []),
-          ]}
+        rows={rows}
+        loading={quizzesQuery.isLoading || quizzesQuery.isFetching}
+        getRowId={(row) => row.id}
+        summaryText={t('quizzes.title') + `: ${totalCount}`}
+        emptyMessage={t('quizzes.empty')}
+        pagination={{ currentPage: page, totalPages, pageSize: PAGE_SIZE, onPageChange: setPage, previousLabel: t('common.previous'), nextLabel: t('common.next'), getPageLabel: (pageNumber) => t('common.page', { page: pageNumber }) }}
+        columns={columns}
       />
 
       {!isTeacher ? <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteTarget(null) }}>
