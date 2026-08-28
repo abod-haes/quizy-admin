@@ -3,6 +3,8 @@ import { BookOpenCheck, BookText, BellRing, BrainCircuit, CalendarDays, CreditCa
 import type { SidebarItem } from '@/app/layout/sidebar/sidebar.types'
 import { APP_ROUTES } from '@/app/router/route-object.type'
 
+const TEACHER_DASHBOARD_ROLES = ['SuperAdmin', 'AdminEmployee', 'Teacher'] as const
+
 export const primarySidebarItems: SidebarItem[] = [
   { id: 'dashboardScope', labelKey: 'sidebar.items.dashboard', icon: Gauge, defaultOpen: true, children: [
     { id: 'statistics', labelKey: 'translation:layout.meta.dashboard.plural', to: APP_ROUTES.dashboard.path, icon: Gauge, end: true },
@@ -12,13 +14,13 @@ export const primarySidebarItems: SidebarItem[] = [
     { id: 'pointsOfSale', labelKey: 'content-crud:modules.pointsOfSale.title', to: APP_ROUTES.pointsOfSale.path, icon: MapPin, permissions: ['qr.manage'], end: true },
     { id: 'qrCodes', labelKey: 'sidebar.items.qrCodes', to: APP_ROUTES.qrCodes.path, icon: QrCode, permissions: ['qr.manage'], end: true },
   ] },
-  { id: 'quizManagement', labelKey: 'sidebar.groups.quizManagement', icon: FileQuestion, permissions: ['quizzes.manage'], children: [
+  { id: 'quizManagement', labelKey: 'sidebar.groups.quizManagement', icon: FileQuestion, roles: TEACHER_DASHBOARD_ROLES, permissions: ['quizzes.manage'], children: [
     { id: 'quizBuilder', labelKey: 'sidebar.items.quizBuilder', to: APP_ROUTES.quizBuilder.path, icon: UploadCloud, permissions: ['quizzes.manage'], end: true },
-    { id: 'quizzes', labelKey: 'sidebar.items.quizzes', to: APP_ROUTES.quizzes.path, icon: FileQuestion, permissions: ['quizzes.manage'], end: true },
+    { id: 'quizzes', labelKey: 'sidebar.items.quizzes', to: APP_ROUTES.quizzes.path, icon: FileQuestion, roles: TEACHER_DASHBOARD_ROLES, permissions: ['quizzes.manage'], end: true },
     { id: 'questions', labelKey: 'sidebar.items.questions', to: APP_ROUTES.questions.path, icon: LibraryBig, permissions: ['quizzes.manage'], end: true },
   ] },
-  { id: 'courseManagement', labelKey: 'sidebar.groups.courseManagement', icon: CalendarDays, permissions: ['courses.manage'], children: [
-    { id: 'courses', labelKey: 'sidebar.items.courses', to: APP_ROUTES.courses.path, icon: CalendarDays, permissions: ['courses.manage'], end: true },
+  { id: 'courseManagement', labelKey: 'sidebar.groups.courseManagement', icon: CalendarDays, roles: TEACHER_DASHBOARD_ROLES, permissions: ['courses.manage'], children: [
+    { id: 'courses', labelKey: 'sidebar.items.courses', to: APP_ROUTES.courses.path, icon: CalendarDays, roles: TEACHER_DASHBOARD_ROLES, permissions: ['courses.manage'], end: true },
     { id: 'courseSessions', labelKey: 'sidebar.items.courseSessions', to: APP_ROUTES.courseSessions.path, icon: BookOpenCheck, permissions: ['courses.manage'], end: true },
     { id: 'courseContent', labelKey: 'sidebar.items.courseContent', to: APP_ROUTES.courseContent.path, icon: BookText, permissions: ['courses.manage'], end: true },
     { id: 'coursePurchases', labelKey: 'sidebar.items.coursePurchases', to: APP_ROUTES.coursePurchases.path, icon: CreditCard, permissions: ['courses.manage'], end: true },
