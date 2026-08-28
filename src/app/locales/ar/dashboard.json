@@ -1,70 +1,51 @@
 {
   "hero": {
-    "badge": "Quizy",
-    "title": "لوحة إدارة الاختبارات",
-    "description": "إدارة الاختبارات والدروس والكورسات من مكان واحد مع إحصائيات مباشرة من الـ API.",
+    "badge": "نظرة عامة مباشرة",
+    "title": "لوحة تحكم Quizy",
+    "description": "راقب نمو الطلاب، نشاط الاختبارات ودقة الإجابات من بيانات المنصة الفعلية خلال آخر 30 يوم.",
     "primaryAction": "إضافة اختبار",
     "secondaryAction": "عرض الاختبارات"
   },
-  "quality": {
-    "title": "الجودة",
-    "description": "قواعد عامة للمحتوى.",
-    "items": ["مراجعة النصوص", "ربط الدروس", "تنسيق المعادلات"]
-  },
   "metrics": {
-    "quizzes": { "label": "الاختبارات", "hint": "من السيرفر" },
-    "questions": { "label": "الأسئلة", "hint": "من السيرفر" },
-    "teachers": { "label": "المدرسون", "hint": "من السيرفر" },
-    "courses": { "label": "الكورسات", "hint": "من السيرفر" }
+    "students": { "label": "إجمالي الطلاب", "hint": "الحسابات الفعالة على المنصة" },
+    "quizzes": { "label": "الاختبارات", "hint": "الاختبارات غير المحذوفة" },
+    "sessions": { "label": "جلسات الاختبار", "hint": "طلاب حلّوا اختبارات فعلية" },
+    "accuracy": { "label": "دقة الإجابات", "hint": "نسبة الإجابات الصحيحة الحالية" }
   },
-  "workflows": {
-    "title": "الأقسام",
-    "description": "مساحات العمل الأساسية.",
-    "items": {
-      "pdfToJson": { "title": "بناء الاختبار", "description": "تجهيز الاختبار للنشر." },
-      "quizLibrary": { "title": "مكتبة الاختبارات", "description": "إدارة الاختبارات والأسئلة." },
-      "lessonMap": { "title": "الدروس والوحدات", "description": "ربط الدروس والوحدات." }
-    }
-  },
-  "timeline": {
-    "title": "المسار",
-    "description": "خطوات العمل.",
-    "items": {
-      "extractLessons": { "title": "الدروس", "description": "مراجعة الدروس.", "status": "1" },
-      "confirmMappings": { "title": "الربط", "description": "تثبيت المعرفات.", "status": "2" },
-      "publishQuiz": { "title": "النشر", "description": "نشر الاختبار.", "status": "3" }
-    }
-  },
-  "dynamic": {
-    "title": "تطويرات",
-    "description": "اقتراحات للربط الديناميكي.",
-    "items": {
-      "apiContracts": { "label": "العقود", "description": "تثبيت الحقول والروابط." },
-      "entityBuilder": { "label": "المولد", "description": "توليد الجداول والنماذج." },
-      "courseManagement": { "label": "الكورسات", "description": "إدارة الكورسات والجلسات من واجهة واحدة." },
-      "analytics": { "label": "الإحصائيات", "description": "متابعة أعداد الاختبارات والأسئلة والمدرسين." }
-    }
-  },
-  "module": {
-    "status": "قيد الربط",
-    "pages": {
-      "quizBuilder": { "title": "بناء الاختبارات", "description": "صفحة تجهيز الاختبارات." },
-      "quizzes": { "title": "الاختبارات", "description": "إدارة الاختبارات." },
-      "lessons": { "title": "الدروس", "description": "إدارة الدروس." },
-      "units": { "title": "الوحدات", "description": "إدارة الوحدات." },
-      "teachers": { "title": "المدرسون", "description": "إدارة المدرسين." },
-      "students": { "title": "الطلاب", "description": "إدارة الطلاب." }
+  "charts": {
+    "activity": {
+      "title": "نشاط المنصة",
+      "description": "جلسات الاختبار وتسجيل الطلاب الجدد خلال آخر 30 يوم.",
+      "quizActivity": "جلسات الاختبار",
+      "studentGrowth": "طلاب جدد"
     },
-    "checklist": {
-      "contract": { "title": "العقد", "description": "تثبيت البنية." },
-      "crud": { "title": "الإدارة", "description": "بناء الصفحات." },
-      "permissions": { "title": "الصلاحيات", "description": "تحديد الأدوار." },
-      "integration": { "title": "الربط", "description": "ربط البيانات." }
+    "accuracy": {
+      "title": "أداء الإجابات",
+      "description": "قراءة سريعة لجودة الأداء على الاختبارات الحالية.",
+      "label": "نسبة الإجابات الصحيحة",
+      "sessions": "الجلسات",
+      "answers": "الإجابات"
     },
-    "next": {
-      "title": "الخطوات التالية",
-      "description": "قرارات مطلوبة قبل الإكمال.",
-      "items": ["تأكيد الحقول.", "تأكيد الصلاحيات.", "تأكيد طريقة التحويل."]
+    "content": {
+      "title": "حجم المحتوى",
+      "description": "مقارنة سريعة بين أهم عناصر منصة Quizy."
     }
+  },
+  "content": {
+    "quizzes": "الاختبارات",
+    "questions": "الأسئلة",
+    "teachers": "المدرسون",
+    "courses": "الكورسات",
+    "students": "الطلاب"
+  },
+  "quick": {
+    "title": "وصول سريع",
+    "description": "انتقل مباشرة إلى أكثر أقسام الإدارة استخدامًا.",
+    "quizzes": "إدارة الاختبارات",
+    "teachers": "إدارة المدرسين",
+    "courses": "إدارة الكورسات"
+  },
+  "errors": {
+    "overview": "تعذر تحميل إحصائيات لوحة التحكم. حاول تحديث الصفحة."
   }
 }
