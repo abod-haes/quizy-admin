@@ -17,6 +17,7 @@ import { ArrowLeft,
 import { useTranslation } from 'react-i18next'
 import { toast } from '@/shared/lib/toast'
 
+import { useAuth } from '@/app/providers/auth.provider'
 import { api } from '@/shared/api/api-client'
 import type { PagedResponse,
   UUID } from '@/shared/api/api.types'
@@ -75,6 +76,8 @@ function validateSession(values: SessionFormValues): { success: true; data: Sess
 
 export default function CourseSessionsPage() {
   const { t } = useTranslation('content-crud')
+  const { hasRole } = useAuth()
+  const isTeacher = hasRole('Teacher')
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const { courseId: routeCourseId = '' } = useParams()
@@ -84,7 +87,7 @@ export default function CourseSessionsPage() {
   const [deleteTarget, setDeleteTarget] = useState<CourseSession | null>(null)
   const [formState, setFormState] = useState<SessionFormState>({ open: false, mode: 'create', item: null, values: emptySessionValues, errors: {} })
 
-  const coursesQuery = useQuery({ queryKey: ['course-sessions', 'courses'], queryFn: () => api.get<PagedResponse<CourseOption>>(API_ENDPOINTS.courses.list, { params: { page: 1, perPage: LOOKUP_PAGE_SIZE } }), staleTime: 1000 * 60 * 5 })
+  const coursesQuery = useQuery({ queryKey: ['course-sessions', 'courses'], queryFn: () => api.get<PagedResponse<CourseOption>>(API_ENDPOINTS.courses.list, { params: { page: 1, perPage: LOOKUP_PAGE_SIZE } }), staleTime: 1000 * 60 * 5, enabled: !isTeacher || !isCourseDetailRoute })
   const courseQuery = useQuery({ queryKey: ['course-sessions', 'course-detail', routeCourseId], queryFn: () => api.get<CourseOption>(API_ENDPOINTS.courses.detail(routeCourseId)), enabled: isCourseDetailRoute })
   const courseOptions = useMemo(() => (coursesQuery.data?.items ?? []).map((course) => ({ value: course.id, label: getCourseLabel(course) })), [coursesQuery.data?.items])
   const selectedCourseLabel = isCourseDetailRoute ? getCourseLabel(courseQuery.data ?? { id: routeCourseId }) : courseOptions.find((option) => option.value === selectedCourseId)?.label ?? ''
@@ -110,17 +113,18 @@ export default function CourseSessionsPage() {
     onError: (error) => toast.error(t(getApiErrorMessage(error))),
   })
 
-  const openCreateForm = () => setFormState({ open: true, mode: 'create', item: null, values: emptySessionValues, errors: {} })
-  const openEditForm = (item: CourseSession) => setFormState({ open: true, mode: 'edit', item, values: { title: item.title ?? '', description: item.description ?? '', order: typeof item.order === 'number' ? item.order : 0, isFree: item.isFree === true }, errors: {} })
+  const openCreateForm = () => { if (!isTeacher) setFormState({ open: true, mode: 'create', item: null, values: emptySessionValues, errors: {} }) }
+  const openEditForm = (item: CourseSession) => { if (!isTeacher) setFormState({ open: true, mode: 'edit', item, values: { title: item.title ?? '', description: item.description ?? '', order: typeof item.order === 'number' ? item.order : 0, isFree: item.isFree === true }, errors: {} }) }
   const updateField = <TKey extends keyof SessionFormValues>(field: TKey, value: SessionFormValues[TKey]) => setFormState((current) => ({ ...current, values: { ...current.values, [field]: value }, errors: { ...current.errors, [field]: '' } }))
   const handleSubmit = () => {
+    if (isTeacher) return
     if (!selectedCourseId) { toast.error(t('sessions.selectCourseFirst')); return }
     const validation = validateSession(formState.values)
     if (!validation.success) { setFormState((current) => ({ ...current, errors: validation.errors })); return }
     saveMutation.mutate(validation.data)
   }
-  const handleDelete = (item: CourseSession) => setDeleteTarget(item)
-  const confirmDelete = () => { if (deleteTarget) deleteMutation.mutate(deleteTarget) }
+  const handleDelete = (item: CourseSession) => { if (!isTeacher) setDeleteTarget(item) }
+  const confirmDelete = () => { if (!isTeacher && deleteTarget) deleteMutation.mutate(deleteTarget) }
 
   const sessionColumns: DataTableColumn<CourseSession>[] = [
     { id: 'title', header: t('fields.title'), renderCell: (item) => item.title || '-' },
@@ -135,8 +139,7 @@ export default function CourseSessionsPage() {
       renderCell: (item) => (
         <div className="flex w-full justify-center gap-2">
           <Button type="button" size="icon-sm" variant="outline" disabled={!selectedCourseId} onClick={() => navigate(`/courses/${selectedCourseId}/sessions/${item.id}/materials`)}><Eye className="size-4" /></Button>
-          <Button type="button" size="icon-sm" variant="outline" onClick={() => openEditForm(item)}><Pencil className="size-4" /></Button>
-          <Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => handleDelete(item)}><Trash2 className="size-4" /></Button>
+          {!isTeacher ? <><Button type="button" size="icon-sm" variant="outline" onClick={() => openEditForm(item)}><Pencil className="size-4" /></Button><Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => handleDelete(item)}><Trash2 className="size-4" /></Button></> : null}
         </div>
       ),
     },
@@ -153,7 +156,7 @@ export default function CourseSessionsPage() {
             {isCourseDetailRoute ? <Button type="button" variant="ghost" onClick={() => navigate('/courses')}><ArrowLeft className="rtl:rotate-180" />{t('modules.courses.title')}</Button> : <CustomSelect className="h-9 min-w-56" value={selectedCourseId || undefined} placeholder={t('sessions.coursePlaceholder')} options={courseOptions} onValueChange={(value) => { setSelectedCourseId(value); setPage(1) }} />}
           </>
         }
-        actions={<><Button type="button" variant="outline" onClick={() => sessionsQuery.refetch()} disabled={!selectedCourseId || sessionsQuery.isFetching}><RefreshCcw />{t('actions.refresh')}</Button><Button type="button" onClick={openCreateForm} disabled={!selectedCourseId}><Plus />{t('actions.create')}</Button></>}
+        actions={<><Button type="button" variant="outline" onClick={() => sessionsQuery.refetch()} disabled={!selectedCourseId || sessionsQuery.isFetching}><RefreshCcw />{t('actions.refresh')}</Button>{!isTeacher ? <Button type="button" onClick={openCreateForm} disabled={!selectedCourseId}><Plus />{t('actions.create')}</Button> : null}</>}
       />
 
       {!selectedCourseId ? (
@@ -183,8 +186,7 @@ export default function CourseSessionsPage() {
         />
       )}
 
-      <Sheet open={formState.open} onOpenChange={(open) => setFormState((current) => ({ ...current, open }))}><SheetContent className="max-w-2xl"><SheetHeader><SheetTitle>{t(formState.mode === 'edit' ? 'form.editTitle' : 'form.createTitle', { entity: t('modules.courseSessions.title') })}</SheetTitle><SheetDescription>{t('form.description')}</SheetDescription></SheetHeader><div className="grid gap-4 py-2"><div className="space-y-2"><Label htmlFor="session-title">{t('fields.title')}</Label><Input id="session-title" value={formState.values.title} onChange={(event) => updateField('title', event.target.value)} />{formState.errors.title ? <p className="text-sm text-destructive">{t(formState.errors.title)}</p> : null}</div><div className="space-y-2"><Label htmlFor="session-description">{t('fields.description')}</Label><Textarea id="session-description" value={formState.values.description} onChange={(event) => updateField('description', event.target.value)} />{formState.errors.description ? <p className="text-sm text-destructive">{t(formState.errors.description)}</p> : null}</div><div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="session-order">{t('fields.order')}</Label><Input id="session-order" type="number" value={String(formState.values.order)} onChange={(event) => updateField('order', Number(event.target.value))} />{formState.errors.order ? <p className="text-sm text-destructive">{t(formState.errors.order)}</p> : null}</div><div className="space-y-2"><Label>{t('fields.isFree')}</Label><div className="flex h-11 items-center justify-between gap-3 rounded-2xl border border-border bg-background px-4 text-sm"><span>{t('fields.isFree')}</span><ToggleSwitch checked={formState.values.isFree} onCheckedChange={(checked) => updateField('isFree', checked)} /></div></div></div></div><SheetFooter><Button type="button" variant="outline" onClick={() => setFormState((current) => ({ ...current, open: false }))}>{t('actions.cancel')}</Button><Button type="button" disabled={saveMutation.isPending} onClick={handleSubmit}>{saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('actions.save')}</Button></SheetFooter></SheetContent></Sheet>
-      <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteTarget(null) }}><DialogContent className="max-w-md"><DialogHeader><DialogTitle>{t('messages.deleteTitle')}</DialogTitle><DialogDescription>{deleteTarget ? t('messages.deleteConfirm', { name: deleteTarget.title || t('messages.item') }) : ''}</DialogDescription></DialogHeader><DialogFooter><Button type="button" variant="outline" disabled={deleteMutation.isPending} onClick={() => setDeleteTarget(null)}>{t('actions.cancel')}</Button><Button type="button" disabled={deleteMutation.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={confirmDelete}>{deleteMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('actions.delete')}</Button></DialogFooter></DialogContent></Dialog>
+      {!isTeacher ? <><Sheet open={formState.open} onOpenChange={(open) => setFormState((current) => ({ ...current, open }))}><SheetContent className="max-w-2xl"><SheetHeader><SheetTitle>{t(formState.mode === 'edit' ? 'form.editTitle' : 'form.createTitle', { entity: t('modules.courseSessions.title') })}</SheetTitle><SheetDescription>{t('form.description')}</SheetDescription></SheetHeader><div className="grid gap-4 py-2"><div className="space-y-2"><Label htmlFor="session-title">{t('fields.title')}</Label><Input id="session-title" value={formState.values.title} onChange={(event) => updateField('title', event.target.value)} />{formState.errors.title ? <p className="text-sm text-destructive">{t(formState.errors.title)}</p> : null}</div><div className="space-y-2"><Label htmlFor="session-description">{t('fields.description')}</Label><Textarea id="session-description" value={formState.values.description} onChange={(event) => updateField('description', event.target.value)} />{formState.errors.description ? <p className="text-sm text-destructive">{t(formState.errors.description)}</p> : null}</div><div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="session-order">{t('fields.order')}</Label><Input id="session-order" type="number" value={String(formState.values.order)} onChange={(event) => updateField('order', Number(event.target.value))} />{formState.errors.order ? <p className="text-sm text-destructive">{t(formState.errors.order)}</p> : null}</div><div className="space-y-2"><Label>{t('fields.isFree')}</Label><div className="flex h-11 items-center justify-between gap-3 rounded-2xl border border-border bg-background px-4 text-sm"><span>{t('fields.isFree')}</span><ToggleSwitch checked={formState.values.isFree} onCheckedChange={(checked) => updateField('isFree', checked)} /></div></div></div></div><SheetFooter><Button type="button" variant="outline" onClick={() => setFormState((current) => ({ ...current, open: false }))}>{t('actions.cancel')}</Button><Button type="button" disabled={saveMutation.isPending} onClick={handleSubmit}>{saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('actions.save')}</Button></SheetFooter></SheetContent></Sheet><Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteTarget(null) }}><DialogContent className="max-w-md"><DialogHeader><DialogTitle>{t('messages.deleteTitle')}</DialogTitle><DialogDescription>{deleteTarget ? t('messages.deleteConfirm', { name: deleteTarget.title || t('messages.item') }) : ''}</DialogDescription></DialogHeader><DialogFooter><Button type="button" variant="outline" disabled={deleteMutation.isPending} onClick={() => setDeleteTarget(null)}>{t('actions.cancel')}</Button><Button type="button" disabled={deleteMutation.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={confirmDelete}>{deleteMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('actions.delete')}</Button></DialogFooter></Dialog> </> : null}
     </section>
   )
 }
