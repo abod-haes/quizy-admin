@@ -63,9 +63,9 @@ function SheetContent({
         className={cn(
           "fixed z-50 flex max-h-dvh flex-col gap-4 overflow-hidden bg-background shadow-2xl outline-none transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
           side === "right" &&
-            "inset-y-0 right-0 h-dvh w-full max-w-lg rounded-none border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
+            "inset-y-0 right-0 !h-dvh !max-h-dvh w-full max-w-lg rounded-none border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
           side === "left" &&
-            "inset-y-0 left-0 h-dvh w-full max-w-lg rounded-none border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
+            "inset-y-0 left-0 !h-dvh !max-h-dvh w-full max-w-lg rounded-none border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
           side === "top" &&
             "inset-x-0 top-0 h-auto border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
           side === "bottom" &&
