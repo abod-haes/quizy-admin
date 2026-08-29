@@ -24,7 +24,8 @@ export type AdInput = {
   description?: string | null
 }
 
-type AdWritePayload = AdInput & { imageId: string }
+type AdCreatePayload = AdInput & { imageId: string }
+type AdUpdatePayload = AdInput & { imageId?: string }
 
 async function loadImage(imageId: string | null | undefined) {
   if (!imageId) return null
@@ -55,7 +56,7 @@ export const adsService = {
     const image = await uploadContentResource({ entityId: null, file: imageFile })
 
     try {
-      const ad = await api.post<AdminAd, AdWritePayload>(API_ENDPOINTS.ads.create, {
+      const ad = await api.post<AdminAd, AdCreatePayload>(API_ENDPOINTS.ads.create, {
         ...payload,
         imageId: image.id,
       })
@@ -71,7 +72,7 @@ export const adsService = {
 
   async update(ad: AdminAd, payload: AdInput, imageFile?: File | null): Promise<AdminAd> {
     let image = ad.image ?? null
-    let imageId = ad.imageId
+    let changedImageId: string | undefined
 
     if (imageFile) {
       if (ad.imageId) {
@@ -80,20 +81,25 @@ export const adsService = {
           entityId: ad.id,
           file: imageFile,
         })
-        imageId = image.id
+        changedImageId = image.id
       } else {
         image = await uploadContentResource({ entityId: ad.id, file: imageFile })
-        imageId = image.id
+        changedImageId = image.id
       }
     }
 
-    if (!imageId) throw new Error('Ad image is required')
-
-    const updated = await api.patch<AdminAd, AdWritePayload>(
+    const updated = await api.patch<AdminAd, AdUpdatePayload>(
       API_ENDPOINTS.ads.update(ad.id),
-      { ...payload, imageId },
+      {
+        ...payload,
+        ...(changedImageId ? { imageId: changedImageId } : {}),
+      },
     )
-    return { ...updated, image }
+
+    return {
+      ...updated,
+      image: changedImageId ? image : ad.image,
+    }
   },
 
   async remove(ad: AdminAd) {
