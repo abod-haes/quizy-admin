@@ -38,6 +38,9 @@ export const rolePermissions: Record<AppRole, readonly QuizyPermission[]> = {
   // Real employee permissions are loaded from `/api/v1/admin/auth/permissions`.
   // Keep this empty so a stale/local fallback can never grant more than the server.
   AdminEmployee: [],
+  // Teacher dashboard access is role-scoped and read-only; no management permission
+  // should be granted through the local fallback permission map.
+  Teacher: [],
 }
 
 export function getPermissionsForRoles(roles: readonly AppRole[]): QuizyPermission[] {
