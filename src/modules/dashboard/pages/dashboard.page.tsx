@@ -1,17 +1,15 @@
-import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import {
+  Activity,
   BookOpenCheck,
-  BrainCircuit,
-  CheckCircle2,
-  Clock3,
   FileQuestion,
   GraduationCap,
-  Layers3,
-  Rocket,
-  Sparkles,
-  UploadCloud,
+  Plus,
+  Target,
+  TrendingUp,
+  Users,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -19,207 +17,302 @@ import { useAuth } from '@/app/providers/auth.provider'
 import { APP_ROUTES } from '@/app/router/route-object.type'
 import { api } from '@/shared/api/api-client'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from '@/shared/ui'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from '@/shared/ui'
+import {
+  DashboardAccuracyRing,
+  DashboardDistributionChart,
+  DashboardTrendChart,
+} from '../components/dashboard-charts'
+import { getDashboardOverview } from '../dashboard.service'
 
-type MetricTone = 'primary' | 'blue' | 'emerald' | 'amber'
-type DashboardSummary = {
-  studentsCount: number
-  teachersCount: number
-  quizzesCount: number
-  questionsCount: number
-  coursesCount: number
-  qrCodesCount: number
-  employeesCount: number
+type Metric = {
+  label: string
+  value: string
+  hint: string
+  icon: LucideIcon
 }
-type DashboardNumbers = {
-  quizzes: number | null
-  questions: number | null
-  teachers: number | null
-  students: number | null
-  courses: number | null
-}
-type CountKey = keyof DashboardNumbers
 
 type CountResponse = { totalCount: number }
 
-function IconTile({ icon: Icon }: { icon: LucideIcon }) {
+type TeacherDashboardNumbers = {
+  quizzes: number
+  courses: number
+}
+
+function formatNumber(value: number | undefined) {
+  if (value == null) return '—'
+  return new Intl.NumberFormat().format(value)
+}
+
+function MetricCard({ metric, loading }: { metric: Metric; loading: boolean }) {
+  const Icon = metric.icon
   return (
-    <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/15">
-      <Icon className="size-5" />
-    </span>
+    <Card className="rounded-3xl border-border/80 shadow-sm">
+      <CardContent className="flex items-start justify-between gap-4 p-5">
+        <div className="min-w-0 space-y-1.5">
+          <p className="text-sm font-medium text-muted-foreground">{metric.label}</p>
+          {loading ? <Skeleton className="h-9 w-24 rounded-xl" /> : <p className="text-3xl font-bold tracking-tight tabular-nums">{metric.value}</p>}
+          <p className="text-xs leading-5 text-muted-foreground">{metric.hint}</p>
+        </div>
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/15">
+          <Icon className="size-5" />
+        </span>
+      </CardContent>
+    </Card>
   )
 }
 
-async function fetchDashboardNumbers(isTeacher: boolean): Promise<DashboardNumbers> {
-  if (isTeacher) {
-    // Teacher metrics come only from endpoints that are ownership-scoped by the backend.
-    const [quizzes, courses] = await Promise.all([
-      api.get<CountResponse>(API_ENDPOINTS.quizzes.list, { params: { Page: 1, PerPage: 1 } }),
-      api.get<CountResponse>(API_ENDPOINTS.courses.list, { params: { page: 1, perPage: 1 } }),
-    ])
-    return {
-      quizzes: quizzes.totalCount,
-      courses: courses.totalCount,
-      questions: null,
-      teachers: null,
-      students: null,
-    }
-  }
+async function getTeacherDashboardNumbers(): Promise<TeacherDashboardNumbers> {
+  const [quizzes, courses] = await Promise.all([
+    api.get<CountResponse>(API_ENDPOINTS.quizzes.list, { params: { Page: 1, PerPage: 1 } }),
+    api.get<CountResponse>(API_ENDPOINTS.courses.list, { params: { page: 1, perPage: 1 } }),
+  ])
 
-  const summary = await api.get<DashboardSummary>(API_ENDPOINTS.dashboard.summary)
   return {
-    quizzes: summary.quizzesCount,
-    questions: summary.questionsCount,
-    teachers: summary.teachersCount,
-    students: summary.studentsCount,
-    courses: summary.coursesCount,
+    quizzes: quizzes.totalCount,
+    courses: courses.totalCount,
   }
-}
-
-function formatMetric(value: number | null): string {
-  return value === null ? '—' : new Intl.NumberFormat().format(value)
 }
 
 export default function DashboardPage() {
-  const { t } = useTranslation('dashboard')
+  const { t, i18n } = useTranslation('dashboard')
   const { hasRole } = useAuth()
   const isTeacher = hasRole('Teacher')
-  const dashboardQuery = useQuery({
-    queryKey: ['dashboard', 'summary', isTeacher ? 'teacher' : 'admin'],
-    queryFn: () => fetchDashboardNumbers(isTeacher),
-    staleTime: 1000 * 60,
+
+  const teacherQuery = useQuery({
+    queryKey: ['dashboard', 'teacher'],
+    queryFn: getTeacherDashboardNumbers,
+    enabled: isTeacher,
+    staleTime: 1000 * 60 * 2,
+    refetchOnWindowFocus: false,
   })
-  const stats = dashboardQuery.data
 
-  const allMetrics: Array<{ key: CountKey; value: string; icon: LucideIcon; tone: MetricTone }> = [
-    { key: 'quizzes', value: formatMetric(stats?.quizzes ?? null), icon: FileQuestion, tone: 'primary' },
-    { key: 'questions', value: formatMetric(stats?.questions ?? null), icon: BrainCircuit, tone: 'blue' },
-    { key: 'teachers', value: formatMetric(stats?.teachers ?? null), icon: GraduationCap, tone: 'emerald' },
-    { key: 'courses', value: formatMetric(stats?.courses ?? null), icon: BookOpenCheck, tone: 'amber' },
-  ]
-  const metrics = isTeacher
-    ? allMetrics.filter((metric) => metric.key === 'quizzes' || metric.key === 'courses')
-    : allMetrics
+  const overviewQuery = useQuery({
+    queryKey: ['dashboard', 'overview', 30],
+    queryFn: () => getDashboardOverview(30),
+    enabled: !isTeacher,
+    staleTime: 1000 * 60 * 2,
+    refetchOnWindowFocus: false,
+  })
 
-  const workflows: Array<{ key: string; icon: LucideIcon; to: string }> = [
-    { key: 'pdfToJson', icon: UploadCloud, to: APP_ROUTES.quizBuilder.path },
-    { key: 'quizLibrary', icon: BookOpenCheck, to: APP_ROUTES.quizzes.path },
-    { key: 'lessonMap', icon: Layers3, to: APP_ROUTES.lessons.path },
+  if (isTeacher) {
+    const metrics: Metric[] = [
+      {
+        label: t('metrics.quizzes.label'),
+        value: formatNumber(teacherQuery.data?.quizzes),
+        hint: t('metrics.quizzes.hint'),
+        icon: FileQuestion,
+      },
+      {
+        label: t('metrics.courses.label'),
+        value: formatNumber(teacherQuery.data?.courses),
+        hint: t('metrics.courses.hint'),
+        icon: BookOpenCheck,
+      },
+    ]
+
+    return (
+      <section className="w-full space-y-6">
+        <div className="relative overflow-hidden rounded-[2rem] border border-primary/10 bg-card p-6 shadow-sm sm:p-8">
+          <div className="pointer-events-none absolute inset-y-0 end-0 w-2/3 bg-[radial-gradient(circle_at_top,var(--quizy-glow),transparent_64%)] opacity-70" />
+          <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+            <div className="max-w-3xl space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                <TrendingUp className="size-3.5" />
+                {t('teacher.badge')}
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{t('teacher.title')}</h1>
+              <p className="max-w-2xl text-base leading-7 text-muted-foreground">{t('teacher.description')}</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link to={APP_ROUTES.quizzes.path} className="inline-flex h-11 items-center gap-2 rounded-2xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90">
+                <FileQuestion className="size-4" />{t('quick.quizzes')}
+              </Link>
+              <Link to={APP_ROUTES.courses.path} className="inline-flex h-11 items-center rounded-2xl border border-border bg-background px-5 text-sm font-semibold text-foreground transition hover:bg-accent">
+                {t('quick.courses')}
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          {metrics.map((metric) => <MetricCard key={metric.label} metric={metric} loading={teacherQuery.isLoading} />)}
+        </div>
+
+        {teacherQuery.isError ? (
+          <Card className="rounded-3xl border-destructive/20">
+            <CardContent className="p-6 text-sm text-destructive">{t('errors.overview')}</CardContent>
+          </Card>
+        ) : null}
+
+        <Card className="rounded-3xl shadow-sm">
+          <CardHeader>
+            <CardTitle>{t('quick.title')}</CardTitle>
+            <CardDescription>{t('teacher.quickDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-2">
+            <Link to={APP_ROUTES.quizzes.path} className="rounded-2xl border border-border/70 bg-background p-4 transition hover:border-primary/25 hover:bg-primary/5">
+              <FileQuestion className="size-5 text-primary" />
+              <p className="mt-3 font-semibold">{t('quick.quizzes')}</p>
+            </Link>
+            <Link to={APP_ROUTES.courses.path} className="rounded-2xl border border-border/70 bg-background p-4 transition hover:border-primary/25 hover:bg-primary/5">
+              <BookOpenCheck className="size-5 text-primary" />
+              <p className="mt-3 font-semibold">{t('quick.courses')}</p>
+            </Link>
+          </CardContent>
+        </Card>
+      </section>
+    )
+  }
+
+  const data = overviewQuery.data
+  const summary = data?.summary
+  const performance = data?.performance
+  const locale = i18n.language.startsWith('ar') ? 'ar-SY' : 'en-US'
+
+  const metrics: Metric[] = [
+    {
+      label: t('metrics.students.label'),
+      value: formatNumber(summary?.studentsCount),
+      hint: t('metrics.students.hint'),
+      icon: Users,
+    },
+    {
+      label: t('metrics.quizzes.label'),
+      value: formatNumber(summary?.quizzesCount),
+      hint: t('metrics.quizzes.hint'),
+      icon: FileQuestion,
+    },
+    {
+      label: t('metrics.sessions.label'),
+      value: formatNumber(performance?.quizSessionsCount),
+      hint: t('metrics.sessions.hint'),
+      icon: Activity,
+    },
+    {
+      label: t('metrics.accuracy.label'),
+      value: performance ? `${performance.accuracyPercentage.toFixed(1)}%` : '—',
+      hint: t('metrics.accuracy.hint'),
+      icon: Target,
+    },
   ]
-  const timeline: Array<{ key: string; icon: LucideIcon }> = [
-    { key: 'extractLessons', icon: UploadCloud },
-    { key: 'confirmMappings', icon: CheckCircle2 },
-    { key: 'publishQuiz', icon: Rocket },
+
+  const distribution = [
+    { label: t('content.quizzes'), value: summary?.quizzesCount ?? 0 },
+    { label: t('content.questions'), value: summary?.questionsCount ?? 0 },
+    { label: t('content.teachers'), value: summary?.teachersCount ?? 0 },
+    { label: t('content.courses'), value: summary?.coursesCount ?? 0 },
+    { label: t('content.students'), value: summary?.studentsCount ?? 0 },
   ]
 
   return (
     <section className="w-full space-y-6">
       <div className="relative overflow-hidden rounded-[2rem] border border-primary/10 bg-card p-6 shadow-sm sm:p-8">
-        <div className="absolute inset-y-0 end-0 hidden w-1/2 bg-[radial-gradient(circle_at_top,var(--quizy-glow),transparent_62%)] opacity-80 lg:block" />
-        <div className="relative grid gap-8 lg:grid-cols-[1fr_23rem] lg:items-center">
-          <div className="max-w-3xl space-y-5">
-            <Badge variant="outline" color="primary" className="h-7 rounded-full px-3">
-              <Sparkles className="size-3.5" />{t('hero.badge')}
-            </Badge>
-            <div className="space-y-3">
-              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{t('hero.title')}</h1>
-              <p className="max-w-2xl text-base leading-7 text-muted-foreground">{t('hero.description')}</p>
+        <div className="pointer-events-none absolute inset-y-0 end-0 w-2/3 bg-[radial-gradient(circle_at_top,var(--quizy-glow),transparent_64%)] opacity-70" />
+        <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+          <div className="max-w-3xl space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+              <TrendingUp className="size-3.5" />
+              {t('hero.badge')}
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Link to={isTeacher ? APP_ROUTES.quizzes.path : APP_ROUTES.quizBuilder.path} className="inline-flex h-11 items-center justify-center rounded-2xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90">{isTeacher ? t('metrics.quizzes.label') : t('hero.primaryAction')}</Link>
-              <Link to={isTeacher ? APP_ROUTES.courses.path : APP_ROUTES.quizzes.path} className="inline-flex h-11 items-center justify-center rounded-2xl border border-border bg-background px-5 text-sm font-semibold text-foreground transition hover:bg-accent">{isTeacher ? t('metrics.courses.label') : t('hero.secondaryAction')}</Link>
-            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{t('hero.title')}</h1>
+            <p className="max-w-2xl text-base leading-7 text-muted-foreground">{t('hero.description')}</p>
           </div>
-
-          <Card className="rounded-[1.5rem] border-primary/10 bg-background/80 backdrop-blur">
-            <CardHeader><CardTitle>{t('quality.title')}</CardTitle><CardDescription>{t('quality.description')}</CardDescription></CardHeader>
-            <CardContent className="space-y-4">
-              {[0, 1, 2].map((index) => (
-                <div key={index} className="flex items-start gap-3 rounded-2xl border border-border/70 bg-card p-3">
-                  <CheckCircle2 className="mt-0.5 size-5 text-primary" />
-                  <p className="text-sm leading-6 text-muted-foreground">{t(`quality.items.${index}`)}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          <div className="flex flex-wrap gap-3">
+            <Link to={APP_ROUTES.quizBuilder.path} className="inline-flex h-11 items-center gap-2 rounded-2xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90">
+              <Plus className="size-4" />{t('hero.primaryAction')}
+            </Link>
+            <Link to={APP_ROUTES.quizzes.path} className="inline-flex h-11 items-center rounded-2xl border border-border bg-background px-5 text-sm font-semibold text-foreground transition hover:bg-accent">
+              {t('hero.secondaryAction')}
+            </Link>
+          </div>
         </div>
       </div>
 
-      <div className={`grid gap-4 ${isTeacher ? 'md:grid-cols-2' : 'md:grid-cols-2 xl:grid-cols-4'}`}>
-        {metrics.map((metric) => (
-          <Card key={metric.key} className="rounded-3xl border-border/80 shadow-sm">
-            <CardContent className="flex items-center justify-between gap-4 pt-1">
-              <div className="space-y-1.5">
-                <p className="text-sm font-medium text-muted-foreground">{t(`metrics.${metric.key}.label`)}</p>
-                {dashboardQuery.isLoading ? <Skeleton className="h-9 w-20 rounded-xl" /> : <p className="text-3xl font-bold tracking-tight">{metric.value}</p>}
-                <Badge variant="outline" color={metric.tone}>{t(`metrics.${metric.key}.hint`)}</Badge>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {metrics.map((metric) => <MetricCard key={metric.label} metric={metric} loading={overviewQuery.isLoading} />)}
+      </div>
+
+      {overviewQuery.isError ? (
+        <Card className="rounded-3xl border-destructive/20">
+          <CardContent className="p-6 text-sm text-destructive">{t('errors.overview')}</CardContent>
+        </Card>
+      ) : null}
+
+      <div className="grid gap-6 xl:grid-cols-[1.6fr_0.8fr]">
+        <Card className="rounded-3xl shadow-sm">
+          <CardHeader>
+            <CardTitle>{t('charts.activity.title')}</CardTitle>
+            <CardDescription>{t('charts.activity.description')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {overviewQuery.isLoading ? (
+              <Skeleton className="h-[280px] w-full rounded-2xl" />
+            ) : (
+              <DashboardTrendChart
+                primary={data?.quizActivity ?? []}
+                secondary={data?.studentGrowth ?? []}
+                primaryLabel={t('charts.activity.quizActivity')}
+                secondaryLabel={t('charts.activity.studentGrowth')}
+                locale={locale}
+              />
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-3xl shadow-sm">
+          <CardHeader>
+            <CardTitle>{t('charts.accuracy.title')}</CardTitle>
+            <CardDescription>{t('charts.accuracy.description')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {overviewQuery.isLoading ? <Skeleton className="h-32 w-full rounded-2xl" /> : <DashboardAccuracyRing value={performance?.accuracyPercentage ?? 0} label={t('charts.accuracy.label')} />}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-border/70 bg-background p-4">
+                <p className="text-xs text-muted-foreground">{t('charts.accuracy.sessions')}</p>
+                <p className="mt-1 text-xl font-bold tabular-nums">{formatNumber(performance?.quizSessionsCount)}</p>
               </div>
-              <IconTile icon={metric.icon} />
-            </CardContent>
-          </Card>
-        ))}
+              <div className="rounded-2xl border border-border/70 bg-background p-4">
+                <p className="text-xs text-muted-foreground">{t('charts.accuracy.answers')}</p>
+                <p className="mt-1 text-xl font-bold tabular-nums">{formatNumber(performance?.answeredQuestionsCount)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {isTeacher ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          <Link to={APP_ROUTES.quizzes.path} className="rounded-3xl border border-border/80 bg-card p-5 shadow-sm transition hover:bg-accent/35">
-            <IconTile icon={FileQuestion} />
-            <h3 className="mt-4 font-semibold text-foreground">{t('metrics.quizzes.label')}</h3>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">{t('metrics.quizzes.hint')}</p>
-          </Link>
-          <Link to={APP_ROUTES.courses.path} className="rounded-3xl border border-border/80 bg-card p-5 shadow-sm transition hover:bg-accent/35">
-            <IconTile icon={BookOpenCheck} />
-            <h3 className="mt-4 font-semibold text-foreground">{t('metrics.courses.label')}</h3>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">{t('metrics.courses.hint')}</p>
-          </Link>
-        </div>
-      ) : (
-        <>
-          <div className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
-            <Card className="rounded-3xl shadow-sm">
-              <CardHeader><CardTitle>{t('workflows.title')}</CardTitle><CardDescription>{t('workflows.description')}</CardDescription></CardHeader>
-              <CardContent className="grid gap-4 md:grid-cols-3">
-                {workflows.map((workflow) => (
-                  <Link key={workflow.key} to={workflow.to} className="rounded-3xl border border-border/80 bg-background p-4 transition hover:bg-accent/35">
-                    <IconTile icon={workflow.icon} />
-                    <div className="mt-4 space-y-2"><h3 className="font-semibold text-foreground">{t(`workflows.items.${workflow.key}.title`)}</h3><p className="text-sm leading-6 text-muted-foreground">{t(`workflows.items.${workflow.key}.description`)}</p></div>
-                  </Link>
-                ))}
-              </CardContent>
-            </Card>
+      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+        <Card className="rounded-3xl shadow-sm">
+          <CardHeader>
+            <CardTitle>{t('charts.content.title')}</CardTitle>
+            <CardDescription>{t('charts.content.description')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {overviewQuery.isLoading ? <Skeleton className="h-64 w-full rounded-2xl" /> : <DashboardDistributionChart items={distribution} />}
+          </CardContent>
+        </Card>
 
-            <Card className="rounded-3xl shadow-sm">
-              <CardHeader><CardTitle>{t('timeline.title')}</CardTitle><CardDescription>{t('timeline.description')}</CardDescription></CardHeader>
-              <CardContent className="space-y-4">
-                {timeline.map((item, index) => {
-                  const Icon = item.icon
-                  return (
-                    <div key={item.key} className="flex gap-3">
-                      <span className="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground"><Icon className="size-4" /></span>
-                      <div className="min-w-0 flex-1 border-b border-border/70 pb-4 last:border-b-0 last:pb-0">
-                        <div className="flex items-center justify-between gap-3"><p className="font-semibold text-foreground">{t(`timeline.items.${item.key}.title`)}</p><Badge variant="outline" color={index === 0 ? 'primary' : 'slate'}>{t(`timeline.items.${item.key}.status`)}</Badge></div>
-                        <p className="mt-1 text-sm leading-6 text-muted-foreground">{t(`timeline.items.${item.key}.description`)}</p>
-                      </div>
-                    </div>
-                  )
-                })}
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="rounded-3xl shadow-sm">
-            <CardHeader><CardTitle>{t('dynamic.title')}</CardTitle><CardDescription>{t('dynamic.description')}</CardDescription></CardHeader>
-            <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {['apiContracts', 'entityBuilder', 'courseManagement', 'analytics'].map((item) => (
-                <div key={item} className="rounded-2xl border border-border/80 bg-background p-4">
-                  <div className="mb-3 flex items-center gap-2 text-primary"><Clock3 className="size-4" /><span className="text-sm font-semibold">{t(`dynamic.items.${item}.label`)}</span></div>
-                  <p className="text-sm leading-6 text-muted-foreground">{t(`dynamic.items.${item}.description`)}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </>
-      )}
+        <Card className="rounded-3xl shadow-sm">
+          <CardHeader>
+            <CardTitle>{t('quick.title')}</CardTitle>
+            <CardDescription>{t('quick.description')}</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-3">
+            <Link to={APP_ROUTES.quizzes.path} className="rounded-2xl border border-border/70 bg-background p-4 transition hover:border-primary/25 hover:bg-primary/5">
+              <FileQuestion className="size-5 text-primary" />
+              <p className="mt-3 font-semibold">{t('quick.quizzes')}</p>
+            </Link>
+            <Link to={APP_ROUTES.teachers.path} className="rounded-2xl border border-border/70 bg-background p-4 transition hover:border-primary/25 hover:bg-primary/5">
+              <GraduationCap className="size-5 text-primary" />
+              <p className="mt-3 font-semibold">{t('quick.teachers')}</p>
+            </Link>
+            <Link to={APP_ROUTES.courses.path} className="rounded-2xl border border-border/70 bg-background p-4 transition hover:border-primary/25 hover:bg-primary/5">
+              <BookOpenCheck className="size-5 text-primary" />
+              <p className="mt-3 font-semibold">{t('quick.courses')}</p>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
     </section>
   )
 }
