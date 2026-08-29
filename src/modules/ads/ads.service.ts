@@ -4,7 +4,6 @@ import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 import {
   attachContentResourceToEntity,
   deleteContentResource,
-  updateContentResourceFile,
   uploadContentResource,
   type ContentResource,
 } from '@/modules/content-crud/services/content-resource.services'
@@ -77,37 +76,46 @@ export const adsService = {
   async update(ad: AdminAd, payload: AdInput, imageFile?: File | null): Promise<AdminAd> {
     let image = ad.image ?? null
     let imageId = ad.imageId
+    let replacementImage: ContentResource | null = null
+    const previousImageId = ad.imageId
 
     if (imageFile) {
-      if (ad.imageId) {
-        image = await updateContentResourceFile({
-          id: ad.imageId,
-          entityId: ad.id,
-          file: imageFile,
-        })
-        imageId = image.id
-      } else {
-        image = await uploadContentResource({ entityId: ad.id, file: imageFile })
-        imageId = image.id
-      }
+      // Ad creation already uses POST /Resources reliably. Reuse that proven path
+      // for replacements instead of mutating the existing resource through
+      // PUT /Resources/:id/file, which can be canceled by the browser/proxy.
+      replacementImage = await uploadContentResource({ entityId: ad.id, file: imageFile })
+      image = replacementImage
+      imageId = replacementImage.id
     }
 
     if (!imageId) throw new Error('Ad image is required')
 
-    // Use PUT with a complete payload. In production the previous PATCH path could
-    // resolve with 200 while the editable fields were not present in the request body.
-    const updated = await api.put<AdminAd, AdUpdatePayload>(
-      API_ENDPOINTS.ads.update(ad.id),
-      {
-        title: payload.title ?? null,
-        description: payload.description ?? null,
-        imageId,
-      },
-    )
+    try {
+      const updated = await api.put<AdminAd, AdUpdatePayload>(
+        API_ENDPOINTS.ads.update(ad.id),
+        {
+          title: payload.title ?? null,
+          description: payload.description ?? null,
+          imageId,
+        },
+      )
 
-    return {
-      ...updated,
-      image,
+      // Only remove the previous resource after the ad is safely pointing to the
+      // new one. A cleanup failure must not roll back a successful ad update.
+      if (replacementImage && previousImageId && previousImageId !== replacementImage.id) {
+        await deleteContentResource(previousImageId).catch(() => undefined)
+      }
+
+      return {
+        ...updated,
+        image,
+      }
+    } catch (error) {
+      // Avoid orphaning the newly uploaded resource if the ad update itself fails.
+      if (replacementImage) {
+        await deleteContentResource(replacementImage.id).catch(() => undefined)
+      }
+      throw error
     }
   },
 
