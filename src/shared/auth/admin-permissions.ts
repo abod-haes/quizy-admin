@@ -16,6 +16,7 @@ export type AdminPermissionCode = (typeof ADMIN_PERMISSION_CODES)[number]
 const ROLE_UI_PERMISSIONS = {
   SuperAdmin: ADMIN_PERMISSION_CODES,
   AdminEmployee: ADMIN_PERMISSION_CODES,
+  Teacher: [],
 } satisfies Record<AppRole, readonly AdminPermissionCode[]>
 
 /**
