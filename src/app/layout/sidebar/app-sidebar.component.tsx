@@ -24,11 +24,16 @@ type AppSidebarProps = ComponentPropsWithoutRef<'aside'> & {
 
 export function AppSidebar({ onNavigate, className, ...props }: AppSidebarProps) {
   const location = useLocation()
-  const { hasAnyRole, hasAnyPermission } = useAuth()
+  const { hasRole, hasAnyRole, hasAnyPermission } = useAuth()
+
+  const hasAccess = (roles?: SidebarLinkItem['roles'], permissions?: SidebarLinkItem['permissions'], requireAllPermissions = false) => {
+    if (!hasAnyRole(roles)) return false
+    const teacherOwnedItem = Boolean(roles?.includes('Teacher') && hasRole('Teacher'))
+    return teacherOwnedItem || hasAnyPermission(permissions, requireAllPermissions)
+  }
 
   const isAllowed = (item: SidebarLinkItem) =>
-    hasAnyRole(item.roles) &&
-    hasAnyPermission(item.permissions, item.requireAllPermissions ?? false)
+    hasAccess(item.roles, item.permissions, item.requireAllPermissions ?? false)
 
   const filterItems = (items: SidebarItem[]): SidebarItem[] =>
     items.reduce<SidebarItem[]>((visibleItems, item) => {
@@ -37,10 +42,7 @@ export function AppSidebar({ onNavigate, className, ...props }: AppSidebarProps)
         return visibleItems
       }
 
-      if (
-        !hasAnyRole(item.roles) ||
-        !hasAnyPermission(item.permissions, item.requireAllPermissions ?? false)
-      ) {
+      if (!hasAccess(item.roles, item.permissions, item.requireAllPermissions ?? false)) {
         return visibleItems
       }
 
@@ -53,12 +55,12 @@ export function AppSidebar({ onNavigate, className, ...props }: AppSidebarProps)
     () => filterItems(primarySidebarItems),
     // AuthProvider callbacks change when their backing session/permissions change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [hasAnyRole, hasAnyPermission],
+    [hasRole, hasAnyRole, hasAnyPermission],
   )
   const allowedSecondaryItems = useMemo(
     () => filterItems(secondarySidebarItems),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [hasAnyRole, hasAnyPermission],
+    [hasRole, hasAnyRole, hasAnyPermission],
   )
 
   return (

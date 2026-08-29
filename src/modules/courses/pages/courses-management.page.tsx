@@ -14,6 +14,7 @@ import { BookOpen,
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 
+import { useAuth } from '@/app/providers/auth.provider'
 import { api } from '@/shared/api/api-client'
 import type { PagedResponse } from '@/shared/api/api.types'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
@@ -41,6 +42,7 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
+  type TableRowActionItem,
 } from '@/shared/ui'
 
 type CourseStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
@@ -111,6 +113,8 @@ function optionLabel(option: RelationOption) {
 
 export default function CoursesManagementPage() {
   const { t } = useTranslation('admin-pages')
+  const { hasRole } = useAuth()
+  const isTeacher = hasRole('Teacher')
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
@@ -121,7 +125,7 @@ export default function CoursesManagementPage() {
   const [deleteTarget, setDeleteTarget] = useState<CourseRow | null>(null)
 
   const coursesQuery = useQuery({
-    queryKey: ['courses-management', page, search.trim()],
+    queryKey: ['courses-management', page, search.trim(), isTeacher],
     queryFn: () => api.get<PagedResponse<CourseRow>>(API_ENDPOINTS.courses.list, {
       params: { page, perPage: PAGE_SIZE, ...(search.trim() ? { search: search.trim() } : {}) },
     }),
@@ -130,11 +134,13 @@ export default function CoursesManagementPage() {
     queryKey: ['courses-management', 'subjects'],
     queryFn: () => api.get<RelationOption[]>(API_ENDPOINTS.subjects.brief),
     staleTime: 5 * 60 * 1000,
+    enabled: !isTeacher,
   })
   const teachersQuery = useQuery({
     queryKey: ['courses-management', 'teachers'],
     queryFn: () => api.get<RelationOption[]>(API_ENDPOINTS.teachers.brief),
     staleTime: 5 * 60 * 1000,
+    enabled: !isTeacher,
   })
 
   const subjectOptions = useMemo(() => (subjectsQuery.data ?? []).map((item) => ({ value: item.id, label: optionLabel(item) })), [subjectsQuery.data])
@@ -146,11 +152,13 @@ export default function CoursesManagementPage() {
     setForm(EMPTY_FORM)
   }
   const openCreate = () => {
+    if (isTeacher) return
     setEditingId(null)
     setForm(EMPTY_FORM)
     setFormOpen(true)
   }
   const openEdit = async (row: CourseRow) => {
+    if (isTeacher) return
     try {
       const detail = await api.get<CourseRow>(API_ENDPOINTS.courses.detail(row.id))
       setEditingId(row.id)
@@ -221,6 +229,39 @@ export default function CoursesManagementPage() {
     { value: 'ARCHIVED', label: t('courses.status.ARCHIVED') },
   ]
 
+  const getCourseActions = (row: CourseRow): TableRowActionItem<CourseRow>[] => {
+    if (isTeacher) {
+      return [{
+        key: 'sessions',
+        label: t('courses.manageSessions'),
+        icon: <Eye />,
+        onClick: () => navigate(`/courses/${row.id}`),
+      }]
+    }
+    return [
+      {
+        key: 'sessions',
+        label: t('courses.manageSessions'),
+        icon: <Eye />,
+        onClick: () => navigate(`/courses/${row.id}`),
+      },
+      {
+        key: 'edit',
+        label: t('common.edit'),
+        icon: <Pencil />,
+        onClick: () => void openEdit(row),
+      },
+      {
+        key: 'delete',
+        label: t('common.delete'),
+        icon: <Trash2 />,
+        variant: 'destructive',
+        confirm: false,
+        onClick: () => setDeleteTarget(row),
+      },
+    ]
+  }
+
   return (
     <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
       <PageHeader
@@ -228,7 +269,7 @@ export default function CoursesManagementPage() {
         title={t('courses.title')}
         description={t('courses.description')}
         search={{ value: search, placeholder: t('courses.searchPlaceholder'), onChange: (value) => { setSearch(value); setPage(1) } }}
-        actions={<><Button variant="outline" disabled={coursesQuery.isFetching} onClick={() => void coursesQuery.refetch()}><RefreshCcw />{t('common.refresh')}</Button><Button onClick={openCreate}><Plus />{t('courses.add')}</Button></>}
+        actions={<><Button variant="outline" disabled={coursesQuery.isFetching} onClick={() => void coursesQuery.refetch()}><RefreshCcw />{t('common.refresh')}</Button>{!isTeacher ? <Button onClick={openCreate}><Plus />{t('courses.add')}</Button> : null}</>}
       />
 
       <PaginatedDataTable<CourseRow>
@@ -246,11 +287,11 @@ export default function CoursesManagementPage() {
             { id: 'status', header: t('courses.statusLabel'), renderCell: (row) => <Badge variant="outline" color={row.status === 'PUBLISHED' ? 'emerald' : 'slate'}>{t(`courses.status.${row.status}`)}</Badge> },
             { id: 'price', header: t('courses.price'), renderCell: (row) => row.isFree ? t('courses.free') : `${row.price ?? 0} ${row.currency ?? ''}` },
             { id: 'sessions', header: t('courses.sessions'), renderCell: (row) => row.sessionsCount ?? 0 },
-            { id: 'actions', header: '', renderCell: (row) => <div className="flex w-full justify-end"><TableRowActionsMenu row={row} triggerAriaLabel={t('common.actions')} actions={[{ key: 'sessions', label: t('courses.manageSessions'), icon: <Eye />, onClick: () => navigate(`/courses/${row.id}`) }, { key: 'edit', label: t('common.edit'), icon: <Pencil />, onClick: () => void openEdit(row) }, { key: 'delete', label: t('common.delete'), icon: <Trash2 />, variant: 'destructive', confirm: false, onClick: () => setDeleteTarget(row) }]} /></div> },
+            { id: 'actions', header: '', renderCell: (row) => <div className="flex w-full justify-end"><TableRowActionsMenu row={row} triggerAriaLabel={t('common.actions')} actions={getCourseActions(row)} /></div> },
           ]}
       />
 
-      <Sheet open={formOpen} onOpenChange={(open) => { if (!open && !saveMutation.isPending) closeForm() }}>
+      {!isTeacher ? <Sheet open={formOpen} onOpenChange={(open) => { if (!open && !saveMutation.isPending) closeForm() }}>
         <SheetContent className="max-w-3xl">
           <SheetHeader><SheetTitle>{t(editingId ? 'courses.editTitle' : 'courses.createTitle')}</SheetTitle><SheetDescription>{t('courses.formDescription')}</SheetDescription></SheetHeader>
           <div className="grid gap-4 py-2 md:grid-cols-2">
@@ -264,11 +305,11 @@ export default function CoursesManagementPage() {
           </div>
           <SheetFooter><Button variant="outline" disabled={saveMutation.isPending} onClick={closeForm}>{t('common.cancel')}</Button><Button disabled={!canSave} onClick={() => saveMutation.mutate()}>{saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('common.save')}</Button></SheetFooter>
         </SheetContent>
-      </Sheet>
+      </Sheet> : null}
 
-      <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteTarget(null) }}>
+      {!isTeacher ? <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteTarget(null) }}>
         <DialogContent className="max-w-md"><DialogHeader><DialogTitle>{t('courses.deleteTitle')}</DialogTitle><DialogDescription>{deleteTarget ? t('courses.deleteConfirm', { name: deleteTarget.title }) : ''}</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" disabled={deleteMutation.isPending} onClick={() => setDeleteTarget(null)}>{t('common.cancel')}</Button><Button className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={deleteMutation.isPending} onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}>{deleteMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('common.delete')}</Button></DialogFooter></DialogContent>
-      </Dialog>
+      </Dialog> : null}
     </section>
   )
 }

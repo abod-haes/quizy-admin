@@ -19,7 +19,7 @@ export function RequireAuth({
   requiredPermissions,
   requireAllPermissions = false,
 }: RequireAuthProps) {
-  const { isAuthenticated, hasAnyRole, hasAnyPermission } = useAuth()
+  const { isAuthenticated, hasRole, hasAnyRole, hasAnyPermission } = useAuth()
   const location = useLocation()
   const fromPath = `${location.pathname}${location.search}${location.hash}`
 
@@ -31,7 +31,10 @@ export function RequireAuth({
     return <Navigate replace to={APP_ROUTES.notFound.path} />
   }
 
-  if (!hasAnyPermission(requiredPermissions, requireAllPermissions)) {
+  // Teacher access is intentionally role-scoped, not granted by pretending the
+  // teacher owns an admin permission. The backend still enforces ownership.
+  const teacherOwnedRoute = Boolean(requiredRoles?.includes('Teacher') && hasRole('Teacher'))
+  if (!teacherOwnedRoute && !hasAnyPermission(requiredPermissions, requireAllPermissions)) {
     return <Navigate replace to={APP_ROUTES.notFound.path} />
   }
 
