@@ -6,11 +6,18 @@
     "primaryAction": "Add quiz",
     "secondaryAction": "View quizzes"
   },
+  "teacher": {
+    "badge": "Teacher dashboard",
+    "title": "Your Quizy workspace",
+    "description": "Track only the quizzes and courses linked to your account, with direct access to the content you manage.",
+    "quickDescription": "Direct access to quizzes and courses scoped to your teacher account."
+  },
   "metrics": {
     "students": { "label": "Total students", "hint": "Active platform accounts" },
-    "quizzes": { "label": "Quizzes", "hint": "Non-deleted quizzes" },
+    "quizzes": { "label": "Quizzes", "hint": "Quizzes available within your permissions" },
     "sessions": { "label": "Quiz sessions", "hint": "Students with real quiz activity" },
-    "accuracy": { "label": "Answer accuracy", "hint": "Current correct-answer rate" }
+    "accuracy": { "label": "Answer accuracy", "hint": "Current correct-answer rate" },
+    "courses": { "label": "Courses", "hint": "Courses linked to the teacher account" }
   },
   "charts": {
     "activity": {
