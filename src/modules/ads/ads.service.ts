@@ -25,7 +25,11 @@ export type AdInput = {
 }
 
 type AdCreatePayload = AdInput & { imageId: string }
-type AdUpdatePayload = AdInput & { imageId?: string }
+type AdUpdatePayload = {
+  title: string | null
+  description: string | null
+  imageId: string
+}
 
 async function loadImage(imageId: string | null | undefined) {
   if (!imageId) return null
@@ -72,7 +76,7 @@ export const adsService = {
 
   async update(ad: AdminAd, payload: AdInput, imageFile?: File | null): Promise<AdminAd> {
     let image = ad.image ?? null
-    let changedImageId: string | undefined
+    let imageId = ad.imageId
 
     if (imageFile) {
       if (ad.imageId) {
@@ -81,24 +85,29 @@ export const adsService = {
           entityId: ad.id,
           file: imageFile,
         })
-        changedImageId = image.id
+        imageId = image.id
       } else {
         image = await uploadContentResource({ entityId: ad.id, file: imageFile })
-        changedImageId = image.id
+        imageId = image.id
       }
     }
 
-    const updated = await api.patch<AdminAd, AdUpdatePayload>(
+    if (!imageId) throw new Error('Ad image is required')
+
+    // Use PUT with a complete payload. In production the previous PATCH path could
+    // resolve with 200 while the editable fields were not present in the request body.
+    const updated = await api.put<AdminAd, AdUpdatePayload>(
       API_ENDPOINTS.ads.update(ad.id),
       {
-        ...payload,
-        ...(changedImageId ? { imageId: changedImageId } : {}),
+        title: payload.title ?? null,
+        description: payload.description ?? null,
+        imageId,
       },
     )
 
     return {
       ...updated,
-      image: changedImageId ? image : ad.image,
+      image,
     }
   },
 
