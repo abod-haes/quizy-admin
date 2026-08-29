@@ -86,6 +86,13 @@ export default function AdsManagementPage() {
       if (!imageFile && !editingAd.imageId) throw new Error('Ad image is required')
       return adsService.update(editingAd, payload, imageFile)
     },
+    onMutate: async () => {
+      if (dialogMode === 'edit') {
+        // Stop an in-flight list request from overwriting the just-saved row with a
+        // stale response. The PUT response is authoritative for the edited ad.
+        await queryClient.cancelQueries({ queryKey: ['admin-ads'] })
+      }
+    },
     onSuccess: async (savedAd) => {
       if (dialogMode === 'edit') {
         queryClient.setQueriesData<PagedResponse<AdminAd>>(
@@ -100,13 +107,15 @@ export default function AdsManagementPage() {
             }
           },
         )
+      } else {
+        // Create changes pagination/order, so fetch the authoritative list once.
+        await invalidate()
       }
 
       setDialogOpen(false)
       setForm(EMPTY_FORM)
       setImageFile(null)
       setEditingAd(null)
-      await invalidate()
     },
   })
 
