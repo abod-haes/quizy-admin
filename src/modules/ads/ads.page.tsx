@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next'
 import { adsService,
   type AdminAd,
   type AdInput } from '@/modules/ads/ads.service'
+import type { PagedResponse } from '@/shared/api/api.types'
 import {
   Button,
   ConfirmDialog,
@@ -38,7 +39,13 @@ type AdDialogMode = 'create' | 'edit'
 
 function imageSource(ad: AdminAd) {
   const value = ad.image?.url ?? ad.image?.thumbnailUrl ?? ad.image?.filePath
-  return value ? generateFileUrl(value) : null
+  if (!value) return null
+
+  const url = generateFileUrl(value)
+  if (!ad.updatedAt) return url
+
+  const separator = url.includes('?') ? '&' : '?'
+  return `${url}${separator}v=${encodeURIComponent(ad.updatedAt)}`
 }
 
 function nullableText(value: string | null | undefined) {
@@ -79,7 +86,22 @@ export default function AdsManagementPage() {
       if (!imageFile && !editingAd.imageId) throw new Error('Ad image is required')
       return adsService.update(editingAd, payload, imageFile)
     },
-    onSuccess: async () => {
+    onSuccess: async (savedAd) => {
+      if (dialogMode === 'edit') {
+        queryClient.setQueriesData<PagedResponse<AdminAd>>(
+          { queryKey: ['admin-ads'] },
+          (current) => {
+            if (!current) return current
+            return {
+              ...current,
+              items: current.items.map((item) =>
+                item.id === savedAd.id ? { ...item, ...savedAd } : item,
+              ),
+            }
+          },
+        )
+      }
+
       setDialogOpen(false)
       setForm(EMPTY_FORM)
       setImageFile(null)
