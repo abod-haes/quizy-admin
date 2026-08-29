@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom'
 import {
   Activity,
   BookOpenCheck,
-  BrainCircuit,
   FileQuestion,
   GraduationCap,
   Plus,
@@ -14,7 +13,10 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
+import { useAuth } from '@/app/providers/auth.provider'
 import { APP_ROUTES } from '@/app/router/route-object.type'
+import { api } from '@/shared/api/api-client'
+import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from '@/shared/ui'
 import {
   DashboardAccuracyRing,
@@ -28,6 +30,13 @@ type Metric = {
   value: string
   hint: string
   icon: LucideIcon
+}
+
+type CountResponse = { totalCount: number }
+
+type TeacherDashboardNumbers = {
+  quizzes: number
+  courses: number
 }
 
 function formatNumber(value: number | undefined) {
@@ -53,16 +62,110 @@ function MetricCard({ metric, loading }: { metric: Metric; loading: boolean }) {
   )
 }
 
+async function getTeacherDashboardNumbers(): Promise<TeacherDashboardNumbers> {
+  const [quizzes, courses] = await Promise.all([
+    api.get<CountResponse>(API_ENDPOINTS.quizzes.list, { params: { Page: 1, PerPage: 1 } }),
+    api.get<CountResponse>(API_ENDPOINTS.courses.list, { params: { page: 1, perPage: 1 } }),
+  ])
+
+  return {
+    quizzes: quizzes.totalCount,
+    courses: courses.totalCount,
+  }
+}
+
 export default function DashboardPage() {
   const { t, i18n } = useTranslation('dashboard')
-  const query = useQuery({
-    queryKey: ['dashboard', 'overview', 30],
-    queryFn: () => getDashboardOverview(30),
+  const { hasRole } = useAuth()
+  const isTeacher = hasRole('Teacher')
+
+  const teacherQuery = useQuery({
+    queryKey: ['dashboard', 'teacher'],
+    queryFn: getTeacherDashboardNumbers,
+    enabled: isTeacher,
     staleTime: 1000 * 60 * 2,
     refetchOnWindowFocus: false,
   })
 
-  const data = query.data
+  const overviewQuery = useQuery({
+    queryKey: ['dashboard', 'overview', 30],
+    queryFn: () => getDashboardOverview(30),
+    enabled: !isTeacher,
+    staleTime: 1000 * 60 * 2,
+    refetchOnWindowFocus: false,
+  })
+
+  if (isTeacher) {
+    const metrics: Metric[] = [
+      {
+        label: t('metrics.quizzes.label'),
+        value: formatNumber(teacherQuery.data?.quizzes),
+        hint: t('metrics.quizzes.hint'),
+        icon: FileQuestion,
+      },
+      {
+        label: t('metrics.courses.label'),
+        value: formatNumber(teacherQuery.data?.courses),
+        hint: t('metrics.courses.hint'),
+        icon: BookOpenCheck,
+      },
+    ]
+
+    return (
+      <section className="w-full space-y-6">
+        <div className="relative overflow-hidden rounded-[2rem] border border-primary/10 bg-card p-6 shadow-sm sm:p-8">
+          <div className="pointer-events-none absolute inset-y-0 end-0 w-2/3 bg-[radial-gradient(circle_at_top,var(--quizy-glow),transparent_64%)] opacity-70" />
+          <div className="relative flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+            <div className="max-w-3xl space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                <TrendingUp className="size-3.5" />
+                {t('teacher.badge')}
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{t('teacher.title')}</h1>
+              <p className="max-w-2xl text-base leading-7 text-muted-foreground">{t('teacher.description')}</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link to={APP_ROUTES.quizzes.path} className="inline-flex h-11 items-center gap-2 rounded-2xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90">
+                <FileQuestion className="size-4" />{t('quick.quizzes')}
+              </Link>
+              <Link to={APP_ROUTES.courses.path} className="inline-flex h-11 items-center rounded-2xl border border-border bg-background px-5 text-sm font-semibold text-foreground transition hover:bg-accent">
+                {t('quick.courses')}
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          {metrics.map((metric) => <MetricCard key={metric.label} metric={metric} loading={teacherQuery.isLoading} />)}
+        </div>
+
+        {teacherQuery.isError ? (
+          <Card className="rounded-3xl border-destructive/20">
+            <CardContent className="p-6 text-sm text-destructive">{t('errors.overview')}</CardContent>
+          </Card>
+        ) : null}
+
+        <Card className="rounded-3xl shadow-sm">
+          <CardHeader>
+            <CardTitle>{t('quick.title')}</CardTitle>
+            <CardDescription>{t('teacher.quickDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-2">
+            <Link to={APP_ROUTES.quizzes.path} className="rounded-2xl border border-border/70 bg-background p-4 transition hover:border-primary/25 hover:bg-primary/5">
+              <FileQuestion className="size-5 text-primary" />
+              <p className="mt-3 font-semibold">{t('quick.quizzes')}</p>
+            </Link>
+            <Link to={APP_ROUTES.courses.path} className="rounded-2xl border border-border/70 bg-background p-4 transition hover:border-primary/25 hover:bg-primary/5">
+              <BookOpenCheck className="size-5 text-primary" />
+              <p className="mt-3 font-semibold">{t('quick.courses')}</p>
+            </Link>
+          </CardContent>
+        </Card>
+      </section>
+    )
+  }
+
+  const data = overviewQuery.data
   const summary = data?.summary
   const performance = data?.performance
   const locale = i18n.language.startsWith('ar') ? 'ar-SY' : 'en-US'
@@ -127,10 +230,10 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric) => <MetricCard key={metric.label} metric={metric} loading={query.isLoading} />)}
+        {metrics.map((metric) => <MetricCard key={metric.label} metric={metric} loading={overviewQuery.isLoading} />)}
       </div>
 
-      {query.isError ? (
+      {overviewQuery.isError ? (
         <Card className="rounded-3xl border-destructive/20">
           <CardContent className="p-6 text-sm text-destructive">{t('errors.overview')}</CardContent>
         </Card>
@@ -143,7 +246,7 @@ export default function DashboardPage() {
             <CardDescription>{t('charts.activity.description')}</CardDescription>
           </CardHeader>
           <CardContent>
-            {query.isLoading ? (
+            {overviewQuery.isLoading ? (
               <Skeleton className="h-[280px] w-full rounded-2xl" />
             ) : (
               <DashboardTrendChart
@@ -163,7 +266,7 @@ export default function DashboardPage() {
             <CardDescription>{t('charts.accuracy.description')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {query.isLoading ? <Skeleton className="h-32 w-full rounded-2xl" /> : <DashboardAccuracyRing value={performance?.accuracyPercentage ?? 0} label={t('charts.accuracy.label')} />}
+            {overviewQuery.isLoading ? <Skeleton className="h-32 w-full rounded-2xl" /> : <DashboardAccuracyRing value={performance?.accuracyPercentage ?? 0} label={t('charts.accuracy.label')} />}
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-2xl border border-border/70 bg-background p-4">
                 <p className="text-xs text-muted-foreground">{t('charts.accuracy.sessions')}</p>
@@ -185,7 +288,7 @@ export default function DashboardPage() {
             <CardDescription>{t('charts.content.description')}</CardDescription>
           </CardHeader>
           <CardContent>
-            {query.isLoading ? <Skeleton className="h-64 w-full rounded-2xl" /> : <DashboardDistributionChart items={distribution} />}
+            {overviewQuery.isLoading ? <Skeleton className="h-64 w-full rounded-2xl" /> : <DashboardDistributionChart items={distribution} />}
           </CardContent>
         </Card>
 
