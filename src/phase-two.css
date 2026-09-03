@@ -60,9 +60,10 @@
   white-space: nowrap;
 }
 
-/* CRUD dialogs: consistent header/body/footer rhythm while preserving custom widths. */
-[data-slot='dialog-content'] {
-  border-color: var(--quizy-soft-border) !important;
+/* Create/edit surfaces use one clean visual language. The panel shadow owns
+   separation from the overlay; an extra outline around dialogs/sheets is noise. */
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) {
+  border: 0 !important;
 }
 
 [data-slot='dialog-header'] {
@@ -230,6 +231,52 @@
 
 [data-slot='table-cell'] {
   vertical-align: middle;
+}
+
+/* Row actions are intentionally compact and icon-only across every table. This
+   also normalizes older custom pages that still render text next to the icon. */
+[data-slot='table-cell'] [data-slot='button']:has(
+  [data-slot='button-icon-start'],
+  [data-slot='button-icon-end']
+) {
+  inline-size: 2.5rem !important;
+  block-size: 2.5rem !important;
+  min-inline-size: 2.5rem !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  border-radius: 0.75rem !important;
+  font-size: 0 !important;
+}
+
+[data-slot='table-cell'] [data-slot='button']:has(
+  [data-slot='button-icon-start'],
+  [data-slot='button-icon-end']
+) [data-slot='button-icon-start'],
+[data-slot='table-cell'] [data-slot='button']:has(
+  [data-slot='button-icon-start'],
+  [data-slot='button-icon-end']
+) [data-slot='button-icon-end'] {
+  font-size: 1rem;
+}
+
+[data-slot='table-cell'] [data-slot='button']:has(.lucide-pencil) {
+  color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary) 18%, var(--border));
+  background: color-mix(in srgb, var(--primary) 5%, var(--background));
+}
+
+[data-slot='table-cell'] [data-slot='button']:has(.lucide-pencil):hover {
+  background: color-mix(in srgb, var(--primary) 11%, var(--background));
+}
+
+[data-slot='table-cell'] [data-slot='button']:has(.lucide-trash-2) {
+  color: var(--destructive);
+  border-color: color-mix(in srgb, var(--destructive) 18%, var(--border));
+  background: color-mix(in srgb, var(--destructive) 4%, var(--background));
+}
+
+[data-slot='table-cell'] [data-slot='button']:has(.lucide-trash-2):hover {
+  background: color-mix(in srgb, var(--destructive) 9%, var(--background));
 }
 
 /* RTL: keep action groups visually anchored and preserve logical spacing. */
