@@ -47,7 +47,7 @@ function SheetOverlay({
 function SheetContent({
   className,
   children,
-  side: _side = "right",
+  side = "right",
   showCloseButton = true,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
@@ -55,6 +55,9 @@ function SheetContent({
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
 }) {
+  // Keep accepting the legacy prop so old pages compile, but never let it control layout.
+  void side
+
   return (
     <SheetPortal>
       <SheetOverlay />
