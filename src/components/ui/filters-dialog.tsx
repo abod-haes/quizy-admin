@@ -32,8 +32,7 @@ type FiltersDialogProps = {
   triggerVariant?: 'default' | 'filter'
 }
 
-const FILTER_TRIGGER_CLASS =
-  'h-11 min-w-0 rounded-xl border border-primary/10 bg-card px-4 text-sm font-medium text-foreground shadow-[var(--quizy-control-shadow)] transition-[background-color,border-color,box-shadow] duration-150 hover:border-primary/25 hover:bg-muted/35 focus-visible:border-primary/55 focus-visible:ring-1 focus-visible:ring-primary/20 data-[state=open]:border-primary/55 data-[state=open]:shadow-[var(--quizy-control-focus-shadow)]'
+const FILTER_TRIGGER_CLASS = 'min-w-0'
 
 export function FiltersDialog({
   children,
