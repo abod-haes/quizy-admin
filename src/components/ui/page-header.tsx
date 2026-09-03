@@ -64,7 +64,7 @@ export function PageHeader({
     <header
       data-slot="page-header"
       className={cn(
-        'w-full min-w-0 shrink-0 rounded-2xl border border-primary/10 bg-card px-4 py-3.5 shadow-sm sm:px-5',
+        'w-full min-w-0 shrink-0 rounded-[var(--quizy-surface-radius)] border border-primary/10 bg-card px-4 py-3.5 shadow-sm sm:px-5',
         className,
       )}
     >
@@ -77,7 +77,7 @@ export function PageHeader({
       <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex min-w-0 flex-1 items-start gap-3">
           {icon ? (
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary [&_svg]:size-5">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-[var(--quizy-control-radius)] bg-primary/10 text-primary [&_svg]:size-5">
               {icon}
             </div>
           ) : null}
@@ -102,7 +102,7 @@ export function PageHeader({
         {hasActions ? (
           <div
             data-slot="page-header-actions"
-            className="flex w-full shrink-0 flex-wrap items-center gap-2 lg:w-auto lg:justify-end [&_[data-slot=button]]:h-9 [&_[data-slot=button]]:rounded-xl [&_[data-slot=button]]:px-3 [&_[data-slot=button]]:text-xs [&_[data-slot=button]_svg]:size-3.5"
+            className="flex w-full shrink-0 flex-wrap items-center gap-2 lg:w-auto lg:justify-end [&_[data-slot=button]_svg]:size-4"
           >
             {actions}
             {showControlsAsFilters ? (
@@ -130,7 +130,6 @@ export function PageHeader({
             <label className="relative block min-w-0 flex-1">
               <Input
                 startIcon={<Search className="size-4" />}
-                className="h-9 rounded-xl text-sm shadow-none"
                 value={search.value}
                 placeholder={search.placeholder}
                 aria-label={search.ariaLabel ?? search.placeholder}
