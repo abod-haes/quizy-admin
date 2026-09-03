@@ -35,8 +35,9 @@ type CustomSelectProps<T extends string | number = string> = {
   loadMoreThreshold?: number
 }
 
+const EMPTY_OPTION_KEY = '__quizy_empty_option__'
 const SELECT_TRIGGER_BASE_CLASS =
-  'h-11 w-full min-w-0 rounded-xl border border-input bg-[var(--quizy-surface-strong)] px-3.5 text-sm font-medium text-foreground shadow-sm outline-none transition-[color,background-color,border-color,box-shadow] duration-150 hover:border-primary/25 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] data-[state=open]:border-ring data-[state=open]:ring-ring/50 data-[state=open]:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-invalid:ring-[3px]'
+  'h-[var(--quizy-control-height)] w-full min-w-0 rounded-[var(--quizy-control-radius)] border border-input bg-[var(--quizy-surface-strong)] px-[var(--quizy-control-padding-inline)] text-[length:var(--quizy-control-font-size)] font-medium text-foreground shadow-[var(--quizy-control-shadow)] outline-none transition-[color,background-color,border-color,box-shadow] duration-[var(--quizy-motion-fast)] hover:border-primary/25 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] data-[state=open]:border-ring data-[state=open]:ring-ring/50 data-[state=open]:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-invalid:ring-[3px]'
 
 const DEFAULT_TRIGGER_CLASS = SELECT_TRIGGER_BASE_CLASS
 const FILTER_TRIGGER_CLASS = SELECT_TRIGGER_BASE_CLASS
@@ -50,6 +51,10 @@ function displayLabel(value: unknown, fallback: unknown): string {
     stripIdTokens: true,
     fallback: safeLabel || '-',
   })
+}
+
+function toRadixValue(value: string | number) {
+  return String(value) === '' ? EMPTY_OPTION_KEY : String(value)
 }
 
 export function CustomSelect<T extends string | number = string>({
@@ -83,8 +88,16 @@ export function CustomSelect<T extends string | number = string>({
       ? undefined
       : String(selectedValue)
   const hasMountedRef = useRef(false)
+  const hasEmptyOption = options.some((option) => String(option.value) === '')
 
-  const effectiveValue = selectedValueKey ?? ''
+  const effectiveValue =
+    selectedValueKey === undefined
+      ? hasEmptyOption
+        ? EMPTY_OPTION_KEY
+        : ''
+      : selectedValueKey === ''
+        ? EMPTY_OPTION_KEY
+        : selectedValueKey
 
   useEffect(() => {
     hasMountedRef.current = true
@@ -95,8 +108,8 @@ export function CustomSelect<T extends string | number = string>({
       return
     }
 
-    const matchedOption = options.find((option) => String(option.value) === nextValue)
-    const typedValue = (matchedOption?.value ?? (nextValue as unknown as T))
+    const matchedOption = options.find((option) => toRadixValue(option.value) === nextValue)
+    const typedValue = matchedOption?.value ?? (nextValue as unknown as T)
 
     if (!isControlled) {
       setInternalValue(typedValue)
@@ -157,28 +170,31 @@ export function CustomSelect<T extends string | number = string>({
           position="popper"
           align={isRtl ? 'end' : 'start'}
           sideOffset={8}
-          viewportProps={{
-            onScroll: handleViewportScroll,
-          }}
+          viewportProps={{ onScroll: handleViewportScroll }}
           className={cn(
-            'z-[1000] w-[var(--radix-select-trigger-width)] rounded-xl border border-primary/10 bg-popover p-1 text-foreground shadow-[0_20px_60px_rgba(45,27,90,0.18)] ring-0 [&_[data-slot=select-scroll-up-button]]:bg-popover [&_[data-slot=select-scroll-down-button]]:bg-popover',
+            'z-[1000] w-[var(--radix-select-trigger-width)] rounded-[var(--quizy-control-radius)] border border-primary/10 bg-popover p-1 text-foreground shadow-[var(--quizy-popup-shadow)] ring-0 [&_[data-slot=select-scroll-up-button]]:bg-popover [&_[data-slot=select-scroll-down-button]]:bg-popover',
             contentClassName
           )}
         >
-          {options.filter((option) => option.value !== null && option.value !== undefined).map((option) => (
-            <SelectItem
-              key={String(option.value)}
-              value={String(option.value)}
-              disabled={option.disabled}
-              className="min-h-10 rounded-lg px-3 text-start text-sm"
-            >
-              {displayLabel(option.label, option.value)}
-            </SelectItem>
-          ))}
+          {options
+            .filter((option) => option.value !== null && option.value !== undefined)
+            .map((option) => {
+              const radixValue = toRadixValue(option.value)
+              return (
+                <SelectItem
+                  key={radixValue}
+                  value={radixValue}
+                  disabled={option.disabled}
+                  className="min-h-10 rounded-[var(--quizy-control-radius)] px-3 text-start text-sm"
+                >
+                  {displayLabel(option.label, option.value)}
+                </SelectItem>
+              )
+            })}
         </SelectContent>
       </Select>
 
-      {name ? <input type="hidden" name={name} value={effectiveValue ?? ''} /> : null}
+      {name ? <input type="hidden" name={name} value={selectedValueKey ?? ''} /> : null}
     </>
   )
 }

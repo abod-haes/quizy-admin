@@ -32,8 +32,7 @@ type FiltersDialogProps = {
   triggerVariant?: 'default' | 'filter'
 }
 
-const FILTER_TRIGGER_CLASS =
-  'h-11 min-w-0 rounded-xl border border-primary/10 bg-card px-4 text-sm font-medium text-foreground shadow-[var(--quizy-control-shadow)] transition-[background-color,border-color,box-shadow] duration-150 hover:border-primary/25 hover:bg-muted/35 focus-visible:border-primary/55 focus-visible:ring-1 focus-visible:ring-primary/20 data-[state=open]:border-primary/55 data-[state=open]:shadow-[var(--quizy-control-focus-shadow)]'
+const FILTER_TRIGGER_CLASS = 'min-w-0'
 
 export function FiltersDialog({
   children,
@@ -92,7 +91,7 @@ export function FiltersDialog({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className={cn('sm:max-w-3xl', contentClassName)}>
+      <DialogContent className={cn('w-[min(94vw,64rem)] sm:max-w-5xl', contentClassName)}>
         {title || description ? (
           <DialogHeader>
             {title ? <DialogTitle>{title}</DialogTitle> : null}
@@ -100,7 +99,10 @@ export function FiltersDialog({
           </DialogHeader>
         ) : null}
 
-        <div data-slot="filters-grid" className="grid min-w-0 gap-4 sm:grid-cols-2">
+        <div
+          data-slot="filters-grid"
+          className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 [&>*]:min-w-0 [&>*]:w-full [&_[data-slot=input]]:h-12 [&_[data-slot=select-trigger]]:h-12"
+        >
           {children}
         </div>
 

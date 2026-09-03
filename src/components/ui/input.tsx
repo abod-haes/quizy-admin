@@ -11,7 +11,7 @@ type InputProps = React.ComponentProps<"input"> & {
 }
 
 const INPUT_BASE_CLASS =
-  "h-11 w-full rounded-xl border border-input bg-[var(--quizy-surface-strong)] px-3.5 text-sm font-medium text-foreground shadow-sm outline-none transition-[color,background-color,border-color,box-shadow] duration-150 placeholder:text-muted-foreground hover:border-primary/25 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-invalid:ring-[3px]"
+  "h-[var(--quizy-control-height)] w-full rounded-[var(--quizy-control-radius)] border border-input bg-[var(--quizy-surface-strong)] px-[var(--quizy-control-padding-inline)] text-[length:var(--quizy-control-font-size)] font-medium text-foreground shadow-[var(--quizy-control-shadow)] outline-none transition-[color,background-color,border-color,box-shadow] duration-[var(--quizy-motion-fast)] placeholder:text-muted-foreground hover:border-primary/25 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-invalid:ring-[3px]"
 
 const DEFAULT_INPUT_CLASS = INPUT_BASE_CLASS
 const FILTER_INPUT_CLASS = INPUT_BASE_CLASS
@@ -82,7 +82,7 @@ function Input({
       {isPasswordType ? (
         <button
           type="button"
-          className="absolute top-1/2 -translate-y-1/2 rounded-xl p-1 text-muted-foreground/80 transition-colors hover:bg-accent/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 [inset-inline-end:0.75rem] [&_svg]:size-4"
+          className="absolute top-1/2 -translate-y-1/2 rounded-[calc(var(--quizy-control-radius)-0.125rem)] p-1 text-muted-foreground/80 transition-colors hover:bg-accent/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 [inset-inline-end:0.75rem] [&_svg]:size-4"
           onClick={() => setShowPassword((current) => !current)}
           aria-label={showPassword ? "Hide password" : "Show password"}
         >

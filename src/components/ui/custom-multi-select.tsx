@@ -33,7 +33,7 @@ type CustomMultiSelectProps<T extends string | number = string> = {
 }
 
 const DEFAULT_TRIGGER_CLASS =
-  'h-11 w-full min-w-0 rounded-xl border border-input bg-[var(--quizy-surface-strong)] px-3.5 text-sm font-medium text-foreground shadow-sm outline-none transition-[color,background-color,border-color,box-shadow] duration-150 hover:border-primary/25 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] data-[state=open]:border-ring data-[state=open]:ring-ring/50 data-[state=open]:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-50'
+  'h-[var(--quizy-control-height)] w-full min-w-0 rounded-[var(--quizy-control-radius)] border border-input bg-[var(--quizy-surface-strong)] px-[var(--quizy-control-padding-inline)] text-[length:var(--quizy-control-font-size)] font-medium text-foreground shadow-[var(--quizy-control-shadow)] outline-none transition-[color,background-color,border-color,box-shadow] duration-[var(--quizy-motion-fast)] hover:border-primary/25 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] data-[state=open]:border-ring data-[state=open]:ring-ring/50 data-[state=open]:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-50'
 
 function displayLabel(value: unknown, fallback: unknown): string {
   const label = typeof value === 'string' && value.trim() ? value : fallback
@@ -138,7 +138,7 @@ export function CustomMultiSelect<T extends string | number = string>({
           </span>
           <div className="flex shrink-0 items-center gap-2">
             {selectedKeys.length > 0 ? (
-              <span className="inline-flex min-w-6 items-center justify-center rounded-lg bg-primary/10 px-1.5 py-0.5 text-xs font-semibold text-primary">
+              <span className="inline-flex min-w-6 items-center justify-center rounded-[calc(var(--quizy-control-radius)-0.125rem)] bg-primary/10 px-1.5 py-0.5 text-xs font-semibold text-primary">
                 {selectedKeys.length}
               </span>
             ) : null}
@@ -150,7 +150,7 @@ export function CustomMultiSelect<T extends string | number = string>({
       <DropdownMenuContent
         align={isRtl ? 'end' : 'start'}
         sideOffset={8}
-        className="z-[1000] max-h-80 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto rounded-xl border border-primary/10 bg-popover p-1.5 text-foreground shadow-[0_20px_60px_rgba(45,27,90,0.18)] ring-0"
+        className="z-[1000] max-h-80 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto rounded-[var(--quizy-control-radius)] border border-primary/10 bg-popover p-1.5 text-foreground shadow-[var(--quizy-popup-shadow)] ring-0"
       >
         {safeOptions.length === 0 ? (
           <div className="px-3 py-2.5 text-sm text-muted-foreground">-</div>
@@ -166,7 +166,7 @@ export function CustomMultiSelect<T extends string | number = string>({
               disabled={option.disabled}
               onCheckedChange={() => toggleOption(option)}
               onSelect={(event) => event.preventDefault()}
-              className="min-h-10 rounded-lg px-3 text-start text-sm text-foreground data-[state=checked]:bg-primary/10 data-[state=checked]:font-semibold data-[state=checked]:text-foreground"
+              className="min-h-10 rounded-[calc(var(--quizy-control-radius)-0.125rem)] px-3 text-start text-sm text-foreground data-[state=checked]:bg-primary/10 data-[state=checked]:font-semibold data-[state=checked]:text-foreground"
             >
               {displayLabel(option.label, option.value)}
             </DropdownMenuCheckboxItem>

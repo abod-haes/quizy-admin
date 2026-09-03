@@ -1,6 +1,9 @@
 import { Search } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { isValidElement, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
+import { Button } from '@/components/ui/button'
+import { FiltersDialog } from '@/components/ui/filters-dialog'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
@@ -19,6 +22,10 @@ type PageHeaderProps = {
   icon?: ReactNode
   search?: PageHeaderSearch
   controls?: ReactNode
+  controlsPresentation?: 'auto' | 'inline' | 'filters'
+  filterLabel?: ReactNode
+  filterTitle?: ReactNode
+  filterDescription?: ReactNode
   actions?: ReactNode
   className?: string
 }
@@ -30,17 +37,35 @@ export function PageHeader({
   icon,
   search,
   controls,
+  controlsPresentation = 'auto',
+  filterLabel,
+  filterTitle,
+  filterDescription,
   actions,
   className,
 }: PageHeaderProps) {
-  const hasToolbar = Boolean(search || controls)
+  const { t } = useTranslation('common')
+
+  const autoInlineControl = isValidElement(controls) && controls.type === Button
+  const showControlsInline = Boolean(
+    controls &&
+      (controlsPresentation === 'inline' ||
+        (controlsPresentation === 'auto' && autoInlineControl)),
+  )
+  const showControlsAsFilters = Boolean(
+    controls &&
+      (controlsPresentation === 'filters' ||
+        (controlsPresentation === 'auto' && !autoInlineControl)),
+  )
+  const hasToolbar = Boolean(search || showControlsInline)
+  const hasActions = Boolean(actions || showControlsAsFilters)
 
   return (
     <header
       data-slot="page-header"
       className={cn(
-        'w-full min-w-0 shrink-0 rounded-2xl border border-primary/10 bg-card px-4 py-3.5 shadow-sm sm:px-5',
-        className
+        'w-full min-w-0 shrink-0 rounded-[var(--quizy-surface-radius)] border border-primary/10 bg-card px-4 py-3.5 shadow-sm sm:px-5',
+        className,
       )}
     >
       {breadcrumbs ? (
@@ -52,7 +77,7 @@ export function PageHeader({
       <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex min-w-0 flex-1 items-start gap-3">
           {icon ? (
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary [&_svg]:size-5">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-[var(--quizy-control-radius)] bg-primary/10 text-primary [&_svg]:size-5">
               {icon}
             </div>
           ) : null}
@@ -74,12 +99,24 @@ export function PageHeader({
           </div>
         </div>
 
-        {actions ? (
+        {hasActions ? (
           <div
             data-slot="page-header-actions"
-            className="flex w-full shrink-0 flex-wrap items-center gap-2 lg:w-auto lg:justify-end [&_[data-slot=button]]:h-9 [&_[data-slot=button]]:rounded-xl [&_[data-slot=button]]:px-3 [&_[data-slot=button]]:text-xs [&_[data-slot=button]_svg]:size-3.5"
+            className="flex w-full shrink-0 flex-wrap items-center gap-2 lg:w-auto lg:justify-end [&_[data-slot=button]_svg]:size-4"
           >
             {actions}
+            {showControlsAsFilters ? (
+              <FiltersDialog
+                triggerLabel={filterLabel ?? t('filters.title')}
+                title={filterTitle ?? t('filters.title')}
+                description={filterDescription}
+                applyLabel={t('actions.apply')}
+                triggerVariant="filter"
+                contentClassName="sm:max-w-5xl"
+              >
+                {controls}
+              </FiltersDialog>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -90,10 +127,9 @@ export function PageHeader({
           className="mt-3 flex min-w-0 flex-col gap-2 border-t border-primary/10 pt-3 sm:flex-row sm:items-center"
         >
           {search ? (
-            <label className="relative block min-w-0 flex-1">
+            <label className="relative block w-full min-w-0 sm:max-w-md lg:max-w-lg">
               <Input
                 startIcon={<Search className="size-4" />}
-                className="h-9 rounded-xl text-sm shadow-none"
                 value={search.value}
                 placeholder={search.placeholder}
                 aria-label={search.ariaLabel ?? search.placeholder}
@@ -103,7 +139,7 @@ export function PageHeader({
             </label>
           ) : null}
 
-          {controls ? (
+          {showControlsInline ? (
             <div
               data-slot="page-header-controls"
               className="flex min-w-0 flex-wrap items-center gap-2 sm:shrink-0 [&>*]:min-w-0"

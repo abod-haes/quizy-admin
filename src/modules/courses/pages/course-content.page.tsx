@@ -43,7 +43,14 @@ type UploadedResource = string | { id?: UUID; entityId?: UUID | null }
 type CourseMaterialType = 1 | 2
 type HlsStatus = 0 | 1 | 2 | 3 | 'NotProcessed' | 'Processing' | 'Ready' | 'Failed' | string
 
-type Material = {
+type ContentContext = {
+  courseId?: UUID | null
+  courseTitle?: string | null
+  sessionId?: UUID | null
+  sessionTitle?: string | null
+}
+
+type Material = ContentContext & {
   id: UUID
   title?: string | null
   description?: string | null
@@ -62,10 +69,11 @@ type PlaybackResponse = {
   hlsStatus?: string
 }
 
-type TextRecord = {
+type TextRecord = ContentContext & {
   id: UUID
   content?: string | null
   authorRole?: string | null
+  authorName?: string | null
 }
 
 type TabKey = 'materials' | 'comments' | 'notes'
@@ -107,6 +115,11 @@ type MaterialPayload = {
 
 const LOOKUP_PAGE_SIZE = 100
 const CONTENT_PAGE_SIZE = 20
+const ADMIN_COURSE_CONTENT = {
+  materials: '/api/v1/admin/course-content/materials',
+  comments: '/api/v1/admin/course-content/comments',
+  notes: '/api/v1/admin/course-content/notes',
+} as const
 const FILE_MATERIAL_ACCEPT =
   'image/*,application/*,text/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.json,.xml,.zip,.rar,.7z'
 const VIDEO_MATERIAL_ACCEPT = 'video/*'
@@ -136,21 +149,14 @@ function labelOf(item: NamedItem) {
 
 function extractResourceId(response: UploadedResource): string | null {
   if (typeof response === 'string' && response.trim()) return response
-  if (
-    response &&
-    typeof response === 'object' &&
-    typeof response.id === 'string' &&
-    response.id.trim()
-  ) {
+  if (response && typeof response === 'object' && typeof response.id === 'string' && response.id.trim()) {
     return response.id
   }
   return null
 }
 
 function getBlobName(material: Material) {
-  return (material.title?.trim() || 'course-material')
-    .replace(/[\\/:*?"<>|]+/g, '-')
-    .slice(0, 80)
+  return (material.title?.trim() || 'course-material').replace(/[\\/:*?"<>|]+/g, '-').slice(0, 80)
 }
 
 function downloadBlob(blob: Blob, fileName: string) {
@@ -223,15 +229,9 @@ export default function CourseContentPage() {
   const { t } = useTranslation('course-content')
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const {
-    courseId: routeCourseId = '',
-    sessionId: routeSessionId = '',
-    contentTab = '',
-  } = useParams()
-
+  const { courseId: routeCourseId = '', sessionId: routeSessionId = '', contentTab = '' } = useParams()
   const isSessionDetailRoute = Boolean(routeSessionId)
 
-  // These are list filters only. Create/edit owns relation state inside the dialog.
   const [courseId, setCourseId] = useState(routeCourseId)
   const [sessionId, setSessionId] = useState(routeSessionId)
   const [contentPage, setContentPage] = useState(1)
@@ -245,24 +245,21 @@ export default function CourseContentPage() {
   })
 
   const tab = tabFromPath(contentTab)
-  const dialogCourseId =
-    dialog.kind === 'material' ? dialog.material.courseId : dialog.text.courseId
+  const dialogCourseId = dialog.kind === 'material' ? dialog.material.courseId : dialog.text.courseId
 
   const coursesQuery = useQuery({
     queryKey: ['course-content', 'courses'],
-    queryFn: () =>
-      api.get<PagedResponse<NamedItem>>(API_ENDPOINTS.courses.list, {
-        params: { page: 1, perPage: LOOKUP_PAGE_SIZE },
-      }),
+    queryFn: () => api.get<PagedResponse<NamedItem>>(API_ENDPOINTS.courses.list, {
+      params: { page: 1, perPage: LOOKUP_PAGE_SIZE },
+    }),
     enabled: !isSessionDetailRoute,
   })
 
   const sessionsQuery = useQuery({
     queryKey: ['course-content', 'sessions', courseId],
-    queryFn: () =>
-      api.get<PagedResponse<NamedItem>>(API_ENDPOINTS.courses.sessions(courseId), {
-        params: { page: 1, perPage: LOOKUP_PAGE_SIZE },
-      }),
+    queryFn: () => api.get<PagedResponse<NamedItem>>(API_ENDPOINTS.courses.sessions(courseId), {
+      params: { page: 1, perPage: LOOKUP_PAGE_SIZE },
+    }),
     enabled: Boolean(courseId && !isSessionDetailRoute),
   })
 
@@ -280,77 +277,70 @@ export default function CourseContentPage() {
 
   const dialogSessionsQuery = useQuery({
     queryKey: ['course-content', 'dialog-sessions', dialogCourseId],
-    queryFn: () =>
-      api.get<PagedResponse<NamedItem>>(API_ENDPOINTS.courses.sessions(dialogCourseId), {
-        params: { page: 1, perPage: LOOKUP_PAGE_SIZE },
-      }),
+    queryFn: () => api.get<PagedResponse<NamedItem>>(API_ENDPOINTS.courses.sessions(dialogCourseId), {
+      params: { page: 1, perPage: LOOKUP_PAGE_SIZE },
+    }),
     enabled: Boolean(dialog.open && dialogCourseId && !isSessionDetailRoute),
   })
 
+  const contentParams = {
+    page: contentPage,
+    perPage: CONTENT_PAGE_SIZE,
+    ...(courseId ? { courseId } : {}),
+    ...(sessionId ? { sessionId } : {}),
+  }
+
   const materialsQuery = useQuery({
-    queryKey: ['course-content', 'materials', sessionId, contentPage],
-    queryFn: () =>
-      api.get<PagedResponse<Material>>(API_ENDPOINTS.courseSessions.materials(sessionId), {
-        params: { page: contentPage, perPage: CONTENT_PAGE_SIZE },
-      }),
-    enabled: Boolean(sessionId && tab === 'materials'),
+    queryKey: ['course-content', 'materials', isSessionDetailRoute ? 'detail' : 'all', courseId, sessionId, contentPage],
+    queryFn: () => isSessionDetailRoute
+      ? api.get<PagedResponse<Material>>(API_ENDPOINTS.courseSessions.materials(routeSessionId), {
+          params: { page: contentPage, perPage: CONTENT_PAGE_SIZE },
+        })
+      : api.get<PagedResponse<Material>>(ADMIN_COURSE_CONTENT.materials, { params: contentParams }),
+    enabled: tab === 'materials',
   })
 
   const commentsQuery = useQuery({
-    queryKey: ['course-content', 'comments', sessionId, contentPage],
-    queryFn: () =>
-      api.get<PagedResponse<TextRecord>>(API_ENDPOINTS.courseSessions.comments(sessionId), {
-        params: { page: contentPage, perPage: CONTENT_PAGE_SIZE },
-      }),
-    enabled: Boolean(sessionId && tab === 'comments'),
+    queryKey: ['course-content', 'comments', isSessionDetailRoute ? 'detail' : 'all', courseId, sessionId, contentPage],
+    queryFn: () => isSessionDetailRoute
+      ? api.get<PagedResponse<TextRecord>>(API_ENDPOINTS.courseSessions.comments(routeSessionId), {
+          params: { page: contentPage, perPage: CONTENT_PAGE_SIZE },
+        })
+      : api.get<PagedResponse<TextRecord>>(ADMIN_COURSE_CONTENT.comments, { params: contentParams }),
+    enabled: tab === 'comments',
   })
 
   const notesQuery = useQuery({
-    queryKey: ['course-content', 'notes', sessionId, contentPage],
-    queryFn: () =>
-      api.get<PagedResponse<TextRecord>>(API_ENDPOINTS.courseSessions.notes(sessionId), {
-        params: { page: contentPage, perPage: CONTENT_PAGE_SIZE },
-      }),
-    enabled: Boolean(sessionId && tab === 'notes'),
+    queryKey: ['course-content', 'notes', isSessionDetailRoute ? 'detail' : 'all', courseId, sessionId, contentPage],
+    queryFn: () => isSessionDetailRoute
+      ? api.get<PagedResponse<TextRecord>>(API_ENDPOINTS.courseSessions.notes(routeSessionId), {
+          params: { page: contentPage, perPage: CONTENT_PAGE_SIZE },
+        })
+      : api.get<PagedResponse<TextRecord>>(ADMIN_COURSE_CONTENT.notes, { params: contentParams }),
+    enabled: tab === 'notes',
   })
 
   const courseOptions = useMemo(
-    () =>
-      (coursesQuery.data?.items ?? []).map((item) => ({
-        value: item.id,
-        label: labelOf(item),
-      })),
+    () => (coursesQuery.data?.items ?? []).map((item) => ({ value: item.id, label: labelOf(item) })),
     [coursesQuery.data?.items],
   )
-
   const sessionOptions = useMemo(
-    () =>
-      (sessionsQuery.data?.items ?? []).map((item) => ({
-        value: item.id,
-        label: labelOf(item),
-      })),
+    () => (sessionsQuery.data?.items ?? []).map((item) => ({ value: item.id, label: labelOf(item) })),
     [sessionsQuery.data?.items],
   )
-
   const dialogSessionOptions = useMemo(
-    () =>
-      (dialogSessionsQuery.data?.items ?? []).map((item) => ({
-        value: item.id,
-        label: labelOf(item),
-      })),
+    () => (dialogSessionsQuery.data?.items ?? []).map((item) => ({ value: item.id, label: labelOf(item) })),
     [dialogSessionsQuery.data?.items],
   )
 
   const selectedCourseLabel = isSessionDetailRoute
     ? labelOf(detailCourseQuery.data ?? { id: routeCourseId })
     : courseOptions.find((item) => item.value === courseId)?.label ?? ''
-
   const selectedSessionLabel = isSessionDetailRoute
     ? labelOf(detailSessionQuery.data ?? { id: routeSessionId })
     : sessionOptions.find((item) => item.value === sessionId)?.label ?? ''
 
-  const activeQuery =
-    tab === 'materials' ? materialsQuery : tab === 'comments' ? commentsQuery : notesQuery
+  const activeQuery = tab === 'materials' ? materialsQuery : tab === 'comments' ? commentsQuery : notesQuery
   const activeItems = activeQuery.data?.items ?? []
   const totalCount = activeQuery.data?.totalCount ?? 0
   const pageSize = activeQuery.data?.pageSize ?? CONTENT_PAGE_SIZE
@@ -372,30 +362,18 @@ export default function CourseContentPage() {
     return t('hls.notReady')
   }
 
-  const invalidateSession = async (targetSessionId: string) => {
-    if (!targetSessionId) return
-    await queryClient.invalidateQueries({
-      queryKey: ['course-content', tab, targetSessionId],
-    })
+  const invalidateContent = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['course-content'] })
   }
 
   const uploadResource = async (material: MaterialForm) => {
     if (!material.file) return material.currentResourceId
-
-    if (
-      material.materialType === 2 &&
-      (!isVideoFile(material.file) || isAudioFile(material.file))
-    ) {
+    if (material.materialType === 2 && (!isVideoFile(material.file) || isAudioFile(material.file))) {
       throw new Error(t('validation.videoOnly'))
     }
-
-    if (
-      material.materialType === 1 &&
-      (isVideoFile(material.file) || isAudioFile(material.file))
-    ) {
+    if (material.materialType === 1 && (isVideoFile(material.file) || isAudioFile(material.file))) {
       throw new Error(t('validation.fileOnly'))
     }
-
     const formData = new FormData()
     formData.append('file', material.file)
     formData.append('entityId', material.courseId)
@@ -412,20 +390,13 @@ export default function CourseContentPage() {
         const form = dialog.material
         if (!form.courseId) throw new Error(t('validation.courseRequired'))
         if (!form.sessionId) throw new Error(t('validation.sessionRequired'))
-
         const title = form.title.trim()
         const description = form.description.trim()
-        if (title.length < 2 || title.length > 200) {
-          throw new Error(t('validation.titleLength'))
-        }
+        if (title.length < 2 || title.length > 200) throw new Error(t('validation.titleLength'))
         if (description.length > 1000) throw new Error(t('validation.descriptionMax'))
-        if (!Number.isInteger(form.order) || form.order < 0) {
-          throw new Error(t('validation.order'))
-        }
-
+        if (!Number.isInteger(form.order) || form.order < 0) throw new Error(t('validation.order'))
         const resourceId = await uploadResource(form)
         if (!resourceId) throw new Error(t('validation.resourceRequired'))
-
         const payload: MaterialPayload = {
           title,
           description: description || null,
@@ -433,61 +404,29 @@ export default function CourseContentPage() {
           resourceId,
           order: form.order,
         }
-
         if (dialog.item?.id) {
-          return api.patch<unknown, MaterialPayload>(
-            API_ENDPOINTS.courseMaterials.update(dialog.item.id),
-            payload,
-          )
+          return api.patch<unknown, MaterialPayload>(API_ENDPOINTS.courseMaterials.update(dialog.item.id), payload)
         }
-
-        return api.post<unknown, MaterialPayload>(
-          API_ENDPOINTS.courseSessions.materials(form.sessionId),
-          payload,
-        )
+        return api.post<unknown, MaterialPayload>(API_ENDPOINTS.courseSessions.materials(form.sessionId), payload)
       }
 
       const form = dialog.text
       if (!form.courseId) throw new Error(t('validation.courseRequired'))
       if (!form.sessionId) throw new Error(t('validation.sessionRequired'))
-
       const content = form.content.trim()
-      if (content.length < 1 || content.length > 2000) {
-        throw new Error(t('validation.contentLength'))
-      }
+      if (content.length < 1 || content.length > 2000) throw new Error(t('validation.contentLength'))
       const payload = { content }
-
       if (dialog.kind === 'comment') {
-        if (dialog.item?.id) {
-          return api.patch<unknown, typeof payload>(
-            API_ENDPOINTS.courseComments.update(dialog.item.id),
-            payload,
-          )
-        }
-        return api.post<unknown, typeof payload>(
-          API_ENDPOINTS.courseSessions.comments(form.sessionId),
-          payload,
-        )
+        if (dialog.item?.id) return api.patch(API_ENDPOINTS.courseComments.update(dialog.item.id), payload)
+        return api.post(API_ENDPOINTS.courseSessions.comments(form.sessionId), payload)
       }
-
-      if (dialog.item?.id) {
-        return api.patch<unknown, typeof payload>(
-          API_ENDPOINTS.courseTeacherNotes.update(dialog.item.id),
-          payload,
-        )
-      }
-
-      return api.post<unknown, typeof payload>(
-        API_ENDPOINTS.courseSessions.notes(form.sessionId),
-        payload,
-      )
+      if (dialog.item?.id) return api.patch(API_ENDPOINTS.courseTeacherNotes.update(dialog.item.id), payload)
+      return api.post(API_ENDPOINTS.courseSessions.notes(form.sessionId), payload)
     },
     onSuccess: async () => {
-      const targetSessionId =
-        dialog.kind === 'material' ? dialog.material.sessionId : dialog.text.sessionId
       toast.success(t('messages.saved'))
       setDialog((current) => ({ ...current, open: false }))
-      await invalidateSession(targetSessionId)
+      await invalidateContent()
     },
     onError: (error) => toast.error(errorMessage(error)),
   })
@@ -501,14 +440,13 @@ export default function CourseContentPage() {
     onSuccess: async () => {
       toast.success(t('messages.deleted'))
       setDeleteTarget(null)
-      await invalidateSession(sessionId)
+      await invalidateContent()
     },
     onError: (error) => toast.error(errorMessage(error)),
   })
 
   const downloadMutation = useMutation({
-    mutationFn: (material: Material) =>
-      api.downloadBlob(API_ENDPOINTS.courseMaterials.download(material.id)),
+    mutationFn: (material: Material) => api.downloadBlob(API_ENDPOINTS.courseMaterials.download(material.id)),
     onSuccess: (blob, material) => downloadBlob(blob, getBlobName(material)),
     onError: (error) => toast.error(errorMessage(error)),
   })
@@ -518,11 +456,8 @@ export default function CourseContentPage() {
       toast.info(t('messages.videoNotReady'), { description: hlsStatusLabel(material) })
       return
     }
-
     try {
-      const playback = await api.get<PlaybackResponse>(
-        API_ENDPOINTS.courseMaterials.playback(material.id),
-      )
+      const playback = await api.get<PlaybackResponse>(API_ENDPOINTS.courseMaterials.playback(material.id))
       window.open(resolveApiUrl(playback.playlistUrl), '_blank', 'noopener,noreferrer')
     } catch (error) {
       toast.error(errorMessage(error))
@@ -534,11 +469,8 @@ export default function CourseContentPage() {
       toast.info(t('messages.videoNotReady'), { description: hlsStatusLabel(material) })
       return
     }
-
     try {
-      const blob = await api.downloadBlob(
-        API_ENDPOINTS.courseMaterials.offlineManifest(material.id),
-      )
+      const blob = await api.downloadBlob(API_ENDPOINTS.courseMaterials.offlineManifest(material.id))
       downloadBlob(blob, `${getBlobName(material)}-hls-manifest.json`)
     } catch (error) {
       toast.error(errorMessage(error))
@@ -548,7 +480,6 @@ export default function CourseContentPage() {
   const openCreate = (kind: DialogKind) => {
     const targetCourseId = isSessionDetailRoute ? routeCourseId : ''
     const targetSessionId = isSessionDetailRoute ? routeSessionId : ''
-
     setDialog({
       open: true,
       kind,
@@ -558,33 +489,36 @@ export default function CourseContentPage() {
     })
   }
 
-  const openMaterial = (item: Material) =>
+  const openMaterial = (item: Material) => {
+    const itemCourseId = String(item.courseId ?? routeCourseId ?? courseId)
+    const itemSessionId = String(item.sessionId ?? routeSessionId ?? sessionId)
     setDialog({
       open: true,
       kind: 'material',
       item,
       material: {
-        ...createEmptyMaterial(courseId, sessionId),
+        ...createEmptyMaterial(itemCourseId, itemSessionId),
         title: item.title ?? '',
         description: item.description ?? '',
         materialType: item.materialType === 2 ? 2 : 1,
         order: item.order ?? 0,
         currentResourceId: item.resourceId ?? null,
       },
-      text: createEmptyText(courseId, sessionId),
+      text: createEmptyText(itemCourseId, itemSessionId),
     })
+  }
 
-  const openText = (kind: 'comment' | 'note', item: TextRecord) =>
+  const openText = (kind: 'comment' | 'note', item: TextRecord) => {
+    const itemCourseId = String(item.courseId ?? routeCourseId ?? courseId)
+    const itemSessionId = String(item.sessionId ?? routeSessionId ?? sessionId)
     setDialog({
       open: true,
       kind,
       item,
-      material: createEmptyMaterial(courseId, sessionId),
-      text: {
-        ...createEmptyText(courseId, sessionId),
-        content: item.content ?? '',
-      },
+      material: createEmptyMaterial(itemCourseId, itemSessionId),
+      text: { ...createEmptyText(itemCourseId, itemSessionId), content: item.content ?? '' },
     })
+  }
 
   const openTabPage = (nextTab: TabKey) => {
     setContentPage(1)
@@ -593,19 +527,17 @@ export default function CourseContentPage() {
     }
   }
 
-  const dialogTitle =
-    dialog.kind === 'material'
-      ? t(dialog.item ? 'form.editMaterial' : 'form.createMaterial')
-      : dialog.kind === 'comment'
-        ? t(dialog.item ? 'form.editComment' : 'form.createComment')
-        : t(dialog.item ? 'form.editNote' : 'form.createNote')
+  const dialogTitle = dialog.kind === 'material'
+    ? t(dialog.item ? 'form.editMaterial' : 'form.createMaterial')
+    : dialog.kind === 'comment'
+      ? t(dialog.item ? 'form.editComment' : 'form.createComment')
+      : t(dialog.item ? 'form.editNote' : 'form.createNote')
 
   const deleteName = deleteTarget
     ? tab === 'materials'
       ? (deleteTarget as Material).title || t('messages.materialFallback')
       : (deleteTarget as TextRecord).content?.slice(0, 60) || t('messages.itemFallback')
     : ''
-
   const createKind = tab === 'materials' ? 'material' : tab === 'comments' ? 'comment' : 'note'
 
   return (
@@ -613,48 +545,40 @@ export default function CourseContentPage() {
       <PageHeader
         icon={<FileVideo />}
         title={isSessionDetailRoute ? selectedSessionLabel || t('sessionTitle') : t('title')}
-        description={
-          isSessionDetailRoute && selectedCourseLabel ? selectedCourseLabel : t('description')
-        }
-        controls={
-          isSessionDetailRoute ? (
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => navigate(`/courses/${routeCourseId}`)}
-            >
-              <ArrowLeft className="size-4 rtl:rotate-180" />
-              {t('backToCourse')}
-            </Button>
-          ) : (
-            <>
-              <CustomSelect
-                className="h-9 min-w-52"
-                variant="filter"
-                value={courseId || undefined}
-                placeholder={t('placeholders.course')}
-                options={courseOptions}
-                onValueChange={(value) => {
-                  setCourseId(String(value))
-                  setSessionId('')
-                  setContentPage(1)
-                }}
-              />
-              <CustomSelect
-                className="h-9 min-w-52"
-                variant="filter"
-                value={sessionId || undefined}
-                placeholder={t('placeholders.session')}
-                disabled={!courseId}
-                options={sessionOptions}
-                onValueChange={(value) => {
-                  setSessionId(String(value))
-                  setContentPage(1)
-                }}
-              />
-            </>
-          )
-        }
+        description={isSessionDetailRoute && selectedCourseLabel ? selectedCourseLabel : t('description')}
+        controls={isSessionDetailRoute ? (
+          <Button type="button" variant="ghost" onClick={() => navigate(`/courses/${routeCourseId}`)}>
+            <ArrowLeft className="size-4 rtl:rotate-180" />
+            {t('backToCourse')}
+          </Button>
+        ) : (
+          <>
+            <CustomSelect
+              className="min-w-72"
+              variant="filter"
+              value={courseId || undefined}
+              placeholder={t('placeholders.course')}
+              options={[{ value: '', label: 'كل الكورسات' }, ...courseOptions]}
+              onValueChange={(value) => {
+                setCourseId(String(value))
+                setSessionId('')
+                setContentPage(1)
+              }}
+            />
+            <CustomSelect
+              className="min-w-72"
+              variant="filter"
+              value={sessionId || undefined}
+              placeholder={courseId ? t('placeholders.session') : 'كل الجلسات'}
+              disabled={!courseId}
+              options={[{ value: '', label: 'كل الجلسات' }, ...sessionOptions]}
+              onValueChange={(value) => {
+                setSessionId(String(value))
+                setContentPage(1)
+              }}
+            />
+          </>
+        )}
         actions={
           <Button type="button" onClick={() => openCreate(createKind)}>
             <Plus className="size-4" />
@@ -663,7 +587,7 @@ export default function CourseContentPage() {
         }
       />
 
-      <Card className="flex min-h-0 flex-1 flex-col rounded-3xl shadow-sm">
+      <Card className="flex min-h-0 flex-1 flex-col rounded-[var(--quizy-surface-radius)] shadow-sm">
         <CardHeader className="shrink-0 px-4 py-3 sm:px-5">
           <div className="flex flex-wrap gap-2">
             {(['materials', 'comments', 'notes'] as const).map((tabKey) => (
@@ -680,164 +604,110 @@ export default function CourseContentPage() {
         </CardHeader>
 
         <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 pb-4 sm:px-5">
-          {!sessionId ? (
-            <div className="rounded-3xl border border-dashed border-border bg-muted/30 p-10 text-center text-muted-foreground">
-              {t('placeholders.emptySelection')}
-            </div>
-          ) : activeQuery.isLoading ? (
+          {activeQuery.isLoading ? (
             <div className="space-y-3">
-              {[0, 1, 2].map((item) => (
-                <Skeleton key={item} className="h-14 rounded-2xl" />
-              ))}
+              {[0, 1, 2].map((item) => <Skeleton key={item} className="h-14 rounded-[var(--quizy-surface-radius)]" />)}
+            </div>
+          ) : activeQuery.isError ? (
+            <div className="flex min-h-48 items-center justify-center text-center text-sm text-destructive">
+              {errorMessage(activeQuery.error)}
             </div>
           ) : (
             <>
-              <div className="min-h-0 flex-1 overflow-auto rounded-2xl border border-border bg-background/70 p-3">
+              <div className="min-h-0 flex-1 overflow-auto rounded-[var(--quizy-surface-radius)] border border-border bg-background/70 p-3">
                 <div className="grid gap-3">
                   {activeItems.length === 0 ? (
-                    <div className="p-8 text-center text-muted-foreground">
-                      {t('placeholders.empty')}
-                    </div>
-                  ) : (
-                    activeItems.map((item) => {
-                      const material = item as Material
-                      const textRecord = item as TextRecord
-
-                      return (
-                        <div
-                          key={item.id}
-                          className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 lg:flex-row lg:items-center lg:justify-between"
-                        >
-                          <div className="min-w-0">
-                            <p className="font-semibold">
-                              {tab === 'materials'
-                                ? material.title || '-'
-                                : textRecord.content || '-'}
-                            </p>
-                            <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                              {tab === 'materials' ? (
-                                <>
-                                  <span>
-                                    {isVideoMaterial(material) ? t('types.video') : t('types.file')}
-                                  </span>
-                                  {isVideoMaterial(material) ? (
-                                    <Badge variant="outline" color={hlsBadgeColor(material)}>
-                                      {hlsStatusLabel(material)}
-                                    </Badge>
-                                  ) : null}
-                                </>
-                              ) : (
-                                <span>{textRecord.authorRole || '-'}</span>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex flex-wrap gap-2">
-                            {tab === 'materials' ? (
-                              isVideoMaterial(material) ? (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    disabled={!isVideoReady(material)}
-                                    onClick={() => void openVideoPlayback(material)}
-                                  >
-                                    <ExternalLink className="size-4" />
-                                    {t('actions.play')}
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    disabled={!isVideoReady(material)}
-                                    onClick={() => void downloadVideoManifest(material)}
-                                  >
-                                    <FileVideo className="size-4" />
-                                    {t('actions.manifest')}
-                                  </Button>
-                                </>
-                              ) : (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    disabled={downloadMutation.isPending}
-                                    onClick={() => downloadMutation.mutate(material)}
-                                  >
-                                    <Download className="size-4" />
-                                    {t('actions.download')}
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() =>
-                                      window.open(
-                                        resolveApiUrl(
-                                          API_ENDPOINTS.courseMaterials.stream(material.id),
-                                        ),
-                                        '_blank',
-                                        'noopener,noreferrer',
-                                      )
-                                    }
-                                  >
-                                    <ExternalLink className="size-4" />
-                                    {t('actions.view')}
-                                  </Button>
-                                </>
-                              )
+                    <div className="p-8 text-center text-muted-foreground">{t('placeholders.empty')}</div>
+                  ) : activeItems.map((item) => {
+                    const material = item as Material
+                    const textRecord = item as TextRecord
+                    const contextCourse = material.courseTitle || textRecord.courseTitle
+                    const contextSession = material.sessionTitle || textRecord.sessionTitle
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex flex-col gap-3 rounded-[var(--quizy-surface-radius)] border border-border bg-card p-4 lg:flex-row lg:items-center lg:justify-between"
+                      >
+                        <div className="min-w-0">
+                          <p className="font-semibold">
+                            {tab === 'materials' ? material.title || '-' : textRecord.content || '-'}
+                          </p>
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                            {!isSessionDetailRoute && (contextCourse || contextSession) ? (
+                              <span>{[contextCourse, contextSession].filter(Boolean).join(' • ')}</span>
                             ) : null}
-
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() =>
-                                tab === 'materials'
-                                  ? openMaterial(material)
-                                  : openText(
-                                      tab === 'comments' ? 'comment' : 'note',
-                                      textRecord,
-                                    )
-                              }
-                            >
-                              <Pencil className="size-4" />
-                              {t('actions.edit')}
-                            </Button>
-
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-destructive"
-                              disabled={removeMutation.isPending}
-                              onClick={() => setDeleteTarget(item)}
-                            >
-                              <Trash2 className="size-4" />
-                              {t('actions.delete')}
-                            </Button>
+                            {tab === 'materials' ? (
+                              <>
+                                <span>{isVideoMaterial(material) ? t('types.video') : t('types.file')}</span>
+                                {isVideoMaterial(material) ? (
+                                  <Badge variant="outline" color={hlsBadgeColor(material)}>{hlsStatusLabel(material)}</Badge>
+                                ) : null}
+                              </>
+                            ) : (
+                              <span>{textRecord.authorName || textRecord.authorRole || '-'}</span>
+                            )}
                           </div>
                         </div>
-                      )
-                    })
-                  )}
+
+                        <div className="flex flex-wrap gap-2">
+                          {tab === 'materials' ? (
+                            isVideoMaterial(material) ? (
+                              <>
+                                <Button size="sm" variant="outline" disabled={!isVideoReady(material)} onClick={() => void openVideoPlayback(material)}>
+                                  <ExternalLink className="size-4" />{t('actions.play')}
+                                </Button>
+                                <Button size="sm" variant="outline" disabled={!isVideoReady(material)} onClick={() => void downloadVideoManifest(material)}>
+                                  <FileVideo className="size-4" />{t('actions.manifest')}
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button size="sm" variant="outline" disabled={downloadMutation.isPending} onClick={() => downloadMutation.mutate(material)}>
+                                  <Download className="size-4" />{t('actions.download')}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => window.open(resolveApiUrl(API_ENDPOINTS.courseMaterials.stream(material.id)), '_blank', 'noopener,noreferrer')}
+                                >
+                                  <ExternalLink className="size-4" />{t('actions.view')}
+                                </Button>
+                              </>
+                            )
+                          ) : null}
+                          <Button
+                            size="icon-sm"
+                            variant="outline"
+                            aria-label={t('actions.edit')}
+                            title={t('actions.edit')}
+                            onClick={() => tab === 'materials' ? openMaterial(material) : openText(tab === 'comments' ? 'comment' : 'note', textRecord)}
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                          <Button
+                            size="icon-sm"
+                            variant="outline"
+                            className="text-destructive"
+                            aria-label={t('actions.delete')}
+                            title={t('actions.delete')}
+                            disabled={removeMutation.isPending}
+                            onClick={() => setDeleteTarget(item)}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
 
               <div className="mt-4 flex shrink-0 items-center justify-end gap-2 border-t border-border/70 pt-4">
-                <Button
-                  variant="outline"
-                  disabled={contentPage <= 1 || activeQuery.isFetching}
-                  onClick={() => setContentPage((current) => Math.max(1, current - 1))}
-                >
+                <Button variant="outline" disabled={contentPage <= 1 || activeQuery.isFetching} onClick={() => setContentPage((current) => Math.max(1, current - 1))}>
                   {t('actions.previous')}
                 </Button>
-                <Badge variant="outline">
-                  {t('pagination.summary', { page: contentPage, totalPages })}
-                </Badge>
-                <Button
-                  variant="outline"
-                  disabled={contentPage >= totalPages || activeQuery.isFetching}
-                  onClick={() =>
-                    setContentPage((current) => Math.min(totalPages, current + 1))
-                  }
-                >
+                <Badge variant="outline">{t('pagination.summary', { page: contentPage, totalPages })}</Badge>
+                <Button variant="outline" disabled={contentPage >= totalPages || activeQuery.isFetching} onClick={() => setContentPage((current) => Math.min(totalPages, current + 1))}>
                   {t('actions.next')}
                 </Button>
               </div>
@@ -846,18 +716,11 @@ export default function CourseContentPage() {
         </CardContent>
       </Card>
 
-      <Dialog
-        open={dialog.open}
-        onOpenChange={(open) => {
-          if (!saveMutation.isPending) setDialog((current) => ({ ...current, open }))
-        }}
-      >
+      <Dialog open={dialog.open} onOpenChange={(open) => { if (!saveMutation.isPending) setDialog((current) => ({ ...current, open })) }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{dialogTitle}</DialogTitle>
-            <DialogDescription>
-              {dialog.kind === 'material' ? t('form.fileHint') : t('description')}
-            </DialogDescription>
+            <DialogDescription>{dialog.kind === 'material' ? t('form.fileHint') : t('description')}</DialogDescription>
           </DialogHeader>
 
           {dialog.kind === 'material' ? (
@@ -870,16 +733,10 @@ export default function CourseContentPage() {
                       value={dialog.material.courseId || undefined}
                       placeholder={t('placeholders.course')}
                       options={courseOptions}
-                      onValueChange={(value) =>
-                        setDialog((current) => ({
-                          ...current,
-                          material: {
-                            ...current.material,
-                            courseId: String(value),
-                            sessionId: '',
-                          },
-                        }))
-                      }
+                      onValueChange={(value) => setDialog((current) => ({
+                        ...current,
+                        material: { ...current.material, courseId: String(value), sessionId: '' },
+                      }))}
                     />
                   </div>
                   <div className="space-y-2">
@@ -889,15 +746,10 @@ export default function CourseContentPage() {
                       placeholder={t('placeholders.session')}
                       disabled={!dialog.material.courseId}
                       options={dialogSessionOptions}
-                      onValueChange={(value) =>
-                        setDialog((current) => ({
-                          ...current,
-                          material: {
-                            ...current.material,
-                            sessionId: String(value),
-                          },
-                        }))
-                      }
+                      onValueChange={(value) => setDialog((current) => ({
+                        ...current,
+                        material: { ...current.material, sessionId: String(value) },
+                      }))}
                     />
                   </div>
                 </div>
@@ -905,99 +757,48 @@ export default function CourseContentPage() {
 
               <div className="space-y-2">
                 <Label>{t('fields.title')}</Label>
-                <Input
-                  value={dialog.material.title}
-                  maxLength={200}
-                  onChange={(event) =>
-                    setDialog((current) => ({
-                      ...current,
-                      material: {
-                        ...current.material,
-                        title: event.target.value,
-                      },
-                    }))
-                  }
-                />
+                <Input value={dialog.material.title} maxLength={200} onChange={(event) => setDialog((current) => ({
+                  ...current,
+                  material: { ...current.material, title: event.target.value },
+                }))} />
               </div>
-
               <div className="space-y-2">
                 <Label>{t('fields.description')}</Label>
-                <Textarea
-                  value={dialog.material.description}
-                  maxLength={1000}
-                  onChange={(event) =>
-                    setDialog((current) => ({
-                      ...current,
-                      material: {
-                        ...current.material,
-                        description: event.target.value,
-                      },
-                    }))
-                  }
-                />
+                <Textarea value={dialog.material.description} maxLength={1000} onChange={(event) => setDialog((current) => ({
+                  ...current,
+                  material: { ...current.material, description: event.target.value },
+                }))} />
               </div>
-
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>{t('fields.materialType')}</Label>
                   <CustomSelect
                     value={String(dialog.material.materialType)}
-                    options={[
-                      { value: '1', label: t('types.file') },
-                      { value: '2', label: t('types.video') },
-                    ]}
-                    onValueChange={(value) =>
-                      setDialog((current) => ({
-                        ...current,
-                        material: {
-                          ...current.material,
-                          materialType: String(value) === '2' ? 2 : 1,
-                          file: null,
-                        },
-                      }))
-                    }
+                    options={[{ value: '1', label: t('types.file') }, { value: '2', label: t('types.video') }]}
+                    onValueChange={(value) => setDialog((current) => ({
+                      ...current,
+                      material: { ...current.material, materialType: String(value) === '2' ? 2 : 1, file: null },
+                    }))}
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label>{t('fields.order')}</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={dialog.material.order}
-                    onChange={(event) =>
-                      setDialog((current) => ({
-                        ...current,
-                        material: {
-                          ...current.material,
-                          order: Number(event.target.value),
-                        },
-                      }))
-                    }
-                  />
+                  <Input type="number" min={0} step={1} value={dialog.material.order} onChange={(event) => setDialog((current) => ({
+                    ...current,
+                    material: { ...current.material, order: Number(event.target.value) },
+                  }))} />
                 </div>
               </div>
-
               <div className="space-y-2">
                 <Label>{t('fields.file')}</Label>
                 <input
                   type="file"
-                  accept={
-                    dialog.material.materialType === 2
-                      ? VIDEO_MATERIAL_ACCEPT
-                      : FILE_MATERIAL_ACCEPT
-                  }
-                  className="block w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
-                  onChange={(event) =>
-                    setDialog((current) => ({
-                      ...current,
-                      material: {
-                        ...current.material,
-                        file: event.target.files?.[0] ?? null,
-                      },
-                    }))
-                  }
+                  accept={dialog.material.materialType === 2 ? VIDEO_MATERIAL_ACCEPT : FILE_MATERIAL_ACCEPT}
+                  className="block w-full rounded-[var(--quizy-control-radius)] border border-input bg-background px-4 py-2 text-sm"
+                  onChange={(event) => setDialog((current) => ({
+                    ...current,
+                    material: { ...current.material, file: event.target.files?.[0] ?? null },
+                  }))}
                 />
               </div>
             </div>
@@ -1011,19 +812,12 @@ export default function CourseContentPage() {
                       value={dialog.text.courseId || undefined}
                       placeholder={t('placeholders.course')}
                       options={courseOptions}
-                      onValueChange={(value) =>
-                        setDialog((current) => ({
-                          ...current,
-                          text: {
-                            ...current.text,
-                            courseId: String(value),
-                            sessionId: '',
-                          },
-                        }))
-                      }
+                      onValueChange={(value) => setDialog((current) => ({
+                        ...current,
+                        text: { ...current.text, courseId: String(value), sessionId: '' },
+                      }))}
                     />
                   </div>
-
                   <div className="space-y-2">
                     <Label>{t('fields.session')}</Label>
                     <CustomSelect
@@ -1031,53 +825,29 @@ export default function CourseContentPage() {
                       placeholder={t('placeholders.session')}
                       disabled={!dialog.text.courseId}
                       options={dialogSessionOptions}
-                      onValueChange={(value) =>
-                        setDialog((current) => ({
-                          ...current,
-                          text: {
-                            ...current.text,
-                            sessionId: String(value),
-                          },
-                        }))
-                      }
+                      onValueChange={(value) => setDialog((current) => ({
+                        ...current,
+                        text: { ...current.text, sessionId: String(value) },
+                      }))}
                     />
                   </div>
                 </div>
               ) : null}
-
               <div className="space-y-2">
                 <Label>{t('fields.content')}</Label>
-                <Textarea
-                  value={dialog.text.content}
-                  maxLength={2000}
-                  onChange={(event) =>
-                    setDialog((current) => ({
-                      ...current,
-                      text: {
-                        ...current.text,
-                        content: event.target.value,
-                      },
-                    }))
-                  }
-                />
+                <Textarea value={dialog.text.content} maxLength={2000} onChange={(event) => setDialog((current) => ({
+                  ...current,
+                  text: { ...current.text, content: event.target.value },
+                }))} />
               </div>
             </div>
           )}
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={saveMutation.isPending}
-              onClick={() => setDialog((current) => ({ ...current, open: false }))}
-            >
+            <Button type="button" variant="outline" disabled={saveMutation.isPending} onClick={() => setDialog((current) => ({ ...current, open: false }))}>
               {t('actions.cancel')}
             </Button>
-            <Button
-              type="button"
-              disabled={saveMutation.isPending}
-              onClick={() => saveMutation.mutate()}
-            >
+            <Button type="button" disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
               {saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
               {t('actions.save')}
             </Button>
@@ -1085,32 +855,17 @@ export default function CourseContentPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog
-        open={Boolean(deleteTarget)}
-        onOpenChange={(open) => {
-          if (!open && !removeMutation.isPending) setDeleteTarget(null)
-        }}
-      >
+      <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !removeMutation.isPending) setDeleteTarget(null) }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{t('messages.deleteTitle')}</DialogTitle>
-            <DialogDescription>
-              {t('messages.deleteConfirm', { name: deleteName })}
-            </DialogDescription>
+            <DialogDescription>{t('messages.deleteConfirm', { name: deleteName })}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              disabled={removeMutation.isPending}
-              onClick={() => setDeleteTarget(null)}
-            >
+            <Button variant="outline" disabled={removeMutation.isPending} onClick={() => setDeleteTarget(null)}>
               {t('actions.cancel')}
             </Button>
-            <Button
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={removeMutation.isPending}
-              onClick={() => deleteTarget && removeMutation.mutate(deleteTarget)}
-            >
+            <Button className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={removeMutation.isPending} onClick={() => deleteTarget && removeMutation.mutate(deleteTarget)}>
               {removeMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
               {t('actions.delete')}
             </Button>
