@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 
 type InputProps = React.ComponentProps<"input"> & {
   startIcon?: React.ReactNode
+  endIcon?: React.ReactNode
   variant?: 'default' | 'filter'
   numericWithComma?: boolean
 }
@@ -19,6 +20,7 @@ function Input({
   className,
   type,
   startIcon,
+  endIcon,
   variant = "default",
   numericWithComma = false,
   onChange,
@@ -27,7 +29,8 @@ function Input({
 }: InputProps) {
   const [showPassword, setShowPassword] = React.useState(false)
   const isPasswordType = type === 'password'
-  const hasTrailingControl = isPasswordType
+  const hasLeadingIcon = Boolean(startIcon)
+  const hasTrailingControl = isPasswordType || Boolean(endIcon)
   const passwordResolvedType = isPasswordType ? (showPassword ? 'text' : 'password') : type
   const resolvedType = numericWithComma ? 'text' : passwordResolvedType
   const resolvedInputMode = numericWithComma ? 'decimal' : inputMode
@@ -51,10 +54,12 @@ function Input({
       type={resolvedType}
       inputMode={resolvedInputMode}
       data-slot="input"
+      data-leading-icon={hasLeadingIcon ? '' : undefined}
+      data-trailing-icon={hasTrailingControl ? '' : undefined}
       className={cn(
         variant === "filter" ? FILTER_INPUT_CLASS : DEFAULT_INPUT_CLASS,
         className,
-        startIcon && "[padding-inline-start:2.75rem]",
+        hasLeadingIcon && "[padding-inline-start:2.75rem]",
         hasTrailingControl && "[padding-inline-end:2.75rem]"
       )}
       {...props}
@@ -62,16 +67,19 @@ function Input({
     />
   )
 
-  if (!startIcon && !hasTrailingControl) {
+  if (!hasLeadingIcon && !hasTrailingControl) {
     return inputElement
   }
 
   return (
     <div className="group/input relative w-full">
-      <span className="pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground/80 transition-colors group-focus-within/input:text-primary/80 [inset-inline-start:0.9rem] [&_svg]:size-4">
-        {startIcon}
-      </span>
-      {hasTrailingControl ? (
+      {hasLeadingIcon ? (
+        <span className="pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground/80 transition-colors group-focus-within/input:text-primary/80 [inset-inline-start:0.9rem] [&_svg]:size-4">
+          {startIcon}
+        </span>
+      ) : null}
+
+      {isPasswordType ? (
         <button
           type="button"
           className="absolute top-1/2 -translate-y-1/2 rounded-xl p-1 text-muted-foreground/80 transition-colors hover:bg-accent/70 hover:text-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 [inset-inline-end:0.75rem] [&_svg]:size-4"
@@ -80,6 +88,10 @@ function Input({
         >
           {showPassword ? <EyeOff /> : <Eye />}
         </button>
+      ) : endIcon ? (
+        <span className="pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-foreground/80 [inset-inline-end:0.9rem] [&_svg]:size-4">
+          {endIcon}
+        </span>
       ) : null}
 
       {inputElement}
