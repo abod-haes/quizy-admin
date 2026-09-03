@@ -91,7 +91,7 @@ export function FiltersDialog({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className={cn('sm:max-w-3xl', contentClassName)}>
+      <DialogContent className={cn('w-[min(94vw,64rem)] sm:max-w-5xl', contentClassName)}>
         {title || description ? (
           <DialogHeader>
             {title ? <DialogTitle>{title}</DialogTitle> : null}
@@ -99,7 +99,10 @@ export function FiltersDialog({
           </DialogHeader>
         ) : null}
 
-        <div data-slot="filters-grid" className="grid min-w-0 gap-4 sm:grid-cols-2">
+        <div
+          data-slot="filters-grid"
+          className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 [&>*]:min-w-0 [&>*]:w-full [&_[data-slot=input]]:h-12 [&_[data-slot=select-trigger]]:h-12"
+        >
           {children}
         </div>
 
