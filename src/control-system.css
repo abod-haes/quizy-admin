@@ -4,19 +4,26 @@
 .app-shell-root [data-slot='select-trigger'],
 :is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='input'],
 :is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='select-trigger'] {
-  height: 2.75rem !important;
-  min-height: 2.75rem;
+  height: var(--quizy-control-height) !important;
+  min-height: var(--quizy-control-height);
   width: 100%;
   min-width: 0;
-  border-radius: 0.75rem !important;
+  border-radius: var(--quizy-control-radius) !important;
   border-color: color-mix(in srgb, var(--primary) 10%, var(--border)) !important;
   background: var(--quizy-surface-strong) !important;
-  padding-inline: 1rem !important;
-  font-size: 0.875rem;
-  font-weight: 500;
+  padding-inline: var(--quizy-control-padding-inline) !important;
+  font-size: var(--quizy-control-font-size);
+  font-weight: var(--quizy-control-font-weight);
   color: var(--foreground);
   box-shadow: var(--quizy-control-shadow);
-  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+  transition: border-color var(--quizy-motion-fast) ease, background-color var(--quizy-motion-fast) ease, box-shadow var(--quizy-motion-fast) ease;
+}
+
+/* Buttons share the exact control radius used by inputs and selects. Size variants
+   may stay compact for table actions, but the shape never drifts into pills. */
+.app-shell-root [data-slot='button']:not([data-variant='link']),
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) [data-slot='button']:not([data-variant='link']) {
+  border-radius: var(--quizy-control-radius) !important;
 }
 
 /* Shared controls normally own their padding, but inputs/selects with embedded
@@ -79,15 +86,15 @@
   width: 100%;
   min-width: 0;
   resize: vertical;
-  border-radius: 0.75rem !important;
+  border-radius: var(--quizy-control-radius) !important;
   border-color: color-mix(in srgb, var(--primary) 10%, var(--border)) !important;
   background: var(--quizy-surface-strong) !important;
-  padding: 0.75rem 0.875rem;
-  font-size: 0.875rem;
+  padding: 0.75rem var(--quizy-control-padding-inline);
+  font-size: var(--quizy-control-font-size);
   line-height: 1.65;
   color: var(--foreground);
   box-shadow: var(--quizy-control-shadow);
-  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+  transition: border-color var(--quizy-motion-fast) ease, background-color var(--quizy-motion-fast) ease, box-shadow var(--quizy-motion-fast) ease;
 }
 
 /* JSON/code editors must stay visually LTR even when the dashboard shell is RTL. */
@@ -114,10 +121,10 @@
 [data-slot='dropdown-menu-content'],
 [data-slot='popover-content'] {
   z-index: 1000 !important;
-  border-radius: 0.75rem !important;
+  border-radius: var(--quizy-control-radius) !important;
   border-color: color-mix(in srgb, var(--primary) 12%, var(--border)) !important;
   background: var(--popover) !important;
-  box-shadow: 0 20px 60px rgba(45, 27, 90, 0.2) !important;
+  box-shadow: var(--quizy-popup-shadow) !important;
 }
 
 [data-slot='select-content'] [data-position='popper'] {
@@ -132,7 +139,7 @@
 [data-slot='dropdown-menu-item'],
 [data-slot='dropdown-menu-checkbox-item'] {
   min-height: 2.5rem;
-  border-radius: 0.75rem !important;
+  border-radius: calc(var(--quizy-control-radius) - 0.125rem) !important;
   padding: 0.5rem 0.75rem !important;
 }
 
@@ -144,13 +151,13 @@
 }
 
 button[data-slot='dropdown-menu-trigger'][class*='w-full'] {
-  min-height: 2.75rem !important;
-  border-radius: 0.75rem !important;
+  min-height: var(--quizy-control-height) !important;
+  border-radius: var(--quizy-control-radius) !important;
   border-color: color-mix(in srgb, var(--primary) 10%, var(--border)) !important;
   background: var(--quizy-surface-strong) !important;
-  padding-inline: 1rem !important;
-  font-size: 0.875rem !important;
-  font-weight: 500;
+  padding-inline: var(--quizy-control-padding-inline) !important;
+  font-size: var(--quizy-control-font-size) !important;
+  font-weight: var(--quizy-control-font-weight);
   box-shadow: var(--quizy-control-shadow) !important;
 }
 
