@@ -3,6 +3,7 @@ import { useTheme } from 'next-themes'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router-dom'
 
+import { getAdminRoutePresentation } from '@/app/router/route-presentation'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -15,21 +16,6 @@ type AppShellHeaderProps = {
   onOpenMobileMenu: () => void
 }
 
-const pageLabelBySegment: Record<string, string> = {
-  dashboard: 'sidebar.items.dashboard',
-  'quiz-builder': 'sidebar.items.quizBuilder',
-  quizzes: 'sidebar.items.quizzes',
-  questions: 'sidebar.items.questions',
-  classes: 'sidebar.items.classes',
-  subjects: 'sidebar.items.subjects',
-  units: 'sidebar.items.units',
-  lessons: 'sidebar.items.lessons',
-  teachers: 'sidebar.items.teachers',
-  students: 'sidebar.items.students',
-  courses: 'sidebar.items.courses',
-  resources: 'sidebar.items.resources',
-}
-
 export function AppShellHeader({ onOpenMobileMenu }: AppShellHeaderProps) {
   const { t, i18n } = useTranslation()
   const { resolvedTheme, setTheme } = useTheme()
@@ -37,11 +23,8 @@ export function AppShellHeader({ onOpenMobileMenu }: AppShellHeaderProps) {
   const isRtl = i18n.dir() === 'rtl'
   const activeLanguage = (i18n.resolvedLanguage ?? i18n.language).split('-')[0]
   const isDark = resolvedTheme === 'dark'
-  const pathSegments = location.pathname.split('/').filter(Boolean)
-  const currentSegment = pathSegments[0] ?? 'dashboard'
-  const pageLabelKey = currentSegment === 'courses' && pathSegments[1] === 'sessions'
-    ? 'sidebar.items.courseSessions'
-    : pageLabelBySegment[currentSegment] ?? 'sidebar.items.dashboard'
+  const presentation = getAdminRoutePresentation(location.pathname)
+  const pageLabel = presentation ? t(presentation.labelKey) : t('layout.brand.name')
 
   const changeLanguage = (language: 'ar' | 'en') => {
     if (activeLanguage === language) return
@@ -66,7 +49,7 @@ export function AppShellHeader({ onOpenMobileMenu }: AppShellHeaderProps) {
           {t('layout.brand.name')}
         </p>
         <h2 className="truncate text-sm font-bold text-foreground sm:text-lg">
-          {t(pageLabelKey)}
+          {pageLabel}
         </h2>
       </div>
 
