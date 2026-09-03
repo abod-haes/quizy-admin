@@ -4,10 +4,32 @@ import { httpClient } from '@/core/api/http.services'
 
 export type RequestOptions = Omit<AxiosRequestConfig, 'url' | 'method' | 'data'>
 
+const LEGACY_EDUCATIONAL_ADMIN_LISTS = new Set([
+  '/api/v1/admin/classes',
+  '/api/v1/admin/subjects',
+  '/api/v1/admin/units',
+  '/api/v1/admin/lessons',
+  '/api/v1/admin/teachers',
+])
+
+function normalizeLegacyEducationalList<TResponse>(url: string, payload: TResponse): TResponse {
+  if (!LEGACY_EDUCATIONAL_ADMIN_LISTS.has(url) || !Array.isArray(payload)) {
+    return payload
+  }
+
+  const items = payload
+  return {
+    items,
+    totalCount: items.length,
+    pageNumber: 1,
+    pageSize: Math.max(items.length, 1),
+  } as TResponse
+}
+
 export const api = {
   async get<TResponse>(url: string, options?: RequestOptions): Promise<TResponse> {
     const response = await httpClient.get<TResponse>(url, options)
-    return response.data
+    return normalizeLegacyEducationalList(url, response.data)
   },
 
   async post<TResponse, TBody = unknown>(
