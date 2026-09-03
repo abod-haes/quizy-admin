@@ -101,7 +101,7 @@ export function FiltersDialog({
 
         <div
           data-slot="filters-grid"
-          className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 [&>*]:min-w-0 [&>*]:w-full [&_[data-slot=input]]:h-12 [&_[data-slot=select-trigger]]:h-12"
+          className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 [&>*]:min-w-0 [&>*]:w-full [&_[data-slot=input]]:h-12 [&_[data-slot=select-trigger]]:h-12"
         >
           {children}
         </div>
