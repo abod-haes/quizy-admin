@@ -91,10 +91,137 @@
   line-height: 1.2;
 }
 
-/* Tables: stable density, polished headers and accessible horizontal scrolling. */
-[data-slot='table-container'] {
+/* Shared scrollbar treatment for pages, tables, sheets and portalled menus. */
+:where(
+  .app-shell-root,
+  .app-shell-root *,
+  [data-slot='dialog-content'],
+  [data-slot='dialog-content'] *,
+  [data-slot='sheet-content'],
+  [data-slot='sheet-content'] *,
+  [data-slot='select-content'],
+  [data-slot='select-content'] *,
+  [data-slot='dropdown-menu-content'],
+  [data-slot='dropdown-menu-content'] *,
+  [data-slot='popover-content'],
+  [data-slot='popover-content'] *
+) {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--primary) 22%, transparent) transparent;
+  scrollbar-color: var(--quizy-scrollbar-thumb) var(--quizy-scrollbar-track);
+}
+
+:where(
+  .app-shell-root,
+  .app-shell-root *,
+  [data-slot='dialog-content'],
+  [data-slot='dialog-content'] *,
+  [data-slot='sheet-content'],
+  [data-slot='sheet-content'] *,
+  [data-slot='select-content'],
+  [data-slot='select-content'] *,
+  [data-slot='dropdown-menu-content'],
+  [data-slot='dropdown-menu-content'] *,
+  [data-slot='popover-content'],
+  [data-slot='popover-content'] *
+)::-webkit-scrollbar {
+  width: var(--quizy-scrollbar-size);
+  height: var(--quizy-scrollbar-size);
+}
+
+:where(
+  .app-shell-root,
+  .app-shell-root *,
+  [data-slot='dialog-content'],
+  [data-slot='dialog-content'] *,
+  [data-slot='sheet-content'],
+  [data-slot='sheet-content'] *,
+  [data-slot='select-content'],
+  [data-slot='select-content'] *,
+  [data-slot='dropdown-menu-content'],
+  [data-slot='dropdown-menu-content'] *,
+  [data-slot='popover-content'],
+  [data-slot='popover-content'] *
+)::-webkit-scrollbar-track {
+  background: var(--quizy-scrollbar-track);
+}
+
+:where(
+  .app-shell-root,
+  .app-shell-root *,
+  [data-slot='dialog-content'],
+  [data-slot='dialog-content'] *,
+  [data-slot='sheet-content'],
+  [data-slot='sheet-content'] *,
+  [data-slot='select-content'],
+  [data-slot='select-content'] *,
+  [data-slot='dropdown-menu-content'],
+  [data-slot='dropdown-menu-content'] *,
+  [data-slot='popover-content'],
+  [data-slot='popover-content'] *
+)::-webkit-scrollbar-thumb {
+  min-height: 2.5rem;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--quizy-scrollbar-thumb);
+  background-clip: padding-box;
+}
+
+:where(
+  .app-shell-root,
+  .app-shell-root *,
+  [data-slot='dialog-content'],
+  [data-slot='dialog-content'] *,
+  [data-slot='sheet-content'],
+  [data-slot='sheet-content'] *,
+  [data-slot='select-content'],
+  [data-slot='select-content'] *,
+  [data-slot='dropdown-menu-content'],
+  [data-slot='dropdown-menu-content'] *,
+  [data-slot='popover-content'],
+  [data-slot='popover-content'] *
+)::-webkit-scrollbar-thumb:hover {
+  background: var(--quizy-scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+
+:where(
+  .app-shell-root,
+  .app-shell-root *,
+  [data-slot='dialog-content'],
+  [data-slot='dialog-content'] *,
+  [data-slot='sheet-content'],
+  [data-slot='sheet-content'] *,
+  [data-slot='select-content'],
+  [data-slot='select-content'] *,
+  [data-slot='dropdown-menu-content'],
+  [data-slot='dropdown-menu-content'] *,
+  [data-slot='popover-content'],
+  [data-slot='popover-content'] *
+)::-webkit-scrollbar-thumb:active {
+  background: var(--quizy-scrollbar-thumb-active);
+  background-clip: padding-box;
+}
+
+:where(
+  .app-shell-root,
+  .app-shell-root *,
+  [data-slot='dialog-content'],
+  [data-slot='dialog-content'] *,
+  [data-slot='sheet-content'],
+  [data-slot='sheet-content'] *,
+  [data-slot='select-content'],
+  [data-slot='select-content'] *,
+  [data-slot='dropdown-menu-content'],
+  [data-slot='dropdown-menu-content'] *,
+  [data-slot='popover-content'],
+  [data-slot='popover-content'] *
+)::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Tables keep horizontal scrolling contained without a heavy native track. */
+[data-slot='table-container'] {
+  overscroll-behavior-inline: contain;
 }
 
 [data-slot='table-head'] {
