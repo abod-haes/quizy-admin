@@ -33,7 +33,7 @@ export function PageHeader({
   actions,
   className,
 }: PageHeaderProps) {
-  const hasToolbar = Boolean(search || controls || actions)
+  const hasToolbar = Boolean(search || controls)
 
   return (
     <header
@@ -49,12 +49,7 @@ export function PageHeader({
         </div>
       ) : null}
 
-      <div
-        className={cn(
-          'flex min-w-0 flex-col gap-3',
-          hasToolbar && 'lg:flex-row lg:items-center'
-        )}
-      >
+      <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex min-w-0 flex-1 items-start gap-3">
           {icon ? (
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary [&_svg]:size-5">
@@ -79,33 +74,6 @@ export function PageHeader({
           </div>
         </div>
 
-        {search || controls ? (
-          <div
-            data-slot="page-header-controls"
-            className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-center lg:w-auto lg:min-w-[20rem] lg:max-w-[44rem] lg:flex-[0_1_42rem]"
-          >
-            {search ? (
-              <label className="relative block min-w-0 flex-1">
-                <Search className="pointer-events-none absolute start-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  data-leading-icon
-                  className="h-9 rounded-xl ps-10 text-sm shadow-none"
-                  value={search.value}
-                  placeholder={search.placeholder}
-                  aria-label={search.ariaLabel ?? search.placeholder}
-                  disabled={search.disabled}
-                  onChange={(event) => search.onChange(event.currentTarget.value)}
-                />
-              </label>
-            ) : null}
-            {controls ? (
-              <div className="flex min-w-0 flex-wrap items-center gap-2 [&>*]:min-w-0">
-                {controls}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-
         {actions ? (
           <div
             data-slot="page-header-actions"
@@ -115,6 +83,36 @@ export function PageHeader({
           </div>
         ) : null}
       </div>
+
+      {hasToolbar ? (
+        <div
+          data-slot="page-header-toolbar"
+          className="mt-3 flex min-w-0 flex-col gap-2 border-t border-primary/10 pt-3 sm:flex-row sm:items-center"
+        >
+          {search ? (
+            <label className="relative block min-w-0 flex-1">
+              <Input
+                startIcon={<Search className="size-4" />}
+                className="h-9 rounded-xl text-sm shadow-none"
+                value={search.value}
+                placeholder={search.placeholder}
+                aria-label={search.ariaLabel ?? search.placeholder}
+                disabled={search.disabled}
+                onChange={(event) => search.onChange(event.currentTarget.value)}
+              />
+            </label>
+          ) : null}
+
+          {controls ? (
+            <div
+              data-slot="page-header-controls"
+              className="flex min-w-0 flex-wrap items-center gap-2 sm:shrink-0 [&>*]:min-w-0"
+            >
+              {controls}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </header>
   )
 }
