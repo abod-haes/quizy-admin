@@ -88,10 +88,13 @@ export function CustomSelect<T extends string | number = string>({
       ? undefined
       : String(selectedValue)
   const hasMountedRef = useRef(false)
+  const hasEmptyOption = options.some((option) => String(option.value) === '')
 
   const effectiveValue =
     selectedValueKey === undefined
-      ? ''
+      ? hasEmptyOption
+        ? EMPTY_OPTION_KEY
+        : ''
       : selectedValueKey === ''
         ? EMPTY_OPTION_KEY
         : selectedValueKey
