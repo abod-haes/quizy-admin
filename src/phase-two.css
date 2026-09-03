@@ -29,6 +29,10 @@
   min-width: 2.75rem;
 }
 
+[data-slot='page-header-toolbar'] {
+  min-width: 0;
+}
+
 .app-shell-frame main [data-slot='card'] {
   border-color: var(--quizy-soft-border);
 }
@@ -38,12 +42,14 @@
 }
 
 .app-shell-frame main [data-slot='card-title'],
-[data-slot='dialog-title'] {
+[data-slot='dialog-title'],
+[data-slot='sheet-title'] {
   letter-spacing: -0.015em;
 }
 
 .app-shell-frame main [data-slot='card-description'],
-[data-slot='dialog-description'] {
+[data-slot='dialog-description'],
+[data-slot='sheet-description'] {
   max-width: 72ch;
   text-wrap: pretty;
 }
@@ -60,25 +66,26 @@
   white-space: nowrap;
 }
 
-/* CRUD dialogs: consistent header/body/footer rhythm while preserving custom widths. */
-[data-slot='dialog-content'] {
-  border-color: var(--quizy-soft-border) !important;
+/* Create/edit surfaces use one clean visual language. The panel shadow owns
+   separation from the overlay; an extra outline around dialogs/sheets is noise. */
+:is([data-slot='dialog-content'], [data-slot='sheet-content']) {
+  border: 0 !important;
 }
 
-[data-slot='dialog-header'] {
+:is([data-slot='dialog-header'], [data-slot='sheet-header']) {
   padding-block: 0.125rem 0.25rem;
 }
 
-[data-slot='dialog-title'] {
+:is([data-slot='dialog-title'], [data-slot='sheet-title']) {
   font-size: 1.125rem;
   line-height: 1.45;
 }
 
-[data-slot='dialog-footer'] {
+:is([data-slot='dialog-footer'], [data-slot='sheet-footer']) {
   gap: 0.625rem;
 }
 
-[data-slot='dialog-footer'] > [data-slot='button'] {
+:is([data-slot='dialog-footer'], [data-slot='sheet-footer']) > [data-slot='button'] {
   min-width: 7.5rem;
 }
 
@@ -91,10 +98,137 @@
   line-height: 1.2;
 }
 
-/* Tables: stable density, polished headers and accessible horizontal scrolling. */
-[data-slot='table-container'] {
+/* Shared scrollbar treatment for pages, tables, sheets and portalled menus. */
+:where(
+  .app-shell-root,
+  .app-shell-root *,
+  [data-slot='dialog-content'],
+  [data-slot='dialog-content'] *,
+  [data-slot='sheet-content'],
+  [data-slot='sheet-content'] *,
+  [data-slot='select-content'],
+  [data-slot='select-content'] *,
+  [data-slot='dropdown-menu-content'],
+  [data-slot='dropdown-menu-content'] *,
+  [data-slot='popover-content'],
+  [data-slot='popover-content'] *
+) {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--primary) 22%, transparent) transparent;
+  scrollbar-color: var(--quizy-scrollbar-thumb) var(--quizy-scrollbar-track);
+}
+
+:where(
+  .app-shell-root,
+  .app-shell-root *,
+  [data-slot='dialog-content'],
+  [data-slot='dialog-content'] *,
+  [data-slot='sheet-content'],
+  [data-slot='sheet-content'] *,
+  [data-slot='select-content'],
+  [data-slot='select-content'] *,
+  [data-slot='dropdown-menu-content'],
+  [data-slot='dropdown-menu-content'] *,
+  [data-slot='popover-content'],
+  [data-slot='popover-content'] *
+)::-webkit-scrollbar {
+  width: var(--quizy-scrollbar-size);
+  height: var(--quizy-scrollbar-size);
+}
+
+:where(
+  .app-shell-root,
+  .app-shell-root *,
+  [data-slot='dialog-content'],
+  [data-slot='dialog-content'] *,
+  [data-slot='sheet-content'],
+  [data-slot='sheet-content'] *,
+  [data-slot='select-content'],
+  [data-slot='select-content'] *,
+  [data-slot='dropdown-menu-content'],
+  [data-slot='dropdown-menu-content'] *,
+  [data-slot='popover-content'],
+  [data-slot='popover-content'] *
+)::-webkit-scrollbar-track {
+  background: var(--quizy-scrollbar-track);
+}
+
+:where(
+  .app-shell-root,
+  .app-shell-root *,
+  [data-slot='dialog-content'],
+  [data-slot='dialog-content'] *,
+  [data-slot='sheet-content'],
+  [data-slot='sheet-content'] *,
+  [data-slot='select-content'],
+  [data-slot='select-content'] *,
+  [data-slot='dropdown-menu-content'],
+  [data-slot='dropdown-menu-content'] *,
+  [data-slot='popover-content'],
+  [data-slot='popover-content'] *
+)::-webkit-scrollbar-thumb {
+  min-height: 2.5rem;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--quizy-scrollbar-thumb);
+  background-clip: padding-box;
+}
+
+:where(
+  .app-shell-root,
+  .app-shell-root *,
+  [data-slot='dialog-content'],
+  [data-slot='dialog-content'] *,
+  [data-slot='sheet-content'],
+  [data-slot='sheet-content'] *,
+  [data-slot='select-content'],
+  [data-slot='select-content'] *,
+  [data-slot='dropdown-menu-content'],
+  [data-slot='dropdown-menu-content'] *,
+  [data-slot='popover-content'],
+  [data-slot='popover-content'] *
+)::-webkit-scrollbar-thumb:hover {
+  background: var(--quizy-scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+
+:where(
+  .app-shell-root,
+  .app-shell-root *,
+  [data-slot='dialog-content'],
+  [data-slot='dialog-content'] *,
+  [data-slot='sheet-content'],
+  [data-slot='sheet-content'] *,
+  [data-slot='select-content'],
+  [data-slot='select-content'] *,
+  [data-slot='dropdown-menu-content'],
+  [data-slot='dropdown-menu-content'] *,
+  [data-slot='popover-content'],
+  [data-slot='popover-content'] *
+)::-webkit-scrollbar-thumb:active {
+  background: var(--quizy-scrollbar-thumb-active);
+  background-clip: padding-box;
+}
+
+:where(
+  .app-shell-root,
+  .app-shell-root *,
+  [data-slot='dialog-content'],
+  [data-slot='dialog-content'] *,
+  [data-slot='sheet-content'],
+  [data-slot='sheet-content'] *,
+  [data-slot='select-content'],
+  [data-slot='select-content'] *,
+  [data-slot='dropdown-menu-content'],
+  [data-slot='dropdown-menu-content'] *,
+  [data-slot='popover-content'],
+  [data-slot='popover-content'] *
+)::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Tables keep horizontal scrolling contained without a heavy native track. */
+[data-slot='table-container'] {
+  overscroll-behavior-inline: contain;
 }
 
 [data-slot='table-head'] {
@@ -105,9 +239,56 @@
   vertical-align: middle;
 }
 
+/* Row actions are intentionally compact and icon-only across every table. This
+   also normalizes older custom pages that still render text next to the icon. */
+[data-slot='table-cell'] [data-slot='button']:has(
+  [data-slot='button-icon-start'],
+  [data-slot='button-icon-end']
+) {
+  inline-size: 2.5rem !important;
+  block-size: 2.5rem !important;
+  min-inline-size: 2.5rem !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  border-radius: 0.75rem !important;
+  font-size: 0 !important;
+}
+
+[data-slot='table-cell'] [data-slot='button']:has(
+  [data-slot='button-icon-start'],
+  [data-slot='button-icon-end']
+) [data-slot='button-icon-start'],
+[data-slot='table-cell'] [data-slot='button']:has(
+  [data-slot='button-icon-start'],
+  [data-slot='button-icon-end']
+) [data-slot='button-icon-end'] {
+  font-size: 1rem;
+}
+
+[data-slot='table-cell'] [data-slot='button']:has(.lucide-pencil) {
+  color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary) 18%, var(--border));
+  background: color-mix(in srgb, var(--primary) 5%, var(--background));
+}
+
+[data-slot='table-cell'] [data-slot='button']:has(.lucide-pencil):hover {
+  background: color-mix(in srgb, var(--primary) 11%, var(--background));
+}
+
+[data-slot='table-cell'] [data-slot='button']:has(.lucide-trash-2) {
+  color: var(--destructive);
+  border-color: color-mix(in srgb, var(--destructive) 18%, var(--border));
+  background: color-mix(in srgb, var(--destructive) 4%, var(--background));
+}
+
+[data-slot='table-cell'] [data-slot='button']:has(.lucide-trash-2):hover {
+  background: color-mix(in srgb, var(--destructive) 9%, var(--background));
+}
+
 /* RTL: keep action groups visually anchored and preserve logical spacing. */
 [dir='rtl'] [data-slot='page-header-actions'],
-[dir='rtl'] [data-slot='dialog-footer'] {
+[dir='rtl'] [data-slot='dialog-footer'],
+[dir='rtl'] [data-slot='sheet-footer'] {
   direction: rtl;
 }
 
@@ -119,18 +300,19 @@
   }
 
   [data-slot='page-header-actions'] > [data-slot='button'],
-  [data-slot='dialog-footer'] > [data-slot='button'] {
+  :is([data-slot='dialog-footer'], [data-slot='sheet-footer']) > [data-slot='button'] {
     width: 100%;
   }
 
-  [data-slot='dialog-title'] {
+  :is([data-slot='dialog-title'], [data-slot='sheet-title']) {
     font-size: 1rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .app-shell-frame main *,
-  [data-slot='dialog-content'] * {
+  [data-slot='dialog-content'] *,
+  [data-slot='sheet-content'] * {
     scroll-behavior: auto !important;
   }
 }

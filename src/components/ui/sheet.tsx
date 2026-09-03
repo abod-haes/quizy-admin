@@ -51,26 +51,22 @@ function SheetContent({
   showCloseButton = true,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
+  /** @deprecated Side drawers are no longer used in Quizy Admin. */
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
 }) {
+  // Keep accepting the legacy prop so old pages compile, but never let it control layout.
+  void side
+
   return (
     <SheetPortal>
       <SheetOverlay />
       <SheetPrimitive.Content
         data-slot="sheet-content"
-        data-side={side}
         className={cn(
-          "fixed z-50 flex max-h-dvh flex-col gap-4 overflow-hidden bg-background shadow-2xl outline-none transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
-          side === "right" &&
-            "inset-y-0 right-0 !h-dvh !max-h-dvh w-full max-w-lg rounded-none border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
-          side === "left" &&
-            "inset-y-0 left-0 !h-dvh !max-h-dvh w-full max-w-lg rounded-none border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
-          side === "top" &&
-            "inset-x-0 top-0 h-auto border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
-          side === "bottom" &&
-            "inset-x-0 bottom-0 h-auto border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
-          className
+          "fixed z-50 flex w-[calc(100vw-2rem)] max-w-2xl flex-col gap-4 overflow-hidden rounded-3xl bg-background shadow-2xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:duration-200 data-[state=open]:duration-200",
+          className,
+          "!inset-auto !left-1/2 !right-auto !top-1/2 !bottom-auto !h-auto !max-h-[calc(100dvh-2rem)] !-translate-x-1/2 !-translate-y-1/2 !border-0"
         )}
         {...props}
       >

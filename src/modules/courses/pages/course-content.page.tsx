@@ -1,11 +1,6 @@
-import {
-  useMemo,
-  useState } from 'react'
-import { useNavigate,
-  useParams } from 'react-router-dom'
-import { useMutation,
-  useQuery,
-  useQueryClient } from '@tanstack/react-query'
+import { useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
   Download,
@@ -15,12 +10,11 @@ import {
   Pencil,
   Plus,
   Trash2,
-  } from 'lucide-react'
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { api } from '@/shared/api/api-client'
-import type { PagedResponse,
-  UUID } from '@/shared/api/api.types'
+import type { PagedResponse, UUID } from '@/shared/api/api.types'
 import { env } from '@/shared/config/env'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 import { toast } from '@/shared/lib/toast'
@@ -39,14 +33,9 @@ import {
   DialogTitle,
   Input,
   Label,
+  PageHeader,
   Skeleton,
   Textarea,
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
 } from '@/shared/ui'
 
 type NamedItem = { id: UUID; title?: string | null; name?: string | null }
@@ -147,7 +136,12 @@ function labelOf(item: NamedItem) {
 
 function extractResourceId(response: UploadedResource): string | null {
   if (typeof response === 'string' && response.trim()) return response
-  if (response && typeof response === 'object' && typeof response.id === 'string' && response.id.trim()) {
+  if (
+    response &&
+    typeof response === 'object' &&
+    typeof response.id === 'string' &&
+    response.id.trim()
+  ) {
     return response.id
   }
   return null
@@ -236,6 +230,8 @@ export default function CourseContentPage() {
   } = useParams()
 
   const isSessionDetailRoute = Boolean(routeSessionId)
+
+  // These are list filters only. Create/edit owns relation state inside the dialog.
   const [courseId, setCourseId] = useState(routeCourseId)
   const [sessionId, setSessionId] = useState(routeSessionId)
   const [contentPage, setContentPage] = useState(1)
@@ -249,7 +245,8 @@ export default function CourseContentPage() {
   })
 
   const tab = tabFromPath(contentTab)
-  const dialogCourseId = dialog.kind === 'material' ? dialog.material.courseId : dialog.text.courseId
+  const dialogCourseId =
+    dialog.kind === 'material' ? dialog.material.courseId : dialog.text.courseId
 
   const coursesQuery = useQuery({
     queryKey: ['course-content', 'courses'],
@@ -318,27 +315,42 @@ export default function CourseContentPage() {
   })
 
   const courseOptions = useMemo(
-    () => (coursesQuery.data?.items ?? []).map((item) => ({ value: item.id, label: labelOf(item) })),
+    () =>
+      (coursesQuery.data?.items ?? []).map((item) => ({
+        value: item.id,
+        label: labelOf(item),
+      })),
     [coursesQuery.data?.items],
   )
+
   const sessionOptions = useMemo(
-    () => (sessionsQuery.data?.items ?? []).map((item) => ({ value: item.id, label: labelOf(item) })),
+    () =>
+      (sessionsQuery.data?.items ?? []).map((item) => ({
+        value: item.id,
+        label: labelOf(item),
+      })),
     [sessionsQuery.data?.items],
   )
+
   const dialogSessionOptions = useMemo(
     () =>
-      (dialogSessionsQuery.data?.items ?? []).map((item) => ({ value: item.id, label: labelOf(item) })),
+      (dialogSessionsQuery.data?.items ?? []).map((item) => ({
+        value: item.id,
+        label: labelOf(item),
+      })),
     [dialogSessionsQuery.data?.items],
   )
 
   const selectedCourseLabel = isSessionDetailRoute
     ? labelOf(detailCourseQuery.data ?? { id: routeCourseId })
     : courseOptions.find((item) => item.value === courseId)?.label ?? ''
+
   const selectedSessionLabel = isSessionDetailRoute
     ? labelOf(detailSessionQuery.data ?? { id: routeSessionId })
     : sessionOptions.find((item) => item.value === sessionId)?.label ?? ''
 
-  const activeQuery = tab === 'materials' ? materialsQuery : tab === 'comments' ? commentsQuery : notesQuery
+  const activeQuery =
+    tab === 'materials' ? materialsQuery : tab === 'comments' ? commentsQuery : notesQuery
   const activeItems = activeQuery.data?.items ?? []
   const totalCount = activeQuery.data?.totalCount ?? 0
   const pageSize = activeQuery.data?.pageSize ?? CONTENT_PAGE_SIZE
@@ -360,16 +372,27 @@ export default function CourseContentPage() {
     return t('hls.notReady')
   }
 
-  const invalidateCurrent = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['course-content', tab, sessionId] })
+  const invalidateSession = async (targetSessionId: string) => {
+    if (!targetSessionId) return
+    await queryClient.invalidateQueries({
+      queryKey: ['course-content', tab, targetSessionId],
+    })
   }
 
   const uploadResource = async (material: MaterialForm) => {
     if (!material.file) return material.currentResourceId
-    if (material.materialType === 2 && (!isVideoFile(material.file) || isAudioFile(material.file))) {
+
+    if (
+      material.materialType === 2 &&
+      (!isVideoFile(material.file) || isAudioFile(material.file))
+    ) {
       throw new Error(t('validation.videoOnly'))
     }
-    if (material.materialType === 1 && (isVideoFile(material.file) || isAudioFile(material.file))) {
+
+    if (
+      material.materialType === 1 &&
+      (isVideoFile(material.file) || isAudioFile(material.file))
+    ) {
       throw new Error(t('validation.fileOnly'))
     }
 
@@ -389,11 +412,16 @@ export default function CourseContentPage() {
         const form = dialog.material
         if (!form.courseId) throw new Error(t('validation.courseRequired'))
         if (!form.sessionId) throw new Error(t('validation.sessionRequired'))
+
         const title = form.title.trim()
         const description = form.description.trim()
-        if (title.length < 2 || title.length > 200) throw new Error(t('validation.titleLength'))
+        if (title.length < 2 || title.length > 200) {
+          throw new Error(t('validation.titleLength'))
+        }
         if (description.length > 1000) throw new Error(t('validation.descriptionMax'))
-        if (!Number.isInteger(form.order) || form.order < 0) throw new Error(t('validation.order'))
+        if (!Number.isInteger(form.order) || form.order < 0) {
+          throw new Error(t('validation.order'))
+        }
 
         const resourceId = await uploadResource(form)
         if (!resourceId) throw new Error(t('validation.resourceRequired'))
@@ -412,6 +440,7 @@ export default function CourseContentPage() {
             payload,
           )
         }
+
         return api.post<unknown, MaterialPayload>(
           API_ENDPOINTS.courseSessions.materials(form.sessionId),
           payload,
@@ -421,15 +450,24 @@ export default function CourseContentPage() {
       const form = dialog.text
       if (!form.courseId) throw new Error(t('validation.courseRequired'))
       if (!form.sessionId) throw new Error(t('validation.sessionRequired'))
+
       const content = form.content.trim()
-      if (content.length < 1 || content.length > 2000) throw new Error(t('validation.contentLength'))
+      if (content.length < 1 || content.length > 2000) {
+        throw new Error(t('validation.contentLength'))
+      }
       const payload = { content }
 
       if (dialog.kind === 'comment') {
         if (dialog.item?.id) {
-          return api.patch<unknown, typeof payload>(API_ENDPOINTS.courseComments.update(dialog.item.id), payload)
+          return api.patch<unknown, typeof payload>(
+            API_ENDPOINTS.courseComments.update(dialog.item.id),
+            payload,
+          )
         }
-        return api.post<unknown, typeof payload>(API_ENDPOINTS.courseSessions.comments(form.sessionId), payload)
+        return api.post<unknown, typeof payload>(
+          API_ENDPOINTS.courseSessions.comments(form.sessionId),
+          payload,
+        )
       }
 
       if (dialog.item?.id) {
@@ -438,12 +476,18 @@ export default function CourseContentPage() {
           payload,
         )
       }
-      return api.post<unknown, typeof payload>(API_ENDPOINTS.courseSessions.notes(form.sessionId), payload)
+
+      return api.post<unknown, typeof payload>(
+        API_ENDPOINTS.courseSessions.notes(form.sessionId),
+        payload,
+      )
     },
     onSuccess: async () => {
+      const targetSessionId =
+        dialog.kind === 'material' ? dialog.material.sessionId : dialog.text.sessionId
       toast.success(t('messages.saved'))
       setDialog((current) => ({ ...current, open: false }))
-      await invalidateCurrent()
+      await invalidateSession(targetSessionId)
     },
     onError: (error) => toast.error(errorMessage(error)),
   })
@@ -457,13 +501,14 @@ export default function CourseContentPage() {
     onSuccess: async () => {
       toast.success(t('messages.deleted'))
       setDeleteTarget(null)
-      await invalidateCurrent()
+      await invalidateSession(sessionId)
     },
     onError: (error) => toast.error(errorMessage(error)),
   })
 
   const downloadMutation = useMutation({
-    mutationFn: (material: Material) => api.downloadBlob(API_ENDPOINTS.courseMaterials.download(material.id)),
+    mutationFn: (material: Material) =>
+      api.downloadBlob(API_ENDPOINTS.courseMaterials.download(material.id)),
     onSuccess: (blob, material) => downloadBlob(blob, getBlobName(material)),
     onError: (error) => toast.error(errorMessage(error)),
   })
@@ -473,8 +518,11 @@ export default function CourseContentPage() {
       toast.info(t('messages.videoNotReady'), { description: hlsStatusLabel(material) })
       return
     }
+
     try {
-      const playback = await api.get<PlaybackResponse>(API_ENDPOINTS.courseMaterials.playback(material.id))
+      const playback = await api.get<PlaybackResponse>(
+        API_ENDPOINTS.courseMaterials.playback(material.id),
+      )
       window.open(resolveApiUrl(playback.playlistUrl), '_blank', 'noopener,noreferrer')
     } catch (error) {
       toast.error(errorMessage(error))
@@ -486,22 +534,29 @@ export default function CourseContentPage() {
       toast.info(t('messages.videoNotReady'), { description: hlsStatusLabel(material) })
       return
     }
+
     try {
-      const blob = await api.downloadBlob(API_ENDPOINTS.courseMaterials.offlineManifest(material.id))
+      const blob = await api.downloadBlob(
+        API_ENDPOINTS.courseMaterials.offlineManifest(material.id),
+      )
       downloadBlob(blob, `${getBlobName(material)}-hls-manifest.json`)
     } catch (error) {
       toast.error(errorMessage(error))
     }
   }
 
-  const openCreate = (kind: DialogKind) =>
+  const openCreate = (kind: DialogKind) => {
+    const targetCourseId = isSessionDetailRoute ? routeCourseId : ''
+    const targetSessionId = isSessionDetailRoute ? routeSessionId : ''
+
     setDialog({
       open: true,
       kind,
       item: null,
-      material: createEmptyMaterial(courseId, sessionId),
-      text: createEmptyText(courseId, sessionId),
+      material: createEmptyMaterial(targetCourseId, targetSessionId),
+      text: createEmptyText(targetCourseId, targetSessionId),
     })
+  }
 
   const openMaterial = (item: Material) =>
     setDialog({
@@ -525,7 +580,10 @@ export default function CourseContentPage() {
       kind,
       item,
       material: createEmptyMaterial(courseId, sessionId),
-      text: { ...createEmptyText(courseId, sessionId), content: item.content ?? '' },
+      text: {
+        ...createEmptyText(courseId, sessionId),
+        content: item.content ?? '',
+      },
     })
 
   const openTabPage = (nextTab: TabKey) => {
@@ -535,11 +593,12 @@ export default function CourseContentPage() {
     }
   }
 
-  const dialogTitle = dialog.kind === 'material'
-    ? t(dialog.item ? 'form.editMaterial' : 'form.createMaterial')
-    : dialog.kind === 'comment'
-      ? t(dialog.item ? 'form.editComment' : 'form.createComment')
-      : t(dialog.item ? 'form.editNote' : 'form.createNote')
+  const dialogTitle =
+    dialog.kind === 'material'
+      ? t(dialog.item ? 'form.editMaterial' : 'form.createMaterial')
+      : dialog.kind === 'comment'
+        ? t(dialog.item ? 'form.editComment' : 'form.createComment')
+        : t(dialog.item ? 'form.editNote' : 'form.createNote')
 
   const deleteName = deleteTarget
     ? tab === 'materials'
@@ -547,83 +606,76 @@ export default function CourseContentPage() {
       : (deleteTarget as TextRecord).content?.slice(0, 60) || t('messages.itemFallback')
     : ''
 
+  const createKind = tab === 'materials' ? 'material' : tab === 'comments' ? 'comment' : 'note'
+
   return (
     <section className="flex min-h-0 w-full flex-col gap-3 overflow-hidden">
-      <div className="rounded-[1.4rem] border border-primary/10 bg-card/95 px-4 py-3 shadow-sm sm:px-5">
-        {isSessionDetailRoute ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="-ms-2 mb-2"
-            onClick={() => navigate(`/courses/${routeCourseId}`)}
-          >
-            <ArrowLeft className="size-4 rtl:rotate-180" />
-            {t('backToCourse')}
-          </Button>
-        ) : null}
-        <Badge variant="outline" color="primary" className="mb-2 rounded-full px-3">Courses</Badge>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          {isSessionDetailRoute ? selectedSessionLabel || t('sessionTitle') : t('title')}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {isSessionDetailRoute && selectedCourseLabel ? selectedCourseLabel : t('description')}
-        </p>
-      </div>
-
-      <Card className="flex min-h-0 flex-1 flex-col rounded-3xl shadow-sm">
-        <CardHeader className="shrink-0 space-y-3 px-4 py-3 sm:px-5">
-          {!isSessionDetailRoute ? (
-            <div className="grid gap-3 lg:grid-cols-2">
-              <div className="space-y-2">
-                <Label>{t('fields.course')}</Label>
-                <CustomSelect
-                  value={courseId || undefined}
-                  placeholder={t('placeholders.course')}
-                  options={courseOptions}
-                  onValueChange={(value) => {
-                    setCourseId(String(value))
-                    setSessionId('')
-                    setContentPage(1)
-                  }}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('fields.session')}</Label>
-                <CustomSelect
-                  value={sessionId || undefined}
-                  placeholder={t('placeholders.session')}
-                  disabled={!courseId}
-                  options={sessionOptions}
-                  onValueChange={(value) => {
-                    setSessionId(String(value))
-                    setContentPage(1)
-                  }}
-                />
-              </div>
-            </div>
-          ) : null}
-
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap gap-2">
-              {(['materials', 'comments', 'notes'] as const).map((tabKey) => (
-                <Button
-                  key={tabKey}
-                  type="button"
-                  variant={tab === tabKey ? 'default' : 'outline'}
-                  onClick={() => openTabPage(tabKey)}
-                >
-                  {t(`tabs.${tabKey}`)}
-                </Button>
-              ))}
-            </div>
+      <PageHeader
+        icon={<FileVideo />}
+        title={isSessionDetailRoute ? selectedSessionLabel || t('sessionTitle') : t('title')}
+        description={
+          isSessionDetailRoute && selectedCourseLabel ? selectedCourseLabel : t('description')
+        }
+        controls={
+          isSessionDetailRoute ? (
             <Button
               type="button"
-              disabled={!sessionId}
-              onClick={() => openCreate(tab === 'materials' ? 'material' : tab === 'comments' ? 'comment' : 'note')}
+              variant="ghost"
+              onClick={() => navigate(`/courses/${routeCourseId}`)}
             >
-              <Plus className="size-4" /> {t('actions.add')}
+              <ArrowLeft className="size-4 rtl:rotate-180" />
+              {t('backToCourse')}
             </Button>
+          ) : (
+            <>
+              <CustomSelect
+                className="h-9 min-w-52"
+                variant="filter"
+                value={courseId || undefined}
+                placeholder={t('placeholders.course')}
+                options={courseOptions}
+                onValueChange={(value) => {
+                  setCourseId(String(value))
+                  setSessionId('')
+                  setContentPage(1)
+                }}
+              />
+              <CustomSelect
+                className="h-9 min-w-52"
+                variant="filter"
+                value={sessionId || undefined}
+                placeholder={t('placeholders.session')}
+                disabled={!courseId}
+                options={sessionOptions}
+                onValueChange={(value) => {
+                  setSessionId(String(value))
+                  setContentPage(1)
+                }}
+              />
+            </>
+          )
+        }
+        actions={
+          <Button type="button" onClick={() => openCreate(createKind)}>
+            <Plus className="size-4" />
+            {t('actions.add')}
+          </Button>
+        }
+      />
+
+      <Card className="flex min-h-0 flex-1 flex-col rounded-3xl shadow-sm">
+        <CardHeader className="shrink-0 px-4 py-3 sm:px-5">
+          <div className="flex flex-wrap gap-2">
+            {(['materials', 'comments', 'notes'] as const).map((tabKey) => (
+              <Button
+                key={tabKey}
+                type="button"
+                variant={tab === tabKey ? 'default' : 'outline'}
+                onClick={() => openTabPage(tabKey)}
+              >
+                {t(`tabs.${tabKey}`)}
+              </Button>
+            ))}
           </div>
         </CardHeader>
 
@@ -634,28 +686,40 @@ export default function CourseContentPage() {
             </div>
           ) : activeQuery.isLoading ? (
             <div className="space-y-3">
-              {[0, 1, 2].map((item) => <Skeleton key={item} className="h-14 rounded-2xl" />)}
+              {[0, 1, 2].map((item) => (
+                <Skeleton key={item} className="h-14 rounded-2xl" />
+              ))}
             </div>
           ) : (
             <>
               <div className="min-h-0 flex-1 overflow-auto rounded-2xl border border-border bg-background/70 p-3">
                 <div className="grid gap-3">
                   {activeItems.length === 0 ? (
-                    <div className="p-8 text-center text-muted-foreground">{t('placeholders.empty')}</div>
+                    <div className="p-8 text-center text-muted-foreground">
+                      {t('placeholders.empty')}
+                    </div>
                   ) : (
                     activeItems.map((item) => {
                       const material = item as Material
                       const textRecord = item as TextRecord
+
                       return (
-                        <div key={item.id} className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div
+                          key={item.id}
+                          className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 lg:flex-row lg:items-center lg:justify-between"
+                        >
                           <div className="min-w-0">
                             <p className="font-semibold">
-                              {tab === 'materials' ? material.title || '-' : textRecord.content || '-'}
+                              {tab === 'materials'
+                                ? material.title || '-'
+                                : textRecord.content || '-'}
                             </p>
                             <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                               {tab === 'materials' ? (
                                 <>
-                                  <span>{isVideoMaterial(material) ? t('types.video') : t('types.file')}</span>
+                                  <span>
+                                    {isVideoMaterial(material) ? t('types.video') : t('types.file')}
+                                  </span>
                                   {isVideoMaterial(material) ? (
                                     <Badge variant="outline" color={hlsBadgeColor(material)}>
                                       {hlsStatusLabel(material)}
@@ -678,7 +742,8 @@ export default function CourseContentPage() {
                                     disabled={!isVideoReady(material)}
                                     onClick={() => void openVideoPlayback(material)}
                                   >
-                                    <ExternalLink className="size-4" /> {t('actions.play')}
+                                    <ExternalLink className="size-4" />
+                                    {t('actions.play')}
                                   </Button>
                                   <Button
                                     size="sm"
@@ -686,7 +751,8 @@ export default function CourseContentPage() {
                                     disabled={!isVideoReady(material)}
                                     onClick={() => void downloadVideoManifest(material)}
                                   >
-                                    <FileVideo className="size-4" /> {t('actions.manifest')}
+                                    <FileVideo className="size-4" />
+                                    {t('actions.manifest')}
                                   </Button>
                                 </>
                               ) : (
@@ -697,35 +763,45 @@ export default function CourseContentPage() {
                                     disabled={downloadMutation.isPending}
                                     onClick={() => downloadMutation.mutate(material)}
                                   >
-                                    <Download className="size-4" /> {t('actions.download')}
+                                    <Download className="size-4" />
+                                    {t('actions.download')}
                                   </Button>
                                   <Button
                                     size="sm"
                                     variant="outline"
                                     onClick={() =>
                                       window.open(
-                                        resolveApiUrl(API_ENDPOINTS.courseMaterials.stream(material.id)),
+                                        resolveApiUrl(
+                                          API_ENDPOINTS.courseMaterials.stream(material.id),
+                                        ),
                                         '_blank',
                                         'noopener,noreferrer',
                                       )
                                     }
                                   >
-                                    <ExternalLink className="size-4" /> {t('actions.view')}
+                                    <ExternalLink className="size-4" />
+                                    {t('actions.view')}
                                   </Button>
                                 </>
                               )
                             ) : null}
+
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() =>
                                 tab === 'materials'
                                   ? openMaterial(material)
-                                  : openText(tab === 'comments' ? 'comment' : 'note', textRecord)
+                                  : openText(
+                                      tab === 'comments' ? 'comment' : 'note',
+                                      textRecord,
+                                    )
                               }
                             >
-                              <Pencil className="size-4" /> {t('actions.edit')}
+                              <Pencil className="size-4" />
+                              {t('actions.edit')}
                             </Button>
+
                             <Button
                               size="sm"
                               variant="outline"
@@ -733,7 +809,8 @@ export default function CourseContentPage() {
                               disabled={removeMutation.isPending}
                               onClick={() => setDeleteTarget(item)}
                             >
-                              <Trash2 className="size-4" /> {t('actions.delete')}
+                              <Trash2 className="size-4" />
+                              {t('actions.delete')}
                             </Button>
                           </div>
                         </div>
@@ -751,11 +828,15 @@ export default function CourseContentPage() {
                 >
                   {t('actions.previous')}
                 </Button>
-                <Badge variant="outline">{t('pagination.summary', { page: contentPage, totalPages })}</Badge>
+                <Badge variant="outline">
+                  {t('pagination.summary', { page: contentPage, totalPages })}
+                </Badge>
                 <Button
                   variant="outline"
                   disabled={contentPage >= totalPages || activeQuery.isFetching}
-                  onClick={() => setContentPage((current) => Math.min(totalPages, current + 1))}
+                  onClick={() =>
+                    setContentPage((current) => Math.min(totalPages, current + 1))
+                  }
                 >
                   {t('actions.next')}
                 </Button>
@@ -765,21 +846,23 @@ export default function CourseContentPage() {
         </CardContent>
       </Card>
 
-      <Sheet
+      <Dialog
         open={dialog.open}
         onOpenChange={(open) => {
           if (!saveMutation.isPending) setDialog((current) => ({ ...current, open }))
         }}
       >
-        <SheetContent className="max-w-2xl">
-          <SheetHeader>
-            <SheetTitle>{dialogTitle}</SheetTitle>
-            <SheetDescription>{dialog.kind === 'material' ? t('form.fileHint') : t('description')}</SheetDescription>
-          </SheetHeader>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{dialogTitle}</DialogTitle>
+            <DialogDescription>
+              {dialog.kind === 'material' ? t('form.fileHint') : t('description')}
+            </DialogDescription>
+          </DialogHeader>
 
           {dialog.kind === 'material' ? (
             <div className="grid gap-4 py-2">
-              {!isSessionDetailRoute ? (
+              {!isSessionDetailRoute && !dialog.item ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label>{t('fields.course')}</Label>
@@ -790,7 +873,11 @@ export default function CourseContentPage() {
                       onValueChange={(value) =>
                         setDialog((current) => ({
                           ...current,
-                          material: { ...current.material, courseId: String(value), sessionId: '' },
+                          material: {
+                            ...current.material,
+                            courseId: String(value),
+                            sessionId: '',
+                          },
                         }))
                       }
                     />
@@ -805,7 +892,10 @@ export default function CourseContentPage() {
                       onValueChange={(value) =>
                         setDialog((current) => ({
                           ...current,
-                          material: { ...current.material, sessionId: String(value) },
+                          material: {
+                            ...current.material,
+                            sessionId: String(value),
+                          },
                         }))
                       }
                     />
@@ -821,11 +911,15 @@ export default function CourseContentPage() {
                   onChange={(event) =>
                     setDialog((current) => ({
                       ...current,
-                      material: { ...current.material, title: event.target.value },
+                      material: {
+                        ...current.material,
+                        title: event.target.value,
+                      },
                     }))
                   }
                 />
               </div>
+
               <div className="space-y-2">
                 <Label>{t('fields.description')}</Label>
                 <Textarea
@@ -834,11 +928,15 @@ export default function CourseContentPage() {
                   onChange={(event) =>
                     setDialog((current) => ({
                       ...current,
-                      material: { ...current.material, description: event.target.value },
+                      material: {
+                        ...current.material,
+                        description: event.target.value,
+                      },
                     }))
                   }
                 />
               </div>
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>{t('fields.materialType')}</Label>
@@ -860,6 +958,7 @@ export default function CourseContentPage() {
                     }
                   />
                 </div>
+
                 <div className="space-y-2">
                   <Label>{t('fields.order')}</Label>
                   <Input
@@ -870,22 +969,33 @@ export default function CourseContentPage() {
                     onChange={(event) =>
                       setDialog((current) => ({
                         ...current,
-                        material: { ...current.material, order: Number(event.target.value) },
+                        material: {
+                          ...current.material,
+                          order: Number(event.target.value),
+                        },
                       }))
                     }
                   />
                 </div>
               </div>
+
               <div className="space-y-2">
                 <Label>{t('fields.file')}</Label>
                 <input
                   type="file"
-                  accept={dialog.material.materialType === 2 ? VIDEO_MATERIAL_ACCEPT : FILE_MATERIAL_ACCEPT}
+                  accept={
+                    dialog.material.materialType === 2
+                      ? VIDEO_MATERIAL_ACCEPT
+                      : FILE_MATERIAL_ACCEPT
+                  }
                   className="block w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
                   onChange={(event) =>
                     setDialog((current) => ({
                       ...current,
-                      material: { ...current.material, file: event.target.files?.[0] ?? null },
+                      material: {
+                        ...current.material,
+                        file: event.target.files?.[0] ?? null,
+                      },
                     }))
                   }
                 />
@@ -893,7 +1003,7 @@ export default function CourseContentPage() {
             </div>
           ) : (
             <div className="grid gap-4 py-2">
-              {!isSessionDetailRoute ? (
+              {!isSessionDetailRoute && !dialog.item ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label>{t('fields.course')}</Label>
@@ -904,11 +1014,16 @@ export default function CourseContentPage() {
                       onValueChange={(value) =>
                         setDialog((current) => ({
                           ...current,
-                          text: { ...current.text, courseId: String(value), sessionId: '' },
+                          text: {
+                            ...current.text,
+                            courseId: String(value),
+                            sessionId: '',
+                          },
                         }))
                       }
                     />
                   </div>
+
                   <div className="space-y-2">
                     <Label>{t('fields.session')}</Label>
                     <CustomSelect
@@ -919,13 +1034,17 @@ export default function CourseContentPage() {
                       onValueChange={(value) =>
                         setDialog((current) => ({
                           ...current,
-                          text: { ...current.text, sessionId: String(value) },
+                          text: {
+                            ...current.text,
+                            sessionId: String(value),
+                          },
                         }))
                       }
                     />
                   </div>
                 </div>
               ) : null}
+
               <div className="space-y-2">
                 <Label>{t('fields.content')}</Label>
                 <Textarea
@@ -934,7 +1053,10 @@ export default function CourseContentPage() {
                   onChange={(event) =>
                     setDialog((current) => ({
                       ...current,
-                      text: { ...current.text, content: event.target.value },
+                      text: {
+                        ...current.text,
+                        content: event.target.value,
+                      },
                     }))
                   }
                 />
@@ -942,7 +1064,7 @@ export default function CourseContentPage() {
             </div>
           )}
 
-          <SheetFooter>
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -951,13 +1073,17 @@ export default function CourseContentPage() {
             >
               {t('actions.cancel')}
             </Button>
-            <Button type="button" disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+            <Button
+              type="button"
+              disabled={saveMutation.isPending}
+              onClick={() => saveMutation.mutate()}
+            >
               {saveMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
               {t('actions.save')}
             </Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={Boolean(deleteTarget)}
@@ -968,10 +1094,16 @@ export default function CourseContentPage() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{t('messages.deleteTitle')}</DialogTitle>
-            <DialogDescription>{t('messages.deleteConfirm', { name: deleteName })}</DialogDescription>
+            <DialogDescription>
+              {t('messages.deleteConfirm', { name: deleteName })}
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" disabled={removeMutation.isPending} onClick={() => setDeleteTarget(null)}>
+            <Button
+              variant="outline"
+              disabled={removeMutation.isPending}
+              onClick={() => setDeleteTarget(null)}
+            >
               {t('actions.cancel')}
             </Button>
             <Button

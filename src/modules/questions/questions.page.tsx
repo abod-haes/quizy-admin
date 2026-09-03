@@ -4,7 +4,8 @@ import {
 import { useMutation,
   useQuery,
   useQueryClient } from '@tanstack/react-query'
-import { FileQuestion,
+import { Eye,
+  FileQuestion,
   Loader2,
   Pencil,
   Plus,
@@ -99,6 +100,23 @@ function optionLabel(option: RelationOption) {
   return option.name?.trim() || option.title?.trim() || option.id
 }
 
+function questionDetailToForm(question: QuestionDetail): QuestionForm {
+  return {
+    title: question.title ?? '',
+    hint: question.hint ?? '',
+    description: question.description ?? '',
+    quizIds: Array.isArray(question.quizIds) ? question.quizIds : [],
+    lessonIds: Array.isArray(question.lessonIds) ? question.lessonIds : [],
+    answers: Array.isArray(question.answers)
+      ? question.answers.map((answer) => ({
+          id: answer.id,
+          title: answer.title ?? '',
+          isCorrect: answer.isCorrect === true,
+        }))
+      : [],
+  }
+}
+
 export default function QuestionsManagementPage() {
   const { t } = useTranslation('admin-pages')
   const navigate = useNavigate()
@@ -107,6 +125,7 @@ export default function QuestionsManagementPage() {
   const [search, setSearch] = useState('')
   const [formOpen, setFormOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [loadingEditId, setLoadingEditId] = useState<string | null>(null)
   const [form, setForm] = useState<QuestionForm>(EMPTY_FORM)
   const [deleteTarget, setDeleteTarget] = useState<QuestionRow | null>(null)
 
@@ -142,17 +161,30 @@ export default function QuestionsManagementPage() {
   const closeForm = () => {
     setFormOpen(false)
     setEditingId(null)
+    setLoadingEditId(null)
     setForm(EMPTY_FORM)
   }
 
   const openCreate = () => {
     setEditingId(null)
+    setLoadingEditId(null)
     setForm(EMPTY_FORM)
     setFormOpen(true)
   }
 
-  const openEdit = (question: QuestionRow) => {
-    navigate(`/questions/${question.id}`)
+  const openEdit = async (question: QuestionRow) => {
+    if (loadingEditId) return
+    setLoadingEditId(question.id)
+    try {
+      const detail = await api.get<QuestionDetail>(API_ENDPOINTS.questions.detail(question.id))
+      setEditingId(question.id)
+      setForm(questionDetailToForm(detail))
+      setFormOpen(true)
+    } catch {
+      toast.error(t('questions.loadError'))
+    } finally {
+      setLoadingEditId(null)
+    }
   }
 
   const saveMutation = useMutation({
@@ -233,36 +265,63 @@ export default function QuestionsManagementPage() {
 
       <PaginatedDataTable<QuestionRow>
         className="min-h-0 flex-1"
-            rows={rows}
-            loading={questionsQuery.isLoading || questionsQuery.isFetching}
-            getRowId={(row) => row.id}
-            summaryText={t('questions.summary', { count: totalCount })}
-            emptyMessage={t('questions.empty')}
-            pagination={{
-              currentPage: page,
-              totalPages,
-              pageSize,
-              onPageChange: setPage,
-              previousLabel: t('common.previous'),
-              nextLabel: t('common.next'),
-              getPageLabel: (pageNumber) => t('common.page', { page: pageNumber }),
-            }}
-            columns={[
-              { id: 'title', header: t('questions.question'), renderCell: (row) => <span className="font-semibold">{row.title || '-'}</span> },
-              { id: 'hint', header: t('questions.hint'), renderCell: (row) => row.hint || '-' },
-              { id: 'answers', header: t('questions.answersCount'), renderCell: (row) => row.answersCount ?? 0 },
-              { id: 'quizzes', header: t('questions.quizzesCount'), renderCell: (row) => row.quizzesCount ?? 0 },
-              {
-                id: 'actions',
-                header: '',
-                renderCell: (row) => (
-                  <div className="flex justify-end gap-2">
-                    <Button size="sm" variant="outline" onClick={() => openEdit(row)}><Pencil className="size-4" />{t('common.edit')}</Button>
-                    <Button size="sm" variant="outline" className="text-destructive" onClick={() => setDeleteTarget(row)}><Trash2 className="size-4" />{t('common.delete')}</Button>
-                  </div>
-                ),
-              },
-            ]}
+        rows={rows}
+        loading={questionsQuery.isLoading || questionsQuery.isFetching}
+        getRowId={(row) => row.id}
+        summaryText={t('questions.summary', { count: totalCount })}
+        emptyMessage={t('questions.empty')}
+        pagination={{
+          currentPage: page,
+          totalPages,
+          pageSize,
+          onPageChange: setPage,
+          previousLabel: t('common.previous'),
+          nextLabel: t('common.next'),
+          getPageLabel: (pageNumber) => t('common.page', { page: pageNumber }),
+        }}
+        columns={[
+          { id: 'title', header: t('questions.question'), renderCell: (row) => <span className="font-semibold">{row.title || '-'}</span> },
+          { id: 'hint', header: t('questions.hint'), renderCell: (row) => row.hint || '-' },
+          { id: 'answers', header: t('questions.answersCount'), renderCell: (row) => row.answersCount ?? 0 },
+          { id: 'quizzes', header: t('questions.quizzesCount'), renderCell: (row) => row.quizzesCount ?? 0 },
+          {
+            id: 'actions',
+            header: '',
+            renderCell: (row) => (
+              <div className="flex justify-end gap-2">
+                <Button
+                  size="icon-sm"
+                  variant="outline"
+                  aria-label={t('common.edit')}
+                  title={t('common.edit')}
+                  disabled={Boolean(loadingEditId)}
+                  onClick={() => void openEdit(row)}
+                >
+                  {loadingEditId === row.id ? <Loader2 className="size-4 animate-spin" /> : <Pencil className="size-4" />}
+                </Button>
+                <Button
+                  size="icon-sm"
+                  variant="outline"
+                  aria-label={t('questions.detailDescription')}
+                  title={t('questions.detailDescription')}
+                  onClick={() => navigate(`/questions/${row.id}`)}
+                >
+                  <Eye className="size-4" />
+                </Button>
+                <Button
+                  size="icon-sm"
+                  variant="outline"
+                  className="text-destructive"
+                  aria-label={t('common.delete')}
+                  title={t('common.delete')}
+                  onClick={() => setDeleteTarget(row)}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            ),
+          },
+        ]}
       />
 
       <Sheet open={formOpen} onOpenChange={(open) => { if (!open && !saveMutation.isPending) closeForm() }}>

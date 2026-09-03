@@ -86,6 +86,11 @@ export default function AdsManagementPage() {
       if (!imageFile && !editingAd.imageId) throw new Error('Ad image is required')
       return adsService.update(editingAd, payload, imageFile)
     },
+    onMutate: async () => {
+      if (dialogMode === 'edit') {
+        await queryClient.cancelQueries({ queryKey: ['admin-ads'] })
+      }
+    },
     onSuccess: async (savedAd) => {
       if (dialogMode === 'edit') {
         queryClient.setQueriesData<PagedResponse<AdminAd>>(
@@ -100,13 +105,14 @@ export default function AdsManagementPage() {
             }
           },
         )
+      } else {
+        await invalidate()
       }
 
       setDialogOpen(false)
       setForm(EMPTY_FORM)
       setImageFile(null)
       setEditingAd(null)
-      await invalidate()
     },
   })
 

@@ -13,4 +13,9 @@
   --quizy-motion-fast: 160ms;
   --quizy-motion-base: 180ms;
   --quizy-popup-shadow: 0 20px 60px rgba(45, 27, 90, 0.2);
+  --quizy-scrollbar-size: 0.625rem;
+  --quizy-scrollbar-track: transparent;
+  --quizy-scrollbar-thumb: color-mix(in srgb, var(--primary) 26%, var(--border));
+  --quizy-scrollbar-thumb-hover: color-mix(in srgb, var(--primary) 48%, var(--border));
+  --quizy-scrollbar-thumb-active: color-mix(in srgb, var(--primary) 64%, var(--border));
 }
