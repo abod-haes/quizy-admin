@@ -29,6 +29,10 @@
   min-width: 2.75rem;
 }
 
+[data-slot='page-header-toolbar'] {
+  min-width: 0;
+}
+
 .app-shell-frame main [data-slot='card'] {
   border-color: var(--quizy-soft-border);
 }
@@ -38,12 +42,14 @@
 }
 
 .app-shell-frame main [data-slot='card-title'],
-[data-slot='dialog-title'] {
+[data-slot='dialog-title'],
+[data-slot='sheet-title'] {
   letter-spacing: -0.015em;
 }
 
 .app-shell-frame main [data-slot='card-description'],
-[data-slot='dialog-description'] {
+[data-slot='dialog-description'],
+[data-slot='sheet-description'] {
   max-width: 72ch;
   text-wrap: pretty;
 }
@@ -66,20 +72,20 @@
   border: 0 !important;
 }
 
-[data-slot='dialog-header'] {
+:is([data-slot='dialog-header'], [data-slot='sheet-header']) {
   padding-block: 0.125rem 0.25rem;
 }
 
-[data-slot='dialog-title'] {
+:is([data-slot='dialog-title'], [data-slot='sheet-title']) {
   font-size: 1.125rem;
   line-height: 1.45;
 }
 
-[data-slot='dialog-footer'] {
+:is([data-slot='dialog-footer'], [data-slot='sheet-footer']) {
   gap: 0.625rem;
 }
 
-[data-slot='dialog-footer'] > [data-slot='button'] {
+:is([data-slot='dialog-footer'], [data-slot='sheet-footer']) > [data-slot='button'] {
   min-width: 7.5rem;
 }
 
@@ -281,7 +287,8 @@
 
 /* RTL: keep action groups visually anchored and preserve logical spacing. */
 [dir='rtl'] [data-slot='page-header-actions'],
-[dir='rtl'] [data-slot='dialog-footer'] {
+[dir='rtl'] [data-slot='dialog-footer'],
+[dir='rtl'] [data-slot='sheet-footer'] {
   direction: rtl;
 }
 
@@ -293,18 +300,19 @@
   }
 
   [data-slot='page-header-actions'] > [data-slot='button'],
-  [data-slot='dialog-footer'] > [data-slot='button'] {
+  :is([data-slot='dialog-footer'], [data-slot='sheet-footer']) > [data-slot='button'] {
     width: 100%;
   }
 
-  [data-slot='dialog-title'] {
+  :is([data-slot='dialog-title'], [data-slot='sheet-title']) {
     font-size: 1rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .app-shell-frame main *,
-  [data-slot='dialog-content'] * {
+  [data-slot='dialog-content'] *,
+  [data-slot='sheet-content'] * {
     scroll-behavior: auto !important;
   }
 }
