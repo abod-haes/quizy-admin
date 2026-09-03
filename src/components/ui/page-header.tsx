@@ -1,6 +1,9 @@
 import { Search } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { isValidElement, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
+import { Button } from '@/components/ui/button'
+import { FiltersDialog } from '@/components/ui/filters-dialog'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
@@ -19,6 +22,10 @@ type PageHeaderProps = {
   icon?: ReactNode
   search?: PageHeaderSearch
   controls?: ReactNode
+  controlsPresentation?: 'auto' | 'inline' | 'filters'
+  filterLabel?: ReactNode
+  filterTitle?: ReactNode
+  filterDescription?: ReactNode
   actions?: ReactNode
   className?: string
 }
@@ -30,17 +37,35 @@ export function PageHeader({
   icon,
   search,
   controls,
+  controlsPresentation = 'auto',
+  filterLabel,
+  filterTitle,
+  filterDescription,
   actions,
   className,
 }: PageHeaderProps) {
-  const hasToolbar = Boolean(search || controls)
+  const { t } = useTranslation('common')
+
+  const autoInlineControl = isValidElement(controls) && controls.type === Button
+  const showControlsInline = Boolean(
+    controls &&
+      (controlsPresentation === 'inline' ||
+        (controlsPresentation === 'auto' && autoInlineControl)),
+  )
+  const showControlsAsFilters = Boolean(
+    controls &&
+      (controlsPresentation === 'filters' ||
+        (controlsPresentation === 'auto' && !autoInlineControl)),
+  )
+  const hasToolbar = Boolean(search || showControlsInline)
+  const hasActions = Boolean(actions || showControlsAsFilters)
 
   return (
     <header
       data-slot="page-header"
       className={cn(
         'w-full min-w-0 shrink-0 rounded-2xl border border-primary/10 bg-card px-4 py-3.5 shadow-sm sm:px-5',
-        className
+        className,
       )}
     >
       {breadcrumbs ? (
@@ -74,12 +99,24 @@ export function PageHeader({
           </div>
         </div>
 
-        {actions ? (
+        {hasActions ? (
           <div
             data-slot="page-header-actions"
             className="flex w-full shrink-0 flex-wrap items-center gap-2 lg:w-auto lg:justify-end [&_[data-slot=button]]:h-9 [&_[data-slot=button]]:rounded-xl [&_[data-slot=button]]:px-3 [&_[data-slot=button]]:text-xs [&_[data-slot=button]_svg]:size-3.5"
           >
             {actions}
+            {showControlsAsFilters ? (
+              <FiltersDialog
+                triggerLabel={filterLabel ?? t('filters.title')}
+                title={filterTitle ?? t('filters.title')}
+                description={filterDescription}
+                applyLabel={t('actions.apply')}
+                triggerVariant="filter"
+                contentClassName="sm:max-w-2xl"
+              >
+                {controls}
+              </FiltersDialog>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -103,7 +140,7 @@ export function PageHeader({
             </label>
           ) : null}
 
-          {controls ? (
+          {showControlsInline ? (
             <div
               data-slot="page-header-controls"
               className="flex min-w-0 flex-wrap items-center gap-2 sm:shrink-0 [&>*]:min-w-0"
