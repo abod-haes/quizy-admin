@@ -127,7 +127,7 @@ export function PageHeader({
           className="mt-3 flex min-w-0 flex-col gap-2 border-t border-primary/10 pt-3 sm:flex-row sm:items-center"
         >
           {search ? (
-            <label className="relative block min-w-0 flex-1">
+            <label className="relative block w-full min-w-0 sm:max-w-md lg:max-w-lg">
               <Input
                 startIcon={<Search className="size-4" />}
                 value={search.value}
