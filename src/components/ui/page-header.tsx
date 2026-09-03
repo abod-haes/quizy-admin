@@ -112,7 +112,7 @@ export function PageHeader({
                 description={filterDescription}
                 applyLabel={t('actions.apply')}
                 triggerVariant="filter"
-                contentClassName="sm:max-w-2xl"
+                contentClassName="sm:max-w-5xl"
               >
                 {controls}
               </FiltersDialog>
