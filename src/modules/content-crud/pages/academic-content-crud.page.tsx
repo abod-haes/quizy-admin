@@ -20,6 +20,7 @@ import {
   RefreshCcw,
   ShieldCheck,
   SlidersHorizontal,
+  Smartphone,
   Trash2,
   UserRound,
   } from 'lucide-react'
@@ -113,6 +114,24 @@ type StudentAccountAction = {
   id: string
   action: 'block' | 'unblock'
 }
+type StudentLoginDevice = {
+  id: string
+  deviceName: string | null
+  platform: string | null
+  ipAddress: string | null
+  status: 'ACTIVE' | 'ALLOWED' | 'BLOCKED' | 'INACTIVE'
+  isActive: boolean
+  isLoginAllowed: boolean
+  firstLoginAt: string | null
+  lastLoginAt: string | null
+  loginCount: number
+  blockedAttemptCount: number
+  lastBlockedAttemptAt: string | null
+  revokedAt: string | null
+  revocationReason: string | null
+  adminApprovedAt: string | null
+}
+type StudentDeviceAllowAction = { studentId: string; deviceId: string }
 
 function createEmptyResourceImageState(): ResourceImageState {
   return { resource: null, pendingFile: null }
@@ -396,6 +415,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
     return PAGE_CONTENT_TABS.some((tab) => tab.value === value) ? value : '1'
   })
   const [deleteTarget, setDeleteTarget] = useState<AcademicContentItem | null>(null)
+  const [studentDevicesTarget, setStudentDevicesTarget] = useState<AcademicContentItem | null>(null)
   const [formState, setFormState] = useState<FormState>({ open: false, mode: 'create', item: null, values: config.emptyValues, errors: {} })
   const [detailHydratedId, setDetailHydratedId] = useState<string | null>(null)
   const [resourceImageState, setResourceImageState] = useState<ResourceImageState>(() => createEmptyResourceImageState())
@@ -438,6 +458,15 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
     () => new Map((studentStatusesQuery.data ?? []).map((status) => [status.id, status])),
     [studentStatusesQuery.data],
   )
+  const studentDevicesQuery = useQuery({
+    queryKey: ['content-crud', 'students', 'devices', studentDevicesTarget?.id ?? 'none'],
+    queryFn: () => {
+      if (!studentDevicesTarget?.id) throw new Error('Missing student id')
+      return api.get<StudentLoginDevice[]>(API_ENDPOINTS.students.devices(studentDevicesTarget.id))
+    },
+    enabled: isStudentModule && Boolean(studentDevicesTarget?.id),
+    staleTime: 10_000,
+  })
   const detailQuery = useQuery({
     queryKey: ['content-crud', config.key, 'detail', activeEditId],
     queryFn: async () => {
@@ -611,6 +640,20 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
     },
   })
 
+  const allowStudentDeviceMutation = useMutation({
+    mutationFn: ({ studentId, deviceId }: StudentDeviceAllowAction) =>
+      api.patch<{ message?: string }>(API_ENDPOINTS.students.allowDevice(studentId, deviceId)),
+    onSuccess: async (response, variables) => {
+      toast.success(response.message || t('studentDevices.allowedMessage'))
+      await queryClient.invalidateQueries({
+        queryKey: ['content-crud', 'students', 'devices', variables.studentId],
+      })
+    },
+    onError: (error) => {
+      toast.error(t(getApiErrorMessage(error)))
+    },
+  })
+
   const openCreateForm = () => {
     setDetailHydratedId(null)
     setResourceImageState(createEmptyResourceImageState())
@@ -695,6 +738,16 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
     if (deleteTarget) deleteMutation.mutate(deleteTarget)
   }
 
+  const formatStudentDeviceDate = (value: string | null) => {
+    if (!value) return '-'
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return '-'
+    return new Intl.DateTimeFormat(i18n.language.startsWith('ar') ? 'ar-SY' : 'en-US', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(date)
+  }
+
   const renderStudentStatus = (item: AcademicContentItem) => {
     const status = studentStatusById.get(item.id)
     const accountStatus = status?.accountStatus ?? (item.phoneVerified === false ? 'PENDING_VERIFICATION' : null)
@@ -714,6 +767,16 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
       return <span className="inline-flex rounded-full border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">{t('studentAccount.pending')}</span>
     }
     return <span className="inline-flex rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">{t('studentAccount.active')}</span>
+  }
+
+  const renderStudentDeviceStatus = (device: StudentLoginDevice) => {
+    if (device.status === 'ACTIVE') {
+      return <span className="inline-flex rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">{t('studentDevices.statusActive')}</span>
+    }
+    if (device.isLoginAllowed) {
+      return <span className="inline-flex rounded-full border border-sky-500/25 bg-sky-500/10 px-2.5 py-1 text-xs font-semibold text-sky-700 dark:text-sky-300">{t('studentDevices.statusAllowed')}</span>
+    }
+    return <span className="inline-flex rounded-full border border-destructive/25 bg-destructive/10 px-2.5 py-1 text-xs font-semibold text-destructive">{t('studentDevices.statusBlocked')}</span>
   }
 
   const renderTableCellContent = (item: AcademicContentItem, column: ContentCrudConfig['columns'][number]) => {
@@ -748,6 +811,7 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
           <div className="flex w-full justify-center gap-2">
             {canViewCourse ? <Button type="button" size="icon-sm" variant="outline" onClick={() => navigate(`/courses/${item.id}`)}><Eye className="size-4" /></Button> : null}
             {canEdit ? <Button type="button" size="icon-sm" variant="outline" onClick={() => openEditForm(item)}><Pencil className="size-4" /></Button> : null}
+            {isStudentModule ? <Button type="button" size="icon-sm" variant="outline" title={t('studentDevices.open')} aria-label={t('studentDevices.open')} onClick={() => setStudentDevicesTarget(item)}><Smartphone className="size-4" /></Button> : null}
             {isStudentModule ? <Button type="button" size="icon-sm" variant="outline" className={studentStatus?.isBlocked ? 'text-emerald-700 hover:text-emerald-700 dark:text-emerald-300' : 'text-amber-700 hover:text-amber-700 dark:text-amber-300'} disabled={!studentStatus || studentStatusesQuery.isLoading || studentAccountMutation.isPending} title={studentStatus?.isBlocked ? t('studentAccount.unblock') : t('studentAccount.block')} aria-label={studentStatus?.isBlocked ? t('studentAccount.unblock') : t('studentAccount.block')} onClick={() => { if (!studentStatus) return; studentAccountMutation.mutate({ id: item.id, action: studentStatus.isBlocked ? 'unblock' : 'block' }) }}>{studentActionBusy ? <Loader2 className="size-4 animate-spin" /> : studentStatus?.isBlocked ? <ShieldCheck className="size-4" /> : <Ban className="size-4" />}</Button> : null}
             {canDelete ? <Button type="button" size="icon-sm" variant="outline" className="text-destructive hover:text-destructive" disabled={deleteMutation.isPending} onClick={() => handleDelete(item)}><Trash2 className="size-4" /></Button> : null}
           </div>
@@ -892,6 +956,81 @@ function AcademicContentCrudPage({ configKey }: AcademicCrudPageProps) {
           </SheetFooter>
         </SheetContent>
       </Sheet>
+      <Dialog
+        open={Boolean(studentDevicesTarget)}
+        onOpenChange={(open) => {
+          if (!open && !allowStudentDeviceMutation.isPending) setStudentDevicesTarget(null)
+        }}
+      >
+        <DialogContent className="max-h-[88svh] max-w-3xl overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>{t('studentDevices.title')}</DialogTitle>
+            <DialogDescription>
+              {studentDevicesTarget
+                ? t('studentDevices.description', {
+                    name: [studentDevicesTarget.firstName, studentDevicesTarget.lastName].filter(Boolean).join(' ') || studentDevicesTarget.phoneNumber || '-',
+                  })
+                : ''}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[65svh] space-y-3 overflow-y-auto pe-1">
+            {studentDevicesQuery.isLoading ? (
+              <div className="space-y-3">{[0, 1].map((index) => <Skeleton key={index} className="h-44 w-full rounded-2xl" />)}</div>
+            ) : studentDevicesQuery.isError ? (
+              <div className="rounded-2xl border border-destructive/20 bg-destructive/5 p-5 text-center text-sm text-destructive">
+                {t(getApiErrorMessage(studentDevicesQuery.error))}
+              </div>
+            ) : (studentDevicesQuery.data ?? []).length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-8 text-center text-sm text-muted-foreground">
+                {t('studentDevices.empty')}
+              </div>
+            ) : (
+              (studentDevicesQuery.data ?? []).map((device) => {
+                const allowing = allowStudentDeviceMutation.isPending && allowStudentDeviceMutation.variables?.deviceId === device.id
+                return (
+                  <div key={device.id} className="rounded-2xl border border-border bg-background p-4 shadow-sm">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                          <Smartphone className="size-5" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-foreground">{device.deviceName || t('studentDevices.unknownDevice')}</p>
+                          <p className="text-xs text-muted-foreground">{device.platform || t('studentDevices.unknownPlatform')}</p>
+                        </div>
+                      </div>
+                      {renderStudentDeviceStatus(device)}
+                    </div>
+                    <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                      <div><span className="text-muted-foreground">{t('studentDevices.firstLogin')}: </span><span className="font-medium text-foreground">{formatStudentDeviceDate(device.firstLoginAt)}</span></div>
+                      <div><span className="text-muted-foreground">{t('studentDevices.lastLogin')}: </span><span className="font-medium text-foreground">{formatStudentDeviceDate(device.lastLoginAt)}</span></div>
+                      <div><span className="text-muted-foreground">{t('studentDevices.loginCount')}: </span><span className="font-medium text-foreground">{device.loginCount}</span></div>
+                      <div><span className="text-muted-foreground">{t('studentDevices.lastBlockedAttempt')}: </span><span className="font-medium text-foreground">{formatStudentDeviceDate(device.lastBlockedAttemptAt)}</span></div>
+                      {device.blockedAttemptCount > 0 ? <div><span className="text-muted-foreground">{t('studentDevices.blockedAttempts')}: </span><span className="font-medium text-foreground">{device.blockedAttemptCount}</span></div> : null}
+                      {device.ipAddress ? <div><span className="text-muted-foreground">IP: </span><span className="font-medium text-foreground">{device.ipAddress}</span></div> : null}
+                    </div>
+                    {!device.isLoginAllowed && studentDevicesTarget ? (
+                      <div className="mt-4 flex justify-end border-t border-border/70 pt-4">
+                        <Button
+                          type="button"
+                          disabled={allowStudentDeviceMutation.isPending}
+                          onClick={() => allowStudentDeviceMutation.mutate({ studentId: studentDevicesTarget.id, deviceId: device.id })}
+                        >
+                          {allowing ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
+                          {t('studentDevices.allow')}
+                        </Button>
+                      </div>
+                    ) : null}
+                  </div>
+                )
+              })
+            )}
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" disabled={allowStudentDeviceMutation.isPending} onClick={() => setStudentDevicesTarget(null)}>{t('actions.cancel')}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteTarget(null) }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
