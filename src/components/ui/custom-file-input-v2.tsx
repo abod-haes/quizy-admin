@@ -1,7 +1,7 @@
-import { FileText, UploadCloud, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type ChangeEvent, type DragEvent } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { Icon } from '@/components/ui/icon'
 import { cn } from '@/lib/utils'
 import { generateFileUrl } from '@/shared/utils/file-url'
 
@@ -63,7 +63,7 @@ export function CustomFileInput({ id, value, previewSrc, accept = 'image/*', dis
     <div
       data-slot="file-image-input"
       className={cn(
-        'w-full min-w-0 rounded-2xl border border-primary/15 bg-[var(--quizy-surface-strong)] p-3 shadow-[var(--quizy-control-shadow)] sm:p-4',
+        'w-full min-w-0 rounded-[var(--quizy-control-radius)] border border-primary/15 bg-[var(--quizy-surface-strong)] p-3 shadow-[var(--quizy-control-shadow)] sm:p-4',
         disabled && 'opacity-65',
         className,
       )}
@@ -80,7 +80,7 @@ export function CustomFileInput({ id, value, previewSrc, accept = 'image/*', dis
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           className={cn(
-            'group relative flex h-32 w-full min-w-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-primary/25 bg-primary/[0.025] text-center outline-none transition-[border-color,background-color,box-shadow,transform] duration-200 hover:border-primary/40 hover:bg-primary/[0.045] focus-visible:border-primary/55 focus-visible:shadow-[var(--quizy-control-focus-shadow)] sm:h-28',
+            'group relative flex h-32 w-full min-w-0 items-center justify-center overflow-hidden rounded-[var(--quizy-control-radius)] border border-dashed border-primary/25 bg-primary/[0.025] text-center outline-none transition-[border-color,background-color,box-shadow,transform] duration-200 hover:border-primary/40 hover:bg-primary/[0.045] focus-visible:border-primary/55 focus-visible:shadow-[var(--quizy-control-focus-shadow)] sm:h-28',
             isDragging && 'scale-[0.99] border-primary/60 bg-primary/[0.075] shadow-[var(--quizy-control-focus-shadow)]',
             disabled && 'cursor-not-allowed',
           )}
@@ -92,7 +92,7 @@ export function CustomFileInput({ id, value, previewSrc, accept = 'image/*', dis
             </>
           ) : (
             <span className="flex max-w-28 flex-col items-center gap-2 px-3 text-muted-foreground">
-              <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><UploadCloud className="size-5" /></span>
+              <span className="flex size-10 items-center justify-center rounded-[var(--quizy-control-radius)] bg-primary/10 text-primary"><Icon.uploadCloud className="size-5" /></span>
               <span className="text-xs font-semibold leading-5 text-foreground">{uploadLabel}</span>
             </span>
           )}
@@ -101,20 +101,20 @@ export function CustomFileInput({ id, value, previewSrc, accept = 'image/*', dis
         <div className="min-w-0 space-y-3">
           <div className="min-w-0 space-y-1">
             {effectiveFileLabel ? (
-              <div className="flex min-w-0 items-center gap-2 rounded-xl border border-primary/10 bg-muted/35 px-3 py-2">
-                <FileText className="size-4 shrink-0 text-primary" />
+              <div className="flex min-w-0 items-center gap-2 rounded-[var(--quizy-control-radius)] border border-primary/10 bg-muted/35 px-3 py-2">
+                <Icon.file className="size-4 shrink-0 text-primary" />
                 <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground" dir="auto">{effectiveFileLabel}</span>
               </div>
             ) : null}
             {hint ? <p className="text-xs leading-5 text-muted-foreground">{hint}</p> : null}
           </div>
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <Button type="button" variant="outline" disabled={disabled} onClick={() => inputRef.current?.click()} className="w-full sm:w-auto">
-              <UploadCloud className="size-4" />{uploadLabel}
+            <Button type="button" variant="outline" disabled={disabled} onClick={() => inputRef.current?.click()} className="w-full sm:w-auto" icon={<Icon.uploadCloud />}>
+              {uploadLabel}
             </Button>
             {hasFile ? (
-              <Button type="button" variant="ghost" disabled={disabled} onClick={handleClear} className="w-full text-muted-foreground hover:text-destructive sm:w-auto">
-                <X className="size-4" />{removeLabel}
+              <Button type="button" variant="ghost" disabled={disabled} onClick={handleClear} className="w-full text-muted-foreground hover:text-destructive sm:w-auto" icon={<Icon.close />}>
+                {removeLabel}
               </Button>
             ) : null}
           </div>
