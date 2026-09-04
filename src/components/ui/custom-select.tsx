@@ -14,6 +14,8 @@ export type CustomSelectOption<T extends string | number = string> = {
   disabled?: boolean
 }
 
+type CustomSelectSize = 'sm' | 'md' | 'lg'
+
 type CustomSelectProps<T extends string | number = string> = {
   value?: T
   defaultValue?: T
@@ -29,6 +31,7 @@ type CustomSelectProps<T extends string | number = string> = {
   className?: string
   contentClassName?: string
   variant?: 'default' | 'filter'
+  size?: CustomSelectSize
   hasMoreOptions?: boolean
   isLoadingMoreOptions?: boolean
   onLoadMoreOptions?: () => void
@@ -37,7 +40,13 @@ type CustomSelectProps<T extends string | number = string> = {
 
 const EMPTY_OPTION_KEY = '__quizy_empty_option__'
 const SELECT_TRIGGER_BASE_CLASS =
-  'h-[var(--quizy-control-height)] w-full min-w-0 rounded-[var(--quizy-control-radius)] border border-input bg-[var(--quizy-surface-strong)] px-[var(--quizy-control-padding-inline)] text-[length:var(--quizy-control-font-size)] font-medium text-foreground shadow-[var(--quizy-control-shadow)] outline-none transition-[color,background-color,border-color,box-shadow] duration-[var(--quizy-motion-fast)] hover:border-primary/25 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] data-[state=open]:border-ring data-[state=open]:ring-ring/50 data-[state=open]:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-invalid:ring-[3px]'
+  'w-full min-w-0 rounded-[var(--quizy-control-radius)] border border-input bg-[var(--quizy-surface-strong)] px-[var(--quizy-control-padding-inline)] font-medium text-foreground shadow-[var(--quizy-control-shadow)] outline-none transition-[color,background-color,border-color,box-shadow] duration-[var(--quizy-motion-fast)] hover:border-primary/25 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] data-[state=open]:border-ring data-[state=open]:ring-ring/50 data-[state=open]:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-muted/50 disabled:text-muted-foreground disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 aria-invalid:ring-[3px]'
+
+const SELECT_SIZE_CLASS: Record<CustomSelectSize, string> = {
+  sm: 'h-[var(--quizy-control-height-sm)] px-3 text-xs',
+  md: 'h-[var(--quizy-control-height)] text-[length:var(--quizy-control-font-size)]',
+  lg: 'h-[var(--quizy-control-height-lg)] px-4 text-sm',
+}
 
 const DEFAULT_TRIGGER_CLASS = SELECT_TRIGGER_BASE_CLASS
 const FILTER_TRIGGER_CLASS = SELECT_TRIGGER_BASE_CLASS
@@ -72,6 +81,7 @@ export function CustomSelect<T extends string | number = string>({
   className,
   contentClassName,
   variant = 'default',
+  size = 'md',
   hasMoreOptions = false,
   isLoadingMoreOptions = false,
   onLoadMoreOptions,
@@ -155,8 +165,10 @@ export function CustomSelect<T extends string | number = string>({
             size="none"
             id={id}
             aria-label={ariaLabel}
+            data-size={size}
             className={cn(
               variant === 'filter' ? FILTER_TRIGGER_CLASS : DEFAULT_TRIGGER_CLASS,
+              SELECT_SIZE_CLASS[size],
               icon && 'ps-11',
               '[&_[data-slot=select-value]]:flex-1 [&_[data-slot=select-value]]:text-start',
               className
@@ -198,3 +210,5 @@ export function CustomSelect<T extends string | number = string>({
     </>
   )
 }
+
+export type { CustomSelectProps, CustomSelectSize }
