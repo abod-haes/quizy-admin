@@ -80,6 +80,24 @@
     "unblock": "إلغاء الحظر",
     "updated": "تم تحديث حالة حساب الطالب."
   },
+  "studentDevices": {
+    "open": "أجهزة تسجيل الدخول",
+    "title": "أجهزة وتسجيلات دخول الطالب",
+    "description": "سجل الأجهزة للطالب {{name}} مع أوقات تسجيل الدخول وحالة السماح.",
+    "empty": "لا توجد أجهزة مسجلة لهذا الطالب حتى الآن.",
+    "unknownDevice": "جهاز غير معروف",
+    "unknownPlatform": "نظام غير معروف",
+    "statusActive": "نشط الآن",
+    "statusAllowed": "مسموح",
+    "statusBlocked": "ممنوع",
+    "firstLogin": "أول تسجيل دخول",
+    "lastLogin": "آخر تسجيل دخول",
+    "loginCount": "عدد تسجيلات الدخول",
+    "lastBlockedAttempt": "آخر محاولة ممنوعة",
+    "blockedAttempts": "عدد المحاولات الممنوعة",
+    "allow": "السماح بهذا الجهاز",
+    "allowedMessage": "تم السماح للجهاز. يمكن للطالب محاولة تسجيل الدخول منه الآن."
+  },
   "actions": {
     "create": "إضافة",
     "sendNotification": "إرسال إشعار",
