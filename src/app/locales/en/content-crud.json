@@ -80,6 +80,24 @@
     "unblock": "Unblock account",
     "updated": "Student account status updated."
   },
+  "studentDevices": {
+    "open": "Login devices",
+    "title": "Student login devices",
+    "description": "Device history for {{name}}, including login times and access status.",
+    "empty": "No devices have been recorded for this student yet.",
+    "unknownDevice": "Unknown device",
+    "unknownPlatform": "Unknown platform",
+    "statusActive": "Active now",
+    "statusAllowed": "Allowed",
+    "statusBlocked": "Blocked",
+    "firstLogin": "First login",
+    "lastLogin": "Last login",
+    "loginCount": "Login count",
+    "lastBlockedAttempt": "Last blocked attempt",
+    "blockedAttempts": "Blocked attempts",
+    "allow": "Allow this device",
+    "allowedMessage": "The device is now allowed. The student can try signing in from it."
+  },
   "actions": {
     "create": "Create",
     "sendNotification": "Send notification",
