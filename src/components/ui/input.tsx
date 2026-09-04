@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 
 type InputSize = 'sm' | 'md' | 'lg'
 
-type InputProps = React.ComponentProps<"input"> & {
+type InputProps = Omit<React.ComponentProps<"input">, 'size'> & {
   startIcon?: React.ReactNode
   endIcon?: React.ReactNode
   variant?: 'default' | 'filter'
