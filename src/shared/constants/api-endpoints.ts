@@ -82,6 +82,8 @@ export const API_ENDPOINTS = {
     update: (id: string) => byId(`${ADMIN}/students`, id), remove: (id: string) => byId(`${ADMIN}/students`, id),
     block: (id: string) => `${ADMIN}/students/${id}/block`,
     unblock: (id: string) => `${ADMIN}/students/${id}/unblock`,
+    devices: (id: string) => `${ADMIN}/students/${id}/devices`,
+    allowDevice: (studentId: string, deviceId: string) => `${ADMIN}/students/${studentId}/devices/${deviceId}/allow`,
   },
   employees: {
     ...employeeCrud,
