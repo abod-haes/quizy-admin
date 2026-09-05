@@ -69,7 +69,13 @@ export const api = {
     formData: FormData,
     options?: RequestOptions,
   ): Promise<TResponse> {
-    const response = await httpClient.post<TResponse>(url, formData, options)
+    // Normal API requests keep the global 20-second timeout, but media uploads
+    // can legitimately take several minutes on slower connections. Axios aborts
+    // timed-out browser uploads, which Chrome reports as `(canceled)`.
+    const response = await httpClient.post<TResponse>(url, formData, {
+      timeout: 0,
+      ...options,
+    })
     return response.data
   },
 
