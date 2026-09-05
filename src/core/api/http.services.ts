@@ -45,7 +45,11 @@ httpClient.interceptors.request.use((config) => {
   config.headers.Accept = config.headers.Accept ?? 'application/json'
 
   if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+    // Multipart requests can contain large course videos and legitimately take
+    // longer than the normal API timeout. Apply this at the shared client level
+    // so POST/PUT/PATCH uploads cannot accidentally inherit the 20s timeout.
     config.headers['Content-Type'] = undefined
+    config.timeout = 0
   }
 
   return config
