@@ -4,6 +4,7 @@ import App from '@/App'
 import { AppProvider } from '@/app/providers/app.provider'
 import '@/app/i18n'
 import '@/index.css'
+import '@/quizy-soft-surfaces.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
