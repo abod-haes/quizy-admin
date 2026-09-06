@@ -60,7 +60,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-1rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-[1.5rem] border border-primary/10 bg-popover p-4 text-sm text-popover-foreground shadow-[var(--quizy-card-shadow)] outline-none duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:max-w-5xl sm:p-6",
+          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-1rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-[var(--quizy-surface-radius-lg)] border border-primary/10 bg-popover p-4 text-sm text-popover-foreground shadow-[var(--quizy-card-shadow)] outline-none duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:max-w-5xl sm:p-6",
           className
         )}
         {...props}
@@ -74,7 +74,7 @@ function DialogContent({
         {showCloseButton ? (
           <DialogPrimitive.Close
             data-slot="dialog-close"
-            className="absolute top-3 end-3 inline-flex size-8 items-center justify-center rounded-md text-muted-foreground opacity-70 outline-none transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+            className="absolute top-3 end-3 inline-flex size-8 items-center justify-center rounded-[var(--quizy-control-radius)] text-muted-foreground opacity-70 outline-none transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
           >
             <XIcon />
             <span className="sr-only">Close</span>
