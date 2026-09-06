@@ -64,7 +64,7 @@ function SheetContent({
       <SheetPrimitive.Content
         data-slot="sheet-content"
         className={cn(
-          "fixed z-50 flex w-[calc(100vw-2rem)] max-w-2xl flex-col gap-4 overflow-hidden rounded-3xl bg-background shadow-2xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:duration-200 data-[state=open]:duration-200",
+          "fixed z-50 flex w-[calc(100vw-2rem)] max-w-2xl flex-col gap-4 overflow-hidden rounded-[var(--quizy-surface-radius-lg)] bg-background shadow-2xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:duration-200 data-[state=open]:duration-200",
           className,
           "!inset-auto !left-1/2 !right-auto !top-1/2 !bottom-auto !h-auto !max-h-[calc(100dvh-2rem)] !-translate-x-1/2 !-translate-y-1/2 !border-0"
         )}
@@ -76,7 +76,7 @@ function SheetContent({
         {showCloseButton ? (
           <SheetPrimitive.Close
             data-slot="sheet-close"
-            className="absolute top-4 end-4 inline-flex size-8 items-center justify-center rounded-md text-muted-foreground opacity-70 outline-none transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+            className="absolute top-4 end-4 inline-flex size-8 items-center justify-center rounded-[var(--quizy-control-radius)] text-muted-foreground opacity-70 outline-none transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
           >
             <XIcon />
             <span className="sr-only">Close</span>
