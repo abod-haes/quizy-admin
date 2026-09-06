@@ -75,6 +75,18 @@ type PushNotificationPayload = {
   userIds: string[]
 }
 
+type PushNotificationResponse = {
+  id: string
+  delivery?: {
+    configured?: boolean
+    deviceCount?: number
+    attempted?: number
+    successCount?: number
+    failureCount?: number
+    error?: string
+  }
+}
+
 const EMPTY_FORM: NotificationForm = {
   title: '',
   body: '',
@@ -185,10 +197,30 @@ export default function NotificationsPage() {
         isBroadcast: form.isBroadcast,
         userIds,
       }
-      return api.post<unknown, PushNotificationPayload>(API_ENDPOINTS.notifications.push, payload)
+      return api.post<PushNotificationResponse, PushNotificationPayload>(API_ENDPOINTS.notifications.push, payload)
     },
-    onSuccess: async () => {
-      toast.success(t('messages.sent'))
+    onSuccess: async (response) => {
+      const delivery = response.delivery
+      const arabic = i18n.language.toLowerCase().startsWith('ar')
+
+      if (!delivery) {
+        toast.info(arabic ? 'تم حفظ الإشعار، لكن لم يرجع السيرفر حالة إرسال Firebase.' : 'Notification saved, but the server did not return Firebase delivery status.')
+      } else if (delivery.configured === false) {
+        toast.error(arabic ? 'تم حفظ الإشعار، لكن Firebase غير مهيأ على السيرفر.' : 'Notification saved, but Firebase is not configured on the server.')
+      } else if ((delivery.deviceCount ?? 0) === 0) {
+        toast.info(arabic ? 'تم حفظ الإشعار، لكن لا يوجد جهاز مسجل لاستقبال الإشعارات.' : 'Notification saved, but there is no registered device to receive it.')
+      } else if ((delivery.successCount ?? 0) === 0) {
+        toast.error(arabic ? 'تم حفظ الإشعار، لكن فشل إرساله عبر Firebase.' : 'Notification saved, but Firebase delivery failed.')
+      } else if ((delivery.failureCount ?? 0) > 0) {
+        toast.info(arabic
+          ? `تم إرسال الإشعار إلى ${delivery.successCount} جهاز، وتعذر إرساله إلى ${delivery.failureCount} جهاز.`
+          : `Notification delivered to ${delivery.successCount} device(s); ${delivery.failureCount} delivery attempt(s) failed.`)
+      } else {
+        toast.success(arabic
+          ? `تم إرسال الإشعار فورياً إلى ${delivery.successCount ?? delivery.deviceCount ?? 0} جهاز.`
+          : `Notification delivered in real time to ${delivery.successCount ?? delivery.deviceCount ?? 0} device(s).`)
+      }
+
       setOpen(false)
       setForm(EMPTY_FORM)
       setImageFile(null)
