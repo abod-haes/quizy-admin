@@ -44,7 +44,7 @@ export function PageHeader({
   actions,
   className,
 }: PageHeaderProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation('translation', { keyPrefix: 'common' })
 
   const autoInlineControl = isValidElement(controls) && controls.type === Button
   const showControlsInline = Boolean(
