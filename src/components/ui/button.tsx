@@ -12,13 +12,13 @@ const buttonVariants = cva(
         default:
           "border-primary bg-primary text-primary-foreground shadow-[var(--quizy-control-shadow)] hover:bg-primary/92 hover:shadow-[var(--quizy-control-focus-shadow)] active:bg-primary/96 aria-expanded:bg-primary/95 data-[state=open]:bg-primary/95",
         outline:
-          "border-input bg-[var(--quizy-surface-strong)] text-foreground shadow-[var(--quizy-control-shadow)] hover:border-primary/25 hover:bg-accent/45 active:bg-accent/60 aria-expanded:border-primary/30 aria-expanded:bg-accent/55 data-[state=open]:border-primary/30 data-[state=open]:bg-accent/55",
+          "border-primary/35 bg-[var(--quizy-surface-strong)] text-primary shadow-none hover:border-primary/55 hover:bg-primary/5 hover:text-primary active:bg-primary/10 aria-expanded:border-primary/55 aria-expanded:bg-primary/10 data-[state=open]:border-primary/55 data-[state=open]:bg-primary/10",
         secondary:
           "border-primary/10 bg-secondary text-secondary-foreground shadow-[var(--quizy-control-shadow)] hover:border-primary/20 hover:bg-secondary/85 active:bg-secondary aria-expanded:bg-secondary data-[state=open]:bg-secondary",
         ghost:
           "border-transparent bg-transparent text-foreground shadow-none hover:bg-muted/75 active:bg-muted aria-expanded:bg-muted data-[state=open]:bg-muted",
         destructive:
-          "border-destructive bg-destructive text-primary-foreground shadow-[var(--quizy-control-shadow)] hover:bg-destructive/90 hover:shadow-[var(--quizy-control-focus-shadow)] active:bg-destructive/95 aria-expanded:bg-destructive/95 data-[state=open]:bg-destructive/95",
+          "border-destructive bg-destructive text-white shadow-[var(--quizy-control-shadow)] hover:bg-destructive/90 hover:text-white hover:shadow-[var(--quizy-control-focus-shadow)] active:bg-destructive/95 aria-expanded:bg-destructive/95 data-[state=open]:bg-destructive/95",
         link:
           "border-transparent bg-transparent text-primary shadow-none hover:underline active:opacity-85 underline-offset-4 focus-visible:border-transparent focus-visible:shadow-none",
       },
