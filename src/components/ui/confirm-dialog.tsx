@@ -16,30 +16,30 @@ import { cn } from "@/lib/utils"
 const CONFIRM_TYPE_STYLES = {
   destructive: {
     defaultConfirmVariant: "destructive" as const,
-    accentBarClassName: "bg-destructive/70",
+    accentBarClassName: "bg-destructive/80",
     iconWrapperClassName:
-      "border-destructive/25 bg-card text-destructive ring-1 ring-destructive/10",
+      "bg-destructive/8 text-destructive ring-1 ring-inset ring-destructive/12",
     icon: <Trash2 />,
   },
   warning: {
     defaultConfirmVariant: "default" as const,
-    accentBarClassName: "bg-amber-500/70",
+    accentBarClassName: "bg-amber-500/80",
     iconWrapperClassName:
-      "border-amber-500/25 bg-card text-amber-700 ring-1 ring-amber-500/10",
+      "bg-amber-500/8 text-amber-700 ring-1 ring-inset ring-amber-500/12",
     icon: <TriangleAlert />,
   },
   success: {
     defaultConfirmVariant: "default" as const,
-    accentBarClassName: "bg-emerald-500/70",
+    accentBarClassName: "bg-emerald-500/80",
     iconWrapperClassName:
-      "border-emerald-500/25 bg-card text-emerald-700 ring-1 ring-emerald-500/10",
+      "bg-emerald-500/8 text-emerald-700 ring-1 ring-inset ring-emerald-500/12",
     icon: <CheckCircle2 />,
   },
   info: {
     defaultConfirmVariant: "default" as const,
-    accentBarClassName: "bg-primary/70",
+    accentBarClassName: "bg-primary/80",
     iconWrapperClassName:
-      "border-primary/25 bg-card text-primary ring-1 ring-primary/10",
+      "bg-primary/8 text-primary ring-1 ring-inset ring-primary/12",
     icon: <Info />,
   },
 } as const
@@ -136,6 +136,7 @@ export function ConfirmDialog({
       {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
 
       <DialogContent
+        data-confirm-dialog="true"
         showCloseButton={false}
         onEscapeKeyDown={(event) => {
           if (isConfirming) {
@@ -148,17 +149,17 @@ export function ConfirmDialog({
           }
         }}
         className={cn(
-          "overflow-visible rounded-2xl border border-border bg-card p-0 shadow-2xl sm:max-w-md",
+          "overflow-visible rounded-[1.25rem] border border-primary/5 bg-card p-0 shadow-[0_16px_48px_rgba(45,27,90,0.14)] sm:max-w-sm",
           contentClassName
         )}
       >
-        <div aria-hidden className={cn("h-1 w-full rounded-t-2xl", resolvedTypeStyles.accentBarClassName)} />
+        <div aria-hidden className={cn("h-1 w-full rounded-t-[1.25rem]", resolvedTypeStyles.accentBarClassName)} />
 
-        <DialogHeader className="items-center gap-0 px-6 pb-0 pt-6 text-center">
+        <DialogHeader className="items-center gap-0 px-5 pb-0 pt-5 text-center">
           {showTypeIcon ? (
             <span
               className={cn(
-                "mx-auto mb-3 flex size-14 items-center justify-center rounded-full border shadow-sm [&_svg]:size-6",
+                "mx-auto mb-3 flex size-11 items-center justify-center rounded-full [&_svg]:size-5",
                 resolvedTypeStyles.iconWrapperClassName
               )}
               aria-hidden
@@ -166,25 +167,25 @@ export function ConfirmDialog({
               {iconNode}
             </span>
           ) : null}
-          <DialogTitle className="text-lg font-semibold leading-tight tracking-tight text-foreground">
+          <DialogTitle className="text-base font-bold leading-tight tracking-tight text-foreground">
             {title}
           </DialogTitle>
           {description ? (
-            <DialogDescription className="mt-2 max-w-[48ch] text-sm leading-6 text-muted-foreground">
+            <DialogDescription className="mt-1.5 max-w-[38ch] text-xs leading-5 text-muted-foreground sm:text-sm">
               {description}
             </DialogDescription>
           ) : null}
         </DialogHeader>
 
-        <DialogFooter className="mx-0 mb-0 mt-6 gap-2 border-t border-border bg-muted/15 px-6 py-4 sm:justify-center sm:gap-2">
+        <DialogFooter className="mx-0 mb-0 mt-4 gap-2 border-t border-border/60 bg-muted/10 px-5 py-3.5 sm:justify-center sm:gap-2">
           <Button
             type="button"
-            size="lg"
+            size="default"
             variant="outline"
             onClick={() => handleOpenChange(false)}
             disabled={isConfirming}
             className={cn(
-              "w-full rounded-lg sm:w-auto sm:min-w-32",
+              "w-full sm:w-auto sm:min-w-28",
               cancelButtonClassName
             )}
           >
@@ -192,12 +193,12 @@ export function ConfirmDialog({
           </Button>
           <Button
             type="button"
-            size="lg"
+            size="default"
             variant={resolvedConfirmVariant}
             onClick={() => void handleConfirm()}
             disabled={isConfirming}
             className={cn(
-              "w-full rounded-lg sm:w-auto sm:min-w-32",
+              "w-full sm:w-auto sm:min-w-28",
               confirmButtonClassName
             )}
           >
