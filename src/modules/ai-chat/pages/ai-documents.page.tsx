@@ -31,6 +31,11 @@ type AiDocumentRow = {
 }
 
 const PAGE_SIZE = 20
+const AI_DOCUMENT_ACCEPT = '.pdf,application/pdf'
+
+function isPdfDocument(file: File) {
+  return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+}
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -99,7 +104,7 @@ export default function AiDocumentsPage() {
 
   const uploadMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedFile) throw new Error('missing-file')
+      if (!selectedFile || !isPdfDocument(selectedFile)) throw new Error('invalid-file')
       const formData = new FormData()
       formData.append('file', selectedFile)
       return api.upload<unknown>(API_ENDPOINTS.ai.documentUpload, formData, { params: { async: 'true' } })
@@ -143,6 +148,19 @@ export default function AiDocumentsPage() {
     onError: () => toast.error(t('aiDocuments.deleteError')),
   })
 
+  const handleFileSelect = (file: File | null) => {
+    if (!file) {
+      setSelectedFile(null)
+      return
+    }
+    if (!isPdfDocument(file)) {
+      setSelectedFile(null)
+      toast.error(t('aiDocuments.uploadError'))
+      return
+    }
+    setSelectedFile(file)
+  }
+
   return (
     <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
       <PageHeader
@@ -154,11 +172,12 @@ export default function AiDocumentsPage() {
       <Card className="shrink-0 rounded-2xl"><CardContent className="grid gap-3 p-4 md:grid-cols-[1fr_auto] md:items-end">
         <CustomFileInput
           value={selectedFile?.name ?? ''}
+          accept={AI_DOCUMENT_ACCEPT}
           uploadLabel={t('aiDocuments.chooseFile')}
           removeLabel={t('common.delete')}
           hint={t('aiDocuments.uploadHint')}
           disabled={uploadMutation.isPending}
-          onFileSelect={setSelectedFile}
+          onFileSelect={handleFileSelect}
           onClear={() => setSelectedFile(null)}
         />
         <Button disabled={!selectedFile || uploadMutation.isPending} onClick={() => uploadMutation.mutate()}>{uploadMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <FileUp className="size-4" />}{t('aiDocuments.upload')}</Button>
