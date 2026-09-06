@@ -1,6 +1,6 @@
 [data-slot='badge'] {
   min-height: 1.5rem;
-  border-radius: 999px !important;
+  border-radius: calc(var(--quizy-control-radius) - 0.125rem) !important;
   padding-inline: 0.625rem;
   font-size: 0.72rem;
   font-weight: 600;
