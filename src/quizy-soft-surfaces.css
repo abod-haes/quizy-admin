@@ -1,0 +1,89 @@
+:root {
+  --border: rgba(109, 40, 217, 0.075);
+  --input: rgba(109, 40, 217, 0.12);
+  --quizy-sidebar-border: rgba(109, 40, 217, 0.08);
+  --quizy-card-shadow: 0 12px 32px rgba(76, 29, 149, 0.055);
+  --quizy-control-shadow: 0 4px 14px rgba(76, 29, 149, 0.035);
+}
+
+.dark {
+  --border: rgba(196, 181, 253, 0.09);
+  --input: rgba(196, 181, 253, 0.13);
+  --quizy-sidebar-border: rgba(167, 139, 250, 0.12);
+  --quizy-card-shadow: 0 16px 44px rgba(0, 0, 0, 0.26);
+  --quizy-control-shadow: 0 6px 18px rgba(0, 0, 0, 0.17);
+}
+
+/* Quizy identity: surfaces are separated mostly by spacing, tone and soft elevation.
+   Borders remain only as a quiet accessibility/detail cue. */
+.app-shell-frame [data-slot='page-header'],
+.app-shell-frame [data-slot='card'] {
+  border-color: color-mix(in srgb, var(--primary) 4%, transparent) !important;
+}
+
+.app-shell-frame [data-slot='card-footer'],
+.app-shell-frame [data-slot='card-header'].border-b,
+.app-shell-frame .border-t,
+.app-shell-frame .border-b,
+.app-shell-frame .border-border {
+  border-color: var(--border) !important;
+}
+
+[data-slot='dialog-content'] {
+  border-color: color-mix(in srgb, var(--primary) 5%, transparent) !important;
+}
+
+.app-shell-frame [data-slot='input'],
+.app-shell-frame [data-slot='select-trigger'],
+.app-shell-frame textarea,
+.app-shell-frame .quizy-select-field {
+  border-color: var(--input) !important;
+  box-shadow: var(--quizy-control-shadow);
+}
+
+.app-shell-frame [data-slot='input']:hover,
+.app-shell-frame [data-slot='select-trigger']:hover,
+.app-shell-frame textarea:hover,
+.app-shell-frame .quizy-select-field:hover {
+  border-color: color-mix(in srgb, var(--primary) 16%, transparent) !important;
+}
+
+.app-shell-frame [data-slot='input']:focus-visible,
+.app-shell-frame [data-slot='select-trigger']:focus-visible,
+.app-shell-frame textarea:focus-visible,
+.app-shell-frame .quizy-select-field:focus-visible {
+  border-color: color-mix(in srgb, var(--primary) 34%, transparent) !important;
+}
+
+[data-slot='button'][data-variant='outline'],
+[data-slot='button'][data-variant='secondary'] {
+  border-color: color-mix(in srgb, var(--primary) 7%, transparent) !important;
+  box-shadow: none;
+}
+
+[data-slot='button'][data-variant='outline']:hover,
+[data-slot='button'][data-variant='secondary']:hover {
+  border-color: color-mix(in srgb, var(--primary) 14%, transparent) !important;
+}
+
+.quizy-table-shell {
+  border-color: transparent !important;
+  box-shadow: 0 8px 24px rgba(76, 29, 149, 0.035);
+}
+
+.quizy-hero-card {
+  border-color: color-mix(in srgb, var(--primary) 6%, transparent) !important;
+}
+
+.quizy-ag-grid .ag-header {
+  border-bottom-color: var(--border) !important;
+}
+
+.quizy-ag-grid .ag-header-cell:not(:last-child),
+.quizy-ag-grid .ag-cell:not(:last-child) {
+  border-inline-end-color: color-mix(in srgb, var(--border) 65%, transparent) !important;
+}
+
+.quizy-ag-grid .ag-row {
+  border-bottom-color: color-mix(in srgb, var(--border) 78%, transparent) !important;
+}
