@@ -12,28 +12,28 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+import { resourcesService } from '@/modules/resources/resources.service'
 import { api } from '@/shared/api/api-client'
 import type { PagedResponse } from '@/shared/api/api.types'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 import { toast } from '@/shared/lib/toast'
 import { generateResourceContentUrl } from '@/shared/utils/file-url'
-import { resourcesService } from '@/modules/resources/resources.service'
 import {
   Button,
   CustomFileInput,
   CustomMultiSelect,
   Input,
   Label,
-  Textarea,
-  ToggleSwitch,
+  PaginatedDataTable,
+  PageHeader,
   Sheet,
   SheetContent,
   SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  PaginatedDataTable,
-  PageHeader,
+  Textarea,
+  ToggleSwitch,
   type CustomMultiSelectOption,
   type DataTableColumn,
 } from '@/shared/ui'
@@ -61,7 +61,6 @@ type StudentBrief = {
 type NotificationForm = {
   title: string
   body: string
-  data: string
   isBroadcast: boolean
   userIds: string[]
 }
@@ -69,7 +68,6 @@ type NotificationForm = {
 type PushNotificationPayload = {
   title: string
   body: string
-  data: Record<string, string>
   imageUrl: string
   isBroadcast: boolean
   userIds: string[]
@@ -90,17 +88,8 @@ type PushNotificationResponse = {
 const EMPTY_FORM: NotificationForm = {
   title: '',
   body: '',
-  data: '',
   isBroadcast: true,
   userIds: [],
-}
-
-function parseData(value: string): Record<string, string> {
-  const text = value.trim()
-  if (!text) return {}
-  const parsed = JSON.parse(text) as unknown
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('validation.jsonObject')
-  return Object.fromEntries(Object.entries(parsed as Record<string, unknown>).map(([key, item]) => [key, String(item)]))
 }
 
 function errorMessage(error: unknown): string | null {
@@ -181,7 +170,6 @@ export default function NotificationsPage() {
       const userIds = form.isBroadcast ? [] : form.userIds
       if (!form.isBroadcast && userIds.length === 0) throw new Error('validation.userIdsRequired')
 
-      const data = parseData(form.data)
       let imageUrl = ''
       if (imageFile) {
         const resource = await resourcesService.uploadPublicImage(imageFile)
@@ -192,7 +180,6 @@ export default function NotificationsPage() {
       const payload: PushNotificationPayload = {
         title: form.title.trim(),
         body: form.body.trim(),
-        data,
         imageUrl,
         isBroadcast: form.isBroadcast,
         userIds,
@@ -350,7 +337,6 @@ export default function NotificationsPage() {
                 <p className="text-xs text-muted-foreground">{studentSelectionHint}</p>
               </div>
             ) : null}
-            <div className="space-y-2 sm:col-span-2"><Label htmlFor="notification-data">{t('fields.data')}</Label><Textarea id="notification-data" value={form.data} placeholder={t('placeholders.notificationData')} onChange={(event) => updateForm('data', event.target.value)} /></div>
             {formError ? <p className="text-sm text-destructive sm:col-span-2">{formError}</p> : null}
           </div>
           <SheetFooter className="border-t border-border pt-4"><Button variant="outline" disabled={sendMutation.isPending} onClick={closeDialog}>{t('actions.cancel')}</Button><Button disabled={sendMutation.isPending} onClick={() => sendMutation.mutate()}>{sendMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}{t('actions.send')}</Button></SheetFooter>
