@@ -122,7 +122,6 @@ export function MediaImageUploadInput({
         removeLabel={removeLabel}
         hint={resolvedHint}
         onFileSelect={selectFile}
-        onClear={clearFile}
       />
 
       {file && !uploadOnSubmit ? (
