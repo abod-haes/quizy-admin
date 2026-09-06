@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -7,12 +7,14 @@ import {
   Braces,
   FileQuestion,
   ListPlus,
+  Paperclip,
   Plus,
   Save,
   Trash2,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
+import { resourcesService } from '@/modules/resources/resources.service'
 import { api } from '@/shared/api/api-client'
 import type { PagedResponse } from '@/shared/api/api.types'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
@@ -25,6 +27,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CustomFileInput,
   CustomSelect,
   Input,
   Label,
@@ -78,6 +81,8 @@ type QuizPayload = {
 }
 
 const RESOURCE_PAGE_SIZE = 100
+const QUESTION_FILE_ACCEPT =
+  'image/*,application/pdf,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt'
 
 function valueLabel(item: OptionItem) {
   return (
@@ -221,6 +226,12 @@ function QuizBuilderEditor({
   const [payload, setPayload] = useState<QuizPayload>(initialPayload)
   const [jsonValue, setJsonValue] = useState(() => JSON.stringify(payloadForRequest(initialPayload), null, 2))
   const [jsonError, setJsonError] = useState('')
+  const [uploadingQuestionIndex, setUploadingQuestionIndex] = useState<number | null>(null)
+
+  const resourceLabels = useMemo(
+    () => new Map(resourceOptions.map((option) => [option.value, option.label])),
+    [resourceOptions],
+  )
 
   const validate = (candidate: QuizPayload) => {
     if (!candidate.title?.trim()) return t('validation.titleRequired')
@@ -267,6 +278,9 @@ function QuizBuilderEditor({
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      if (uploadingQuestionIndex !== null) {
+        throw new Error(t('actions.uploadingFile'))
+      }
       const source = mode === 'json' ? readJsonForSave() : payload
       if (!source) throw new Error(jsonError || t('validation.jsonInvalid'))
       const validation = validate(source)
@@ -318,6 +332,37 @@ function QuizBuilderEditor({
     }))
   }
 
+  const uploadQuestionFile = async (questionIndex: number, file: File | null) => {
+    if (!file || uploadingQuestionIndex !== null) return
+    setUploadingQuestionIndex(questionIndex)
+    try {
+      const resource = file.type.startsWith('image/')
+        ? await resourcesService.uploadPublicImage(file)
+        : await resourcesService.upload(file, 'PUBLIC')
+
+      setPayload((current) => ({
+        ...current,
+        questions: current.questions.map((question, currentQuestionIndex) => {
+          if (currentQuestionIndex !== questionIndex) return question
+          return {
+            ...question,
+            fileIds: Array.from(new Set([...(question.fileIds ?? []), resource.id])),
+          }
+        }),
+      }))
+      await queryClient.invalidateQueries({ queryKey: ['quiz-builder', 'resources'] })
+      toast.success(t('messages.fileUploaded'))
+    } catch (error) {
+      toast.error(
+        error instanceof Error && error.message
+          ? error.message
+          : t('validation.fileUploadFailed'),
+      )
+    } finally {
+      setUploadingQuestionIndex(null)
+    }
+  }
+
   const switchMode = (nextMode: BuilderMode) => {
     if (nextMode === mode) return
     if (nextMode === 'json') {
@@ -329,8 +374,6 @@ function QuizBuilderEditor({
 
     const parsed = parseJson()
     if (parsed) setPayload(parsed)
-    // Returning to the visual editor must never be blocked by incomplete or malformed JSON.
-    // If parsing failed, keep the last valid visual state so the admin can recover there.
     setMode('visual')
   }
 
@@ -374,6 +417,7 @@ function QuizBuilderEditor({
           </Button>
           <Button
             loading={saveMutation.isPending}
+            disabled={uploadingQuestionIndex !== null}
             icon={<Save className="size-4" />}
             onClick={() => saveMutation.mutate()}
           >
@@ -418,14 +462,18 @@ function QuizBuilderEditor({
       ) : (
         <>
           <Card className="rounded-3xl">
-            <CardHeader><CardTitle>{t('title')}</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle>{t('title')}</CardTitle>
+            </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
                 <Label>{t('fields.quizTitle')}</Label>
                 <Input
                   value={payload.title ?? ''}
                   placeholder={t('placeholders.quizTitle')}
-                  onChange={(event) => setPayload((current) => ({ ...current, title: event.target.value }))}
+                  onChange={(event) =>
+                    setPayload((current) => ({ ...current, title: event.target.value }))
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -434,7 +482,9 @@ function QuizBuilderEditor({
                   value={payload.subjectId || undefined}
                   options={subjectOptions}
                   placeholder={t('placeholders.subject')}
-                  onValueChange={(value) => setPayload((current) => ({ ...current, subjectId: String(value) }))}
+                  onValueChange={(value) =>
+                    setPayload((current) => ({ ...current, subjectId: String(value) }))
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -443,7 +493,9 @@ function QuizBuilderEditor({
                   value={payload.teacherId || undefined}
                   options={teacherOptions}
                   placeholder={t('placeholders.teacher')}
-                  onValueChange={(value) => setPayload((current) => ({ ...current, teacherId: String(value) }))}
+                  onValueChange={(value) =>
+                    setPayload((current) => ({ ...current, teacherId: String(value) }))
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -453,7 +505,12 @@ function QuizBuilderEditor({
                   min={1}
                   step={1}
                   value={payload.timeExpiration}
-                  onChange={(event) => setPayload((current) => ({ ...current, timeExpiration: Number(event.target.value) }))}
+                  onChange={(event) =>
+                    setPayload((current) => ({
+                      ...current,
+                      timeExpiration: Number(event.target.value),
+                    }))
+                  }
                 />
               </div>
               <div className="flex items-end">
@@ -461,7 +518,9 @@ function QuizBuilderEditor({
                   <Label>{t('fields.isFree')}</Label>
                   <ToggleSwitch
                     checked={payload.isFree}
-                    onCheckedChange={(checked) => setPayload((current) => ({ ...current, isFree: checked }))}
+                    onCheckedChange={(checked) =>
+                      setPayload((current) => ({ ...current, isFree: checked }))
+                    }
                   />
                 </div>
               </div>
@@ -471,7 +530,9 @@ function QuizBuilderEditor({
                   values={payload.entityIds ?? []}
                   options={entityOptions}
                   placeholder={t('placeholders.linkedContent')}
-                  onValuesChange={(values) => setPayload((current) => ({ ...current, entityIds: values }))}
+                  onValuesChange={(values) =>
+                    setPayload((current) => ({ ...current, entityIds: values }))
+                  }
                 />
               </div>
             </CardContent>
@@ -485,126 +546,207 @@ function QuizBuilderEditor({
               </div>
               <Button
                 icon={<Plus className="size-4" />}
-                onClick={() => setPayload((current) => ({ ...current, questions: [...current.questions, emptyQuestion()] }))}
+                onClick={() =>
+                  setPayload((current) => ({
+                    ...current,
+                    questions: [...current.questions, emptyQuestion()],
+                  }))
+                }
               >
                 {t('actions.addQuestion')}
               </Button>
             </CardHeader>
             <CardContent className="space-y-5">
-              {payload.questions.map((question, questionIndex) => (
-                <div key={question.id ?? `new-${questionIndex}`} className="space-y-4 rounded-3xl border border-border p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <Badge variant="outline" color="primary">
-                      {t('questions.item', { index: questionIndex + 1 })}
-                    </Badge>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-destructive"
-                      icon={<Trash2 className="size-4" />}
-                      disabled={payload.questions.length <= 1}
-                      onClick={() => setPayload((current) => ({
-                        ...current,
-                        questions: current.questions.filter((_, index) => index !== questionIndex),
-                      }))}
-                    >
-                      {t('actions.removeQuestion')}
-                    </Button>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2 md:col-span-2">
-                      <Label>{t('fields.question')}</Label>
-                      <Textarea
-                        value={question.title}
-                        placeholder={t('placeholders.question')}
-                        onChange={(event) => updateQuestion(questionIndex, { title: event.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <Label>{t('fields.hint')}</Label>
-                      <Input
-                        value={question.hint ?? ''}
-                        placeholder={t('placeholders.hint')}
-                        onChange={(event) => updateQuestion(questionIndex, { hint: event.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{t('fields.lessons')}</Label>
-                      <MultiSelect
-                        values={question.lessonIds ?? []}
-                        options={lessonOptions}
-                        placeholder={t('placeholders.lessons')}
-                        onValuesChange={(values) => updateQuestion(questionIndex, { lessonIds: values })}
-                      />
-                      {question.lessonIds === undefined && question.lessonNames?.length ? (
-                        <div className="rounded-xl bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-                          <p>{t('questions.existingLessons', { names: question.lessonNames.join(', ') })}</p>
-                          <p className="mt-1">{t('questions.existingLessonsHint')}</p>
-                        </div>
-                      ) : null}
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{t('fields.files')}</Label>
-                      <MultiSelect
-                        values={question.fileIds ?? []}
-                        options={resourceOptions}
-                        placeholder={t('placeholders.files')}
-                        onValuesChange={(values) => updateQuestion(questionIndex, { fileIds: values })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
+              {payload.questions.map((question, questionIndex) => {
+                const isUploadingThisQuestion = uploadingQuestionIndex === questionIndex
+                return (
+                  <div
+                    key={question.id ?? `new-${questionIndex}`}
+                    className="space-y-4 rounded-3xl border border-border p-4"
+                  >
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                      <Label>{t('fields.answers')}</Label>
+                      <Badge variant="outline" color="primary">
+                        {t('questions.item', { index: questionIndex + 1 })}
+                      </Badge>
                       <Button
                         size="sm"
                         variant="outline"
-                        icon={<Plus className="size-4" />}
-                        onClick={() => updateQuestion(questionIndex, {
-                          answers: [...question.answers, { title: '', isCorrect: false }],
-                        })}
+                        className="text-destructive"
+                        icon={<Trash2 className="size-4" />}
+                        disabled={payload.questions.length <= 1 || isUploadingThisQuestion}
+                        onClick={() =>
+                          setPayload((current) => ({
+                            ...current,
+                            questions: current.questions.filter((_, index) => index !== questionIndex),
+                          }))
+                        }
                       >
-                        {t('actions.addAnswer')}
+                        {t('actions.removeQuestion')}
                       </Button>
                     </div>
-                    {question.answers.map((answer, answerIndex) => (
-                      <div
-                        key={`${question.id ?? questionIndex}-${answerIndex}`}
-                        className="grid gap-3 rounded-2xl border border-border p-3 md:grid-cols-[1fr_auto_auto] md:items-center"
-                      >
-                        <Input
-                          value={answer.title}
-                          placeholder={t('placeholders.answer')}
-                          onChange={(event) => updateAnswer(questionIndex, answerIndex, { title: event.target.value })}
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>{t('fields.question')}</Label>
+                        <Textarea
+                          value={question.title}
+                          placeholder={t('placeholders.question')}
+                          onChange={(event) =>
+                            updateQuestion(questionIndex, { title: event.target.value })
+                          }
                         />
-                        <label className="flex items-center gap-2 text-sm font-medium">
-                          <input
-                            className="size-4 accent-primary"
-                            type="checkbox"
-                            checked={answer.isCorrect}
-                            onChange={(event) => updateAnswer(questionIndex, answerIndex, { isCorrect: event.target.checked })}
-                          />
-                          {t('fields.correct')}
-                        </label>
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>{t('fields.hint')}</Label>
+                        <Input
+                          value={question.hint ?? ''}
+                          placeholder={t('placeholders.hint')}
+                          onChange={(event) =>
+                            updateQuestion(questionIndex, { hint: event.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>{t('fields.lessons')}</Label>
+                        <MultiSelect
+                          values={question.lessonIds ?? []}
+                          options={lessonOptions}
+                          placeholder={t('placeholders.lessons')}
+                          onValuesChange={(values) =>
+                            updateQuestion(questionIndex, { lessonIds: values })
+                          }
+                        />
+                        {question.lessonIds === undefined && question.lessonNames?.length ? (
+                          <div className="rounded-xl bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+                            <p>
+                              {t('questions.existingLessons', {
+                                names: question.lessonNames.join(', '),
+                              })}
+                            </p>
+                            <p className="mt-1">{t('questions.existingLessonsHint')}</p>
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <Label>{t('fields.files')}</Label>
+                        <CustomFileInput
+                          key={`question-file-${question.id ?? questionIndex}-${question.fileIds?.length ?? 0}`}
+                          accept={QUESTION_FILE_ACCEPT}
+                          disabled={uploadingQuestionIndex !== null}
+                          uploadLabel={
+                            isUploadingThisQuestion
+                              ? t('actions.uploadingFile')
+                              : t('actions.uploadFile')
+                          }
+                          removeLabel={t('actions.removeFile')}
+                          hint={t('questions.fileHint')}
+                          onFileSelect={(file) => void uploadQuestionFile(questionIndex, file)}
+                        />
+
+                        {question.fileIds?.length ? (
+                          <div className="space-y-2 pt-1">
+                            <p className="text-xs font-semibold text-muted-foreground">
+                              {t('questions.attachedFiles')}
+                            </p>
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              {question.fileIds.map((fileId) => (
+                                <div
+                                  key={fileId}
+                                  className="flex min-w-0 items-center gap-2 rounded-xl border border-primary/10 bg-primary/[0.025] px-3 py-2"
+                                >
+                                  <Paperclip className="size-4 shrink-0 text-primary" />
+                                  <span className="min-w-0 flex-1 truncate text-xs font-medium" dir="auto">
+                                    {resourceLabels.get(fileId) ?? fileId}
+                                  </span>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    className="shrink-0 text-destructive"
+                                    icon={<Trash2 className="size-4" />}
+                                    onClick={() =>
+                                      updateQuestion(questionIndex, {
+                                        fileIds: (question.fileIds ?? []).filter((id) => id !== fileId),
+                                      })
+                                    }
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <Label>{t('fields.answers')}</Label>
                         <Button
                           size="sm"
-                          variant="ghost"
-                          className="text-destructive"
-                          icon={<Trash2 className="size-4" />}
-                          disabled={question.answers.length <= 2}
-                          onClick={() => updateQuestion(questionIndex, {
-                            answers: question.answers.filter((_, index) => index !== answerIndex),
-                          })}
+                          variant="outline"
+                          icon={<Plus className="size-4" />}
+                          onClick={() =>
+                            updateQuestion(questionIndex, {
+                              answers: [
+                                ...question.answers,
+                                { title: '', isCorrect: false },
+                              ],
+                            })
+                          }
                         >
-                          {t('actions.removeAnswer')}
+                          {t('actions.addAnswer')}
                         </Button>
                       </div>
-                    ))}
+                      {question.answers.map((answer, answerIndex) => (
+                        <div
+                          key={`${question.id ?? questionIndex}-${answerIndex}`}
+                          className="grid gap-3 rounded-2xl border border-border p-3 md:grid-cols-[1fr_auto_auto] md:items-center"
+                        >
+                          <Input
+                            value={answer.title}
+                            placeholder={t('placeholders.answer')}
+                            onChange={(event) =>
+                              updateAnswer(questionIndex, answerIndex, {
+                                title: event.target.value,
+                              })
+                            }
+                          />
+                          <label className="flex items-center gap-2 text-sm font-medium">
+                            <input
+                              className="size-4 accent-primary"
+                              type="checkbox"
+                              checked={answer.isCorrect}
+                              onChange={(event) =>
+                                updateAnswer(questionIndex, answerIndex, {
+                                  isCorrect: event.target.checked,
+                                })
+                              }
+                            />
+                            {t('fields.correct')}
+                          </label>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive"
+                            icon={<Trash2 className="size-4" />}
+                            disabled={question.answers.length <= 2}
+                            onClick={() =>
+                              updateQuestion(questionIndex, {
+                                answers: question.answers.filter(
+                                  (_, index) => index !== answerIndex,
+                                ),
+                              })
+                            }
+                          >
+                            {t('actions.removeAnswer')}
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </CardContent>
           </Card>
         </>
@@ -641,9 +783,10 @@ export default function QuizBuilderV2Page() {
   })
   const resourcesQuery = useQuery({
     queryKey: ['quiz-builder', 'resources'],
-    queryFn: () => api.get<PagedResponse<ResourceOption>>(API_ENDPOINTS.resources.list, {
-      params: { Page: 1, PerPage: RESOURCE_PAGE_SIZE },
-    }),
+    queryFn: () =>
+      api.get<PagedResponse<ResourceOption>>(API_ENDPOINTS.resources.list, {
+        params: { Page: 1, PerPage: RESOURCE_PAGE_SIZE },
+      }),
     staleTime: 5 * 60 * 1000,
   })
   const detailQuery = useQuery({
@@ -672,24 +815,45 @@ export default function QuizBuilderV2Page() {
   if (isEditing && detailQuery.isError) {
     return (
       <Card className="rounded-3xl border-destructive/30">
-        <CardContent className="p-6 text-destructive">{t('validation.loadFailed')}</CardContent>
+        <CardContent className="p-6 text-destructive">
+          {t('validation.loadFailed')}
+        </CardContent>
       </Card>
     )
   }
 
-  const subjectOptions = (subjectsQuery.data ?? []).map((item) => ({ value: item.id, label: valueLabel(item) }))
-  const teacherOptions = (teachersQuery.data ?? []).map((item) => ({ value: item.id, label: valueLabel(item) }))
-  const lessonOptions = (lessonsQuery.data ?? []).map((item) => ({ value: item.id, label: valueLabel(item) }))
+  const subjectOptions = (subjectsQuery.data ?? []).map((item) => ({
+    value: item.id,
+    label: valueLabel(item),
+  }))
+  const teacherOptions = (teachersQuery.data ?? []).map((item) => ({
+    value: item.id,
+    label: valueLabel(item),
+  }))
+  const lessonOptions = (lessonsQuery.data ?? []).map((item) => ({
+    value: item.id,
+    label: valueLabel(item),
+  }))
   const entityOptions = [
-    ...(subjectsQuery.data ?? []).map((item) => ({ value: item.id, label: `${t('entityTypes.subject')}: ${valueLabel(item)}` })),
-    ...(unitsQuery.data ?? []).map((item) => ({ value: item.id, label: `${t('entityTypes.unit')}: ${valueLabel(item)}` })),
-    ...(lessonsQuery.data ?? []).map((item) => ({ value: item.id, label: `${t('entityTypes.lesson')}: ${valueLabel(item)}` })),
+    ...(subjectsQuery.data ?? []).map((item) => ({
+      value: item.id,
+      label: `${t('entityTypes.subject')}: ${valueLabel(item)}`,
+    })),
+    ...(unitsQuery.data ?? []).map((item) => ({
+      value: item.id,
+      label: `${t('entityTypes.unit')}: ${valueLabel(item)}`,
+    })),
+    ...(lessonsQuery.data ?? []).map((item) => ({
+      value: item.id,
+      label: `${t('entityTypes.lesson')}: ${valueLabel(item)}`,
+    })),
   ]
   const resourceOptions = (resourcesQuery.data?.items ?? []).map((item) => ({
     value: item.id,
     label: item.originalName?.trim() || item.filePath?.split('/').pop() || item.id,
   }))
-  const initialPayload = isEditing && detailQuery.data ? normalizeQuizBody(detailQuery.data) : emptyQuiz()
+  const initialPayload =
+    isEditing && detailQuery.data ? normalizeQuizBody(detailQuery.data) : emptyQuiz()
 
   return (
     <QuizBuilderEditor

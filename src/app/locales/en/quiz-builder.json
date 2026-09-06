@@ -13,7 +13,7 @@
     "question": "Question",
     "hint": "Hint",
     "lessons": "Lessons",
-    "files": "Files",
+    "files": "Question image or file",
     "answers": "Answers",
     "correct": "Correct"
   },
@@ -23,7 +23,7 @@
     "teacher": "Select teacher",
     "linkedContent": "Select subjects, units, or lessons",
     "lessons": "Select lessons",
-    "files": "Select files",
+    "files": "Upload an image or file",
     "question": "Enter the question text",
     "hint": "Optional hint",
     "answer": "Answer text"
@@ -42,14 +42,19 @@
     "saving": "Saving...",
     "formatJson": "Format JSON",
     "visualMode": "Visual form",
-    "jsonMode": "JSON"
+    "jsonMode": "JSON",
+    "uploadFile": "Upload image or file",
+    "uploadingFile": "Uploading file...",
+    "removeFile": "Remove file"
   },
   "questions": {
     "title": "Questions",
     "count": "{{count}} questions",
     "item": "Question {{index}}",
     "existingLessons": "Current lessons: {{names}}",
-    "existingLessonsHint": "Leave lessons unchanged to preserve the current links, or select new lessons to replace them."
+    "existingLessonsHint": "Leave lessons unchanged to preserve the current links, or select new lessons to replace them.",
+    "fileHint": "Drop an image or file here or click to choose. It will be uploaded and attached to this question immediately.",
+    "attachedFiles": "Attached files"
   },
   "answers": {
     "item": "Answer {{index}}",
@@ -67,11 +72,13 @@
     "correctAnswerRequired": "Every question needs at least one correct answer.",
     "jsonInvalid": "The JSON is invalid or does not match the quiz contract.",
     "loadFailed": "Could not load the quiz data.",
-    "saveFailed": "Could not save the quiz."
+    "saveFailed": "Could not save the quiz.",
+    "fileUploadFailed": "Could not upload the file. Please try again."
   },
   "messages": {
     "created": "Quiz created successfully.",
-    "updated": "Quiz updated successfully."
+    "updated": "Quiz updated successfully.",
+    "fileUploaded": "File uploaded and attached to the question."
   },
   "json": {
     "title": "Quiz JSON",
