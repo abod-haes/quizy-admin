@@ -1,7 +1,7 @@
 {
   "title": "Course content management",
   "sessionTitle": "Session content",
-  "description": "Manage session files, videos, comments, and teacher notes through the Nest APIs.",
+  "description": "Manage session files, videos, comments, and teacher notes.",
   "backToCourse": "Back to course",
   "fields": {
     "course": "Course",
@@ -37,7 +37,7 @@
     "download": "Download",
     "view": "View",
     "play": "Play",
-    "manifest": "Offline manifest",
+    "manifest": "Offline playback file",
     "previous": "Previous",
     "next": "Next"
   },
@@ -71,12 +71,12 @@
     "materialFallback": "this material",
     "itemFallback": "this item",
     "videoNotReady": "The video is not ready.",
-    "hlsOnly": "Video uses HLS; use playback or the offline manifest when processing is ready."
+    "hlsOnly": "Video uses HLS; use playback or the offline playback file when processing is ready."
   },
   "hls": {
     "ready": "Ready to play",
     "processing": "Processing",
-    "failed": "Processing failed",
+    "failed": "Video processing failed. If the problem continues, upload the video again.",
     "notReady": "Not ready"
   },
   "pagination": {
