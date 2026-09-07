@@ -20,6 +20,5 @@ export const employeesService = {
     api.patch<AdminEmployee, UpdateAdminEmployeeInput>(API_ENDPOINTS.employees.update(id), payload),
   disable: (id: string) => api.post<AdminEmployee>(API_ENDPOINTS.employees.disable(id)),
   enable: (id: string) => api.post<AdminEmployee>(API_ENDPOINTS.employees.enable(id)),
-  resendInvitation: (id: string) => api.post<Record<string, unknown>>(API_ENDPOINTS.employees.resendInvitation(id)),
   remove: (id: string) => api.delete<{ message: string }>(API_ENDPOINTS.employees.remove(id)),
 }
