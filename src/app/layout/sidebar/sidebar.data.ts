@@ -1,4 +1,4 @@
-import { BookOpenCheck, BookText, BellRing, BrainCircuit, CalendarDays, CreditCard, FileQuestion, FileText, FolderKanban, Gauge, GraduationCap, HardDrive, KeyRound, Layers3, LibraryBig, MapPin, Megaphone, MessageCircle, QrCode, School, Settings, UploadCloud, UsersRound } from 'lucide-react'
+import { BookOpenCheck, BookText, BellRing, BrainCircuit, CalendarDays, FileQuestion, FileText, FolderKanban, Gauge, GraduationCap, HardDrive, KeyRound, Layers3, LibraryBig, MapPin, Megaphone, MessageCircle, QrCode, School, Settings, UploadCloud, UsersRound } from 'lucide-react'
 
 import type { SidebarItem } from '@/app/layout/sidebar/sidebar.types'
 import { APP_ROUTES } from '@/app/router/route-object.type'
@@ -23,7 +23,6 @@ export const primarySidebarItems: SidebarItem[] = [
     { id: 'courses', labelKey: 'sidebar.items.courses', to: APP_ROUTES.courses.path, icon: CalendarDays, roles: TEACHER_DASHBOARD_ROLES, permissions: ['courses.manage'], end: true },
     { id: 'courseSessions', labelKey: 'sidebar.items.courseSessions', to: APP_ROUTES.courseSessions.path, icon: BookOpenCheck, permissions: ['courses.manage'], end: true },
     { id: 'courseContent', labelKey: 'sidebar.items.courseContent', to: APP_ROUTES.courseContent.path, icon: BookText, permissions: ['courses.manage'], end: true },
-    { id: 'coursePurchases', labelKey: 'sidebar.items.coursePurchases', to: APP_ROUTES.coursePurchases.path, icon: CreditCard, permissions: ['courses.manage'], end: true },
   ] },
   { id: 'contentManagement', labelKey: 'sidebar.groups.contentManagement', icon: FolderKanban, permissions: ['content.manage', 'resources.manage'], children: [
     { id: 'classes', labelKey: 'sidebar.items.classes', to: APP_ROUTES.classes.path, icon: School, permissions: ['content.manage'], end: true },
