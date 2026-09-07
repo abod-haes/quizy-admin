@@ -11,6 +11,12 @@ export function configureStaffCredentialFields() {
   configured = true
 
   const teacherConfig = academicContentConfigs.teachers
+  teacherConfig.fields = teacherConfig.fields.map((field) =>
+    field.name === 'phoneNumber' || field.name === 'countryCallingCode'
+      ? { ...field, required: true }
+      : field,
+  )
+
   if (!teacherConfig.fields.some((field) => field.name === 'password')) {
     const descriptionIndex = teacherConfig.fields.findIndex(
       (field) => field.name === 'description',
@@ -45,17 +51,22 @@ export function configureStaffCredentialFields() {
     const result = validate(values)
     if (!result.success) return result
 
+    const phoneNumber = typeof values.phoneNumber === 'string' ? values.phoneNumber.trim() : ''
+    const countryCallingCode =
+      typeof values.countryCallingCode === 'string' ? values.countryCallingCode.trim() : ''
     const password = typeof values.password === 'string' ? values.password : ''
+
+    const errors: Record<string, string> = {}
+    if (!phoneNumber) errors.phoneNumber = 'validation.required'
+    if (!countryCallingCode) errors.countryCallingCode = 'validation.required'
     if (password && (password.length < 8 || password.length > 72)) {
-      return {
-        success: false,
-        errors: { password: 'كلمة السر يجب أن تكون بين 8 و72 محرفًا.' },
-      }
+      errors.password = 'كلمة السر يجب أن تكون بين 8 و72 محرفًا.'
     }
+    if (Object.keys(errors).length > 0) return { success: false, errors }
 
     return {
       success: true,
-      data: { ...result.data, password },
+      data: { ...result.data, phoneNumber, countryCallingCode, password },
     }
   }
 
