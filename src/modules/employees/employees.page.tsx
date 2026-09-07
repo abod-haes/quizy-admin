@@ -27,7 +27,6 @@ import {
   AlertTitle,
   Badge,
   Button,
-  CustomSelect,
   FormField,
   Input,
   PaginatedDataTable,
@@ -55,7 +54,6 @@ export default function EmployeesPage() {
   const { t } = useTranslation('admin-pages')
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
-  const [status, setStatus] = useState<AdminEmployeeStatus | 'ALL'>('ALL')
   const [search, setSearch] = useState('')
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [form, setForm] = useState<CreateAdminEmployeeInput>(EMPTY_FORM)
@@ -63,12 +61,11 @@ export default function EmployeesPage() {
   const [formError, setFormError] = useState('')
 
   const employeesQuery = useQuery({
-    queryKey: ['admin-employees', page, status, search],
+    queryKey: ['admin-employees', page, search],
     queryFn: () =>
       employeesService.list({
         page,
         perPage: PAGE_SIZE,
-        ...(status !== 'ALL' ? { status } : {}),
         ...(search.trim() ? { search: search.trim() } : {}),
       }),
   })
@@ -154,12 +151,6 @@ export default function EmployeesPage() {
   const totalCount = employeesQuery.data?.totalCount ?? 0
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
   const statusLabel = (value: AdminEmployeeStatus) => t(`employees.statuses.${value}`)
-  const statusOptions = [
-    { value: 'ALL', label: t('employees.allStatuses') },
-    { value: 'ACTIVE', label: statusLabel('ACTIVE') },
-    { value: 'INVITED', label: statusLabel('INVITED') },
-    { value: 'DISABLED', label: statusLabel('DISABLED') },
-  ]
   const permissions = useMemo(() => permissionsQuery.data ?? [], [permissionsQuery.data])
   const anyActionPending =
     disableMutation.isPending || enableMutation.isPending || resendMutation.isPending || deleteMutation.isPending
@@ -176,10 +167,8 @@ export default function EmployeesPage() {
         title={t('employees.title')}
         description={t('employees.description')}
         search={{ value: search, placeholder: t('employees.searchPlaceholder'), onChange: (value) => { setSearch(value); setPage(1) } }}
-        controls={<CustomSelect className="h-9 min-w-44" value={status} options={statusOptions} onValueChange={(value) => { setStatus(value as AdminEmployeeStatus | 'ALL'); setPage(1) }} />}
         actions={<><Button variant="outline" icon={<RefreshCcw />} onClick={() => void employeesQuery.refetch()}>{t('common.refresh')}</Button><Button icon={<UserPlus />} onClick={openCreateDialog}>{t('employees.add')}</Button></>}
       />
-
 
       <PaginatedDataTable<AdminEmployee>
         className="min-h-0 flex-1"
