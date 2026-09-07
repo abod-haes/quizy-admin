@@ -65,10 +65,8 @@ type QuizQuestionPayload = {
   id?: string
   title: string
   hint?: string
-  lessonIds?: string[]
   fileIds?: string[]
   answers: QuizAnswerPayload[]
-  lessonNames?: string[]
 }
 
 type QuizPayload = {
@@ -86,7 +84,6 @@ type QuizExcelImportPreview = {
     row: number
     title: string
     hint?: string
-    lessonNames: string[]
     answers: QuizAnswerPayload[]
   }>
   errors: Array<{ row: number; message: string }>
@@ -136,7 +133,6 @@ function emptyQuestion(): QuizQuestionPayload {
   return {
     title: '',
     hint: '',
-    lessonIds: [],
     fileIds: [],
     answers: [
       { title: '', isCorrect: true },
@@ -150,7 +146,6 @@ function isBlankDefaultQuestion(question: QuizQuestionPayload) {
     !question.id &&
     !question.title.trim() &&
     !question.hint?.trim() &&
-    (question.lessonIds?.length ?? 0) === 0 &&
     (question.fileIds?.length ?? 0) === 0 &&
     question.answers.every((answer) => !answer.title.trim())
   )
@@ -168,17 +163,6 @@ function emptyQuiz(): QuizPayload {
   }
 }
 
-function normalizeLessonKey(value: string) {
-  return value
-    .normalize('NFKC')
-    .trim()
-    .toLocaleLowerCase()
-    .replace(/[أإآ]/g, 'ا')
-    .replace(/ى/g, 'ي')
-    .replace(/ـ/g, '')
-    .replace(/\s+/g, ' ')
-}
-
 function normalizeQuizBody(raw: RawQuiz): QuizPayload {
   const linkedEntityIds = objectArray(raw.linkedQuiz)
     .map((item) => stringValue(item.entityId))
@@ -192,7 +176,6 @@ function normalizeQuizBody(raw: RawQuiz): QuizPayload {
     timeExpiration: Math.max(1, Math.trunc(numberValue(raw.timeExpiration, 30))),
     entityIds: stringArray(raw.entityIds).length ? stringArray(raw.entityIds) : linkedEntityIds,
     questions: objectArray(raw.questions).map((question) => {
-      const explicitLessonIds = stringArray(question.lessonIds)
       const fileIds = stringArray(question.fileIds)
       const responseFileIds = objectArray(question.files)
         .map((item) => stringValue(item.id))
@@ -202,8 +185,6 @@ function normalizeQuizBody(raw: RawQuiz): QuizPayload {
         ...(stringValue(question.id) ? { id: stringValue(question.id) } : {}),
         title: stringValue(question.title),
         hint: stringValue(question.hint),
-        ...(explicitLessonIds.length ? { lessonIds: explicitLessonIds } : {}),
-        lessonNames: stringArray(question.lessonNames),
         fileIds: fileIds.length ? fileIds : responseFileIds,
         answers: objectArray(question.answers).map((answer) => ({
           title: stringValue(answer.title),
@@ -226,7 +207,6 @@ function payloadForRequest(payload: QuizPayload): QuizPayload {
       ...(question.id ? { id: question.id } : {}),
       title: question.title.trim(),
       hint: question.hint?.trim() || undefined,
-      ...(question.lessonIds !== undefined ? { lessonIds: question.lessonIds } : {}),
       fileIds: question.fileIds ?? [],
       answers: question.answers.map((answer) => ({
         title: answer.title.trim(),
@@ -241,7 +221,6 @@ function QuizBuilderEditor({
   initialPayload,
   subjectOptions,
   teacherOptions,
-  lessonOptions,
   entityOptions,
   resourceOptions,
 }: {
@@ -249,7 +228,6 @@ function QuizBuilderEditor({
   initialPayload: QuizPayload
   subjectOptions: SelectOption[]
   teacherOptions: SelectOption[]
-  lessonOptions: SelectOption[]
   entityOptions: SelectOption[]
   resourceOptions: SelectOption[]
 }) {
@@ -275,9 +253,6 @@ function QuizBuilderEditor({
     }
     for (const question of candidate.questions) {
       if (!question.title.trim()) return t('validation.questionRequired')
-      if (!question.id && (!question.lessonIds || question.lessonIds.length === 0)) {
-        return t('validation.lessonRequired')
-      }
       if (question.answers.length < 2) return t('validation.answersRequired')
       if (question.answers.some((answer) => !answer.title.trim())) return t('validation.answerRequired')
       if (!question.answers.some((answer) => answer.isCorrect)) {
@@ -391,33 +366,13 @@ function QuizBuilderEditor({
         return
       }
 
-      const lessonsByName = new Map(
-        lessonOptions.map((option) => [normalizeLessonKey(option.label), option.value] as const),
-      )
-      const unresolved: string[] = []
-      const importedQuestions: QuizQuestionPayload[] = preview.questions.map((question) => {
-        const lessonIds = question.lessonNames.flatMap((lessonName) => {
-          const lessonId = lessonsByName.get(normalizeLessonKey(lessonName))
-          if (!lessonId) {
-            unresolved.push(t('excel.lessonNotFound', { row: question.row, lesson: lessonName }))
-            return []
-          }
-          return [lessonId]
-        })
-        return {
-          title: question.title,
-          hint: question.hint ?? '',
-          lessonIds: [...new Set(lessonIds)],
-          fileIds: [],
-          answers: question.answers,
-        }
-      })
+      const importedQuestions: QuizQuestionPayload[] = preview.questions.map((question) => ({
+        title: question.title,
+        hint: question.hint ?? '',
+        fileIds: [],
+        answers: question.answers,
+      }))
 
-      if (unresolved.length) {
-        setExcelErrors(unresolved)
-        toast.error(t('excel.lessonErrors', { count: unresolved.length }))
-        return
-      }
       if (!importedQuestions.length) {
         setExcelErrors([t('excel.noQuestions')])
         toast.error(t('excel.noQuestions'))
@@ -707,22 +662,7 @@ function QuizBuilderEditor({
                         onChange={(event) => updateQuestion(questionIndex, { hint: event.target.value })}
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label>{t('fields.lessons')}</Label>
-                      <MultiSelect
-                        values={question.lessonIds ?? []}
-                        options={lessonOptions}
-                        placeholder={t('placeholders.lessons')}
-                        onValuesChange={(values) => updateQuestion(questionIndex, { lessonIds: values })}
-                      />
-                      {question.lessonIds === undefined && question.lessonNames?.length ? (
-                        <div className="rounded-xl bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-                          <p>{t('questions.existingLessons', { names: question.lessonNames.join(', ') })}</p>
-                          <p className="mt-1">{t('questions.existingLessonsHint')}</p>
-                        </div>
-                      ) : null}
-                    </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 md:col-span-2">
                       <Label>{t('fields.files')}</Label>
                       <MultiSelect
                         values={question.fileIds ?? []}
@@ -857,7 +797,6 @@ export default function QuizBuilderV2Page() {
 
   const subjectOptions = (subjectsQuery.data ?? []).map((item) => ({ value: item.id, label: valueLabel(item) }))
   const teacherOptions = (teachersQuery.data ?? []).map((item) => ({ value: item.id, label: valueLabel(item) }))
-  const lessonOptions = (lessonsQuery.data ?? []).map((item) => ({ value: item.id, label: valueLabel(item) }))
   const entityOptions = [
     ...(subjectsQuery.data ?? []).map((item) => ({ value: item.id, label: `${t('entityTypes.subject')}: ${valueLabel(item)}` })),
     ...(unitsQuery.data ?? []).map((item) => ({ value: item.id, label: `${t('entityTypes.unit')}: ${valueLabel(item)}` })),
@@ -876,7 +815,6 @@ export default function QuizBuilderV2Page() {
       initialPayload={initialPayload}
       subjectOptions={subjectOptions}
       teacherOptions={teacherOptions}
-      lessonOptions={lessonOptions}
       entityOptions={entityOptions}
       resourceOptions={resourceOptions}
     />
