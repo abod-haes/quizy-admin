@@ -93,12 +93,9 @@ export default function LoginPage() {
       title={t('title')}
       description={t('description')}
       footer={
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+        <div className="flex items-center justify-center">
           <Link className="text-sm font-bold text-[#6949ff] hover:underline" to="/recover">
             {t('forgotPassword')}
-          </Link>
-          <Link className="text-sm font-bold text-[#6949ff] hover:underline" to="/accept-invitation">
-            {t('employeeInvitation')}
           </Link>
         </div>
       }
