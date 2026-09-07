@@ -29,7 +29,6 @@ export const APP_ROUTES = {
   courses: { key: 'courses', path: '/courses', protected: true, roles: TEACHER_DASHBOARD_ROLES, permissions: COURSES, breadcrumbKeys: [] },
   courseDetail: { key: 'courseDetail', path: '/courses/:courseId', protected: true, roles: TEACHER_DASHBOARD_ROLES, permissions: COURSES, breadcrumbKeys: [] },
   courseSessions: { key: 'courseSessions', path: '/courses/sessions', protected: true, permissions: COURSES, breadcrumbKeys: [] },
-  coursePurchases: { key: 'coursePurchases', path: '/courses/purchases', protected: true, permissions: COURSES, breadcrumbKeys: [] },
   courseSessionDetail: { key: 'courseSessionDetail', path: '/courses/:courseId/sessions/:sessionId/:contentTab?', protected: true, permissions: COURSES, breadcrumbKeys: [] },
   courseContent: { key: 'courseContent', path: '/courses/content', protected: true, permissions: COURSES, breadcrumbKeys: [] },
   resources: { key: 'resources', path: '/resources', protected: true, permissions: RESOURCES, breadcrumbKeys: [] },
