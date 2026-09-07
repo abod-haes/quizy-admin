@@ -9,10 +9,9 @@
     "teacher": "المدرس",
     "timeExpiration": "مدة الاختبار بالدقائق",
     "isFree": "اختبار مجاني",
-    "linkedContent": "المحتوى المرتبط",
+    "linkedContent": "الدروس والمحتوى المرتبط بالاختبار",
     "question": "السؤال",
     "hint": "التلميح",
-    "lessons": "الدروس",
     "files": "الملفات",
     "answers": "الإجابات",
     "correct": "صحيحة"
@@ -21,8 +20,7 @@
     "quizTitle": "مثال: اختبار الوحدة الأولى",
     "subject": "اختر المادة",
     "teacher": "اختر المدرس",
-    "linkedContent": "اختر مواد أو وحدات أو دروس",
-    "lessons": "اختر الدروس",
+    "linkedContent": "اختر الدروس أو الوحدات التابعة لهذا الاختبار",
     "files": "اختر الملفات",
     "question": "اكتب نص السؤال",
     "hint": "تلميح اختياري",
@@ -47,9 +45,7 @@
   "questions": {
     "title": "الأسئلة",
     "count": "{{count}} سؤال",
-    "item": "السؤال {{index}}",
-    "existingLessons": "الدروس الحالية: {{names}}",
-    "existingLessonsHint": "اترك حقل الدروس دون تغيير للحفاظ على الربط الحالي، أو اختر دروساً جديدة لاستبداله."
+    "item": "السؤال {{index}}"
   },
   "answers": {
     "item": "الإجابة {{index}}",
@@ -57,15 +53,13 @@
   },
   "excel": {
     "title": "استيراد الأسئلة من Excel",
-    "description": "حمّل القالب، عبّئ الأسئلة وأسماء الدروس والخيارات، ثم ارفع ملف .xlsx لإضافتها إلى الاختبار.",
+    "description": "حدد الدروس والمحتوى من الاختبار نفسه، ثم حمّل القالب وعبّئ الأسئلة والخيارات وارفع ملف .xlsx.",
     "downloadTemplate": "تحميل قالب Excel",
     "uploadFile": "رفع ملف Excel",
     "importing": "جارٍ قراءة الملف...",
     "xlsxOnly": "اختر ملف Excel بصيغة .xlsx.",
     "rowError": "الصف {{row}}: {{message}}",
     "fixErrors": "يوجد {{count}} خطأ في ملف Excel. صححها ثم أعد الرفع.",
-    "lessonNotFound": "الصف {{row}}: الدرس «{{lesson}}» غير موجود. اكتب اسم الدرس كما يظهر في لوحة التحكم.",
-    "lessonErrors": "تعذر ربط {{count}} درس من ملف Excel.",
     "noQuestions": "لم يتم العثور على أسئلة صالحة للاستيراد.",
     "importFailed": "تعذر قراءة ملف Excel.",
     "imported": "تم استيراد {{count}} سؤال من Excel.",
@@ -77,7 +71,6 @@
     "teacherRequired": "اختر المدرس.",
     "timeExpiration": "مدة الاختبار يجب أن تكون عدداً صحيحاً أكبر من صفر.",
     "questionRequired": "كل سؤال يحتاج نصاً.",
-    "lessonRequired": "السؤال الجديد يحتاج درساً واحداً على الأقل.",
     "answersRequired": "كل سؤال يحتاج إجابتين على الأقل.",
     "answerRequired": "كل إجابة تحتاج نصاً.",
     "correctAnswerRequired": "كل سؤال يحتاج إجابة صحيحة واحدة على الأقل.",
