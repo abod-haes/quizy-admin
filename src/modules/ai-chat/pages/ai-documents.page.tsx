@@ -37,6 +37,25 @@ function isPdfDocument(file: File) {
   return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
 }
 
+function arabicCharacterCount(value: string) {
+  return (value.match(/[\u0600-\u06ff]/g) ?? []).length
+}
+
+function normalizeUploadedFilename(value: string) {
+  const normalized = value.normalize('NFC')
+  if (!/[ÃÂØÙ]/.test(normalized)) return normalized
+  const characters = [...normalized]
+  if (characters.some((character) => character.charCodeAt(0) > 255)) return normalized
+
+  try {
+    const bytes = Uint8Array.from(characters.map((character) => character.charCodeAt(0)))
+    const decoded = new TextDecoder('utf-8', { fatal: true }).decode(bytes).normalize('NFC')
+    return arabicCharacterCount(decoded) > arabicCharacterCount(normalized) ? decoded : normalized
+  } catch {
+    return normalized
+  }
+}
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -69,9 +88,10 @@ function normalizeDocuments(payload: unknown): AiDocumentRow[] {
     if (!row) return []
     const id = valueString(row, ['id', 'documentId', 'document_id', 'uuid'])
     if (!id) return []
+    const rawName = valueString(row, ['name', 'fileName', 'filename', 'originalName', 'title'])
     return [{
       id,
-      name: valueString(row, ['name', 'fileName', 'filename', 'originalName', 'title']) || `#${index + 1}`,
+      name: rawName ? normalizeUploadedFilename(rawName) : `#${index + 1}`,
       status: valueString(row, ['status', 'state', 'indexingStatus', 'index_status']) || 'unknown',
       createdAt: valueString(row, ['createdAt', 'created_at', 'uploadedAt', 'uploaded_at']) || null,
     }]
