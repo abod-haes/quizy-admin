@@ -7,6 +7,7 @@ import {
   useState,
   type PropsWithChildren,
 } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 
 import {
   hasAnyRole as hasAnyRoleInList,
@@ -60,6 +61,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: PropsWithChildren) {
+  const queryClient = useQueryClient()
   const [token, setToken] = useState<string | null>(() => getAuthToken())
   const [user, setUserState] = useState<AuthUser | null>(() => getAuthUser())
   const [roles, setRolesState] = useState<AppRole[]>(() => getAuthRoles())
@@ -116,12 +118,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
   )
 
   const logout = useCallback(() => {
+    void queryClient.cancelQueries()
+    queryClient.clear()
     clearAuthSession()
     setToken(null)
     setUserState(null)
     setRolesState([])
     setPermissionsState([])
-  }, [])
+  }, [queryClient])
 
   const hasRole = useCallback((role: AppRole) => roles.includes(role), [roles])
   const hasAnyRole = useCallback(

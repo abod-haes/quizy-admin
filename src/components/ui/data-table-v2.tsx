@@ -3,6 +3,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
   type ReactNode,
 } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -24,6 +25,7 @@ import { formatUiDisplayValue } from '@/shared/lib/display-format.helpers'
 ModuleRegistry.registerModules([AllCommunityModule])
 
 const AUTO_TRUNCATE_TEXT_LENGTH = 90
+const COMPACT_TABLE_MEDIA_QUERY = '(max-width: 767px)'
 const PHONE_LIKE_COLUMN_KEYWORDS = ['phone', 'fax', 'mobile', 'landline', 'tel', 'whatsapp']
 
 function isPhoneLikeColumn(columnId: string) {
@@ -98,7 +100,19 @@ export function DataTable<T>({
   const { i18n } = useTranslation()
   const isRtl = i18n.dir() === 'rtl'
   const gridRef = useRef<AgGridReact<T>>(null)
+  const [isCompactViewport, setIsCompactViewport] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(COMPACT_TABLE_MEDIA_QUERY).matches : false,
+  )
   const normalizedSort = typeof sort === 'string' ? sort.trim() : ''
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mediaQuery = window.matchMedia(COMPACT_TABLE_MEDIA_QUERY)
+    const syncViewport = () => setIsCompactViewport(mediaQuery.matches)
+    syncViewport()
+    mediaQuery.addEventListener('change', syncViewport)
+    return () => mediaQuery.removeEventListener('change', syncViewport)
+  }, [])
 
   const sortableColumnById = useMemo(
     () => new Map(columns.filter((column) => column.sortKey).map((column) => [column.id, column])),
@@ -111,6 +125,7 @@ export function DataTable<T>({
         const isActionsColumn = column.id === 'actions'
         const isImageColumn = /(^|[-_])image($|[-_])|photo|thumbnail/i.test(column.id)
         const canSort = Boolean(column.sortKey && onSortChange)
+        const pinActions = isActionsColumn && !isCompactViewport
         const sortDirection = column.sortKey
           ? normalizedSort === `-${column.sortKey}`
             ? 'desc'
@@ -137,11 +152,11 @@ export function DataTable<T>({
           resizable: !isActionsColumn,
           rowDrag: rowDragManaged && columnIndex === 0,
           flex: isActionsColumn || isImageColumn ? undefined : 1,
-          pinned: isActionsColumn ? (isRtl ? 'left' : 'right') : undefined,
-          lockPinned: isActionsColumn,
-          width: isActionsColumn ? 210 : isImageColumn ? 120 : undefined,
-          minWidth: isActionsColumn ? 210 : isImageColumn ? 100 : 140,
-          maxWidth: isActionsColumn ? 240 : isImageColumn ? 180 : undefined,
+          pinned: pinActions ? (isRtl ? 'left' : 'right') : undefined,
+          lockPinned: pinActions,
+          width: isActionsColumn ? (isCompactViewport ? 180 : 210) : isImageColumn ? 120 : undefined,
+          minWidth: isActionsColumn ? (isCompactViewport ? 160 : 210) : isImageColumn ? 100 : 140,
+          maxWidth: isActionsColumn ? (isCompactViewport ? 220 : 240) : isImageColumn ? 180 : undefined,
           cellClass: (params) => {
             if (!params.data) return undefined
             return typeof column.cellClassName === 'function'
@@ -176,7 +191,7 @@ export function DataTable<T>({
           },
         }
       }),
-    [columns, isRtl, normalizedSort, onSortChange, rowDragManaged]
+    [columns, isCompactViewport, isRtl, normalizedSort, onSortChange, rowDragManaged]
   )
 
   useEffect(() => {

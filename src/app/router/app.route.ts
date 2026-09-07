@@ -93,8 +93,16 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'aiQrCodes', element: createElement(AiQrCodesPage) },
 ]
 
+const legacyRegistrationRedirect = createElement(Navigate, {
+  to: APP_ROUTES.login.path,
+  replace: true,
+})
+
 export const appRouter = createBrowserRouter([
   { path: APP_ROUTES.login.path, element: createElement(LoginPage) },
+  { path: '/register', element: legacyRegistrationRedirect },
+  { path: '/signup', element: legacyRegistrationRedirect },
+  { path: '/sign-up', element: legacyRegistrationRedirect },
   { path: '/accept-invitation', element: createElement(AcceptInvitationPage) },
   { path: '/recover', element: createElement(RecoverPage) },
   { path: '/reset-password', element: createElement(ResetPasswordPage) },
