@@ -4,7 +4,7 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from 'axios'
 
-import { env } from '@/shared/config/env'
+import { API_ORIGIN } from '@/shared/config/api-origin'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
 import {
   clearAuthSession,
@@ -53,7 +53,7 @@ async function refreshAccessToken(): Promise<string> {
       API_ENDPOINTS.auth.refreshToken,
       { refreshToken },
       {
-        baseURL: env.apiBaseUrl,
+        baseURL: API_ORIGIN,
         timeout: 20000,
         headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
       },
