@@ -4,8 +4,7 @@ let configured = false
 
 /**
  * Extends the generic teacher CRUD with the credential field used by direct
- * staff login. Keeping the password out of getInitialValues prevents an
- * existing hash/credential from ever being echoed back into the admin form.
+ * staff login. Existing credentials are never read back into the admin form.
  */
 export function configureStaffCredentialFields() {
   if (configured) return
@@ -50,10 +49,14 @@ export function configureStaffCredentialFields() {
     if (password && (password.length < 8 || password.length > 72)) {
       return {
         success: false,
-        errors: { password: 'validation.passwordLength' },
+        errors: { password: 'كلمة السر يجب أن تكون بين 8 و72 محرفًا.' },
       }
     }
-    return result
+
+    return {
+      success: true,
+      data: { ...result.data, password },
+    }
   }
 
   const toPayload = teacherConfig.toPayload
