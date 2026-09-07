@@ -18,6 +18,7 @@ import {
   TeachersPage,
   UnitsPage,
 } from '@/modules/content-crud/pages/academic-content-crud.page'
+import { configureStaffCredentialFields } from '@/modules/content-crud/staff-credentials.config'
 import CourseContentPage from '@/modules/courses/pages/course-content.page'
 import CoursesManagementPage from '@/modules/courses/pages/courses-management.page'
 import CourseSessionsPage from '@/modules/courses/pages/course-sessions.page'
@@ -38,6 +39,8 @@ import QuizzesPage from '@/modules/quizzes/pages/quizzes.page'
 import OtpSettingsPage from '@/modules/settings/pages/otp-settings.page'
 import StudentsManagementPage from '@/modules/students/students.page'
 import WhatsAppManagementPage from '@/modules/whatsapp/whatsapp.page'
+
+configureStaffCredentialFields()
 
 function withRouteAccess(routeKey: AppRouteKey, element: ReturnType<typeof createElement>) {
   const route = APP_ROUTES[routeKey]
