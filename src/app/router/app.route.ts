@@ -7,7 +7,6 @@ import { AppShellLayout } from '@/app/layout/app-shell.layout'
 import { RequireAuth } from '@/app/router/require-auth.guard'
 import { APP_ROUTES, type AppRouteKey } from '@/app/router/route-object.type'
 import AdsManagementPage from '@/modules/ads/ads.page'
-import AcceptInvitationPage from '@/modules/auth/pages/accept-invitation.page'
 import LoginPage from '@/modules/auth/pages/login.page'
 import RecoverPage from '@/modules/auth/pages/recover.page'
 import ResetPasswordPage from '@/modules/auth/pages/reset-password.page'
@@ -106,7 +105,7 @@ export const appRouter = createBrowserRouter([
   { path: '/register', element: legacyRegistrationRedirect },
   { path: '/signup', element: legacyRegistrationRedirect },
   { path: '/sign-up', element: legacyRegistrationRedirect },
-  { path: '/accept-invitation', element: createElement(AcceptInvitationPage) },
+  { path: '/accept-invitation', element: legacyRegistrationRedirect },
   { path: '/recover', element: createElement(RecoverPage) },
   { path: '/reset-password', element: createElement(ResetPasswordPage) },
   {
