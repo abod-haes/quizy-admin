@@ -96,6 +96,11 @@ const legacyRegistrationRedirect = createElement(Navigate, {
   replace: true,
 })
 
+const legacyCoursePurchasesRedirect = createElement(Navigate, {
+  to: APP_ROUTES.courses.path,
+  replace: true,
+})
+
 export const appRouter = createBrowserRouter([
   { path: APP_ROUTES.login.path, element: createElement(LoginPage) },
   { path: '/register', element: legacyRegistrationRedirect },
@@ -110,6 +115,7 @@ export const appRouter = createBrowserRouter([
     children: [
       { index: true, element: createElement(Navigate, { to: APP_ROUTES.dashboard.path, replace: true }) },
       { path: APP_ROUTES.dashboard.path, element: withRouteAccess('dashboard', createElement(DashboardPage)) },
+      { path: '/courses/purchases', element: legacyCoursePurchasesRedirect },
       ...quizyModuleRoutes.map(({ routeKey, element }) => ({
         path: APP_ROUTES[routeKey].path,
         element: withRouteAccess(routeKey, element),
