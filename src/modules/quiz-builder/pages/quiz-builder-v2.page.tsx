@@ -1,15 +1,19 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
   ArrowRight,
   Braces,
+  Download,
   FileQuestion,
+  FileSpreadsheet,
   ListPlus,
+  Loader2,
   Plus,
   Save,
   Trash2,
+  Upload,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -77,7 +81,22 @@ type QuizPayload = {
   questions: QuizQuestionPayload[]
 }
 
+type QuizExcelImportPreview = {
+  questions: Array<{
+    row: number
+    title: string
+    hint?: string
+    lessonNames: string[]
+    answers: QuizAnswerPayload[]
+  }>
+  errors: Array<{ row: number; message: string }>
+  totalRows: number
+}
+
 const RESOURCE_PAGE_SIZE = 100
+const QUIZ_EXCEL_IMPORT_ENDPOINT = '/api/v1/admin/quizzes/import/preview'
+const QUIZ_EXCEL_TEMPLATE_PATH = '/quizy-quiz-template.xlsx'
+const QUIZ_EXCEL_ACCEPT = '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
 function valueLabel(item: OptionItem) {
   return (
@@ -126,6 +145,17 @@ function emptyQuestion(): QuizQuestionPayload {
   }
 }
 
+function isBlankDefaultQuestion(question: QuizQuestionPayload) {
+  return (
+    !question.id &&
+    !question.title.trim() &&
+    !question.hint?.trim() &&
+    (question.lessonIds?.length ?? 0) === 0 &&
+    (question.fileIds?.length ?? 0) === 0 &&
+    question.answers.every((answer) => !answer.title.trim())
+  )
+}
+
 function emptyQuiz(): QuizPayload {
   return {
     title: '',
@@ -136,6 +166,17 @@ function emptyQuiz(): QuizPayload {
     entityIds: [],
     questions: [emptyQuestion()],
   }
+}
+
+function normalizeLessonKey(value: string) {
+  return value
+    .normalize('NFKC')
+    .trim()
+    .toLocaleLowerCase()
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ـ/g, '')
+    .replace(/\s+/g, ' ')
 }
 
 function normalizeQuizBody(raw: RawQuiz): QuizPayload {
@@ -215,12 +256,15 @@ function QuizBuilderEditor({
   const { t, i18n } = useTranslation('quiz-builder')
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const excelInputRef = useRef<HTMLInputElement | null>(null)
   const isEditing = Boolean(quizId)
   const isRtl = i18n.dir() === 'rtl'
   const [mode, setMode] = useState<BuilderMode>('visual')
   const [payload, setPayload] = useState<QuizPayload>(initialPayload)
   const [jsonValue, setJsonValue] = useState(() => JSON.stringify(payloadForRequest(initialPayload), null, 2))
   const [jsonError, setJsonError] = useState('')
+  const [isImportingExcel, setIsImportingExcel] = useState(false)
+  const [excelErrors, setExcelErrors] = useState<string[]>([])
 
   const validate = (candidate: QuizPayload) => {
     if (!candidate.title?.trim()) return t('validation.titleRequired')
@@ -316,6 +360,89 @@ function QuizBuilderEditor({
           : question,
       ),
     }))
+  }
+
+  const downloadExcelTemplate = () => {
+    const link = document.createElement('a')
+    link.href = QUIZ_EXCEL_TEMPLATE_PATH
+    link.download = 'Quizy-قالب-الاختبارات.xlsx'
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  }
+
+  const importExcelFile = async (file: File) => {
+    if (!file.name.toLowerCase().endsWith('.xlsx')) {
+      setExcelErrors([t('excel.xlsxOnly')])
+      toast.error(t('excel.xlsxOnly'))
+      return
+    }
+
+    setIsImportingExcel(true)
+    setExcelErrors([])
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const preview = await api.upload<QuizExcelImportPreview>(QUIZ_EXCEL_IMPORT_ENDPOINT, formData)
+      if (preview.errors.length) {
+        const errors = preview.errors.map((error) => t('excel.rowError', { row: error.row, message: error.message }))
+        setExcelErrors(errors)
+        toast.error(t('excel.fixErrors', { count: preview.errors.length }))
+        return
+      }
+
+      const lessonsByName = new Map(
+        lessonOptions.map((option) => [normalizeLessonKey(option.label), option.value] as const),
+      )
+      const unresolved: string[] = []
+      const importedQuestions: QuizQuestionPayload[] = preview.questions.map((question) => {
+        const lessonIds = question.lessonNames.flatMap((lessonName) => {
+          const lessonId = lessonsByName.get(normalizeLessonKey(lessonName))
+          if (!lessonId) {
+            unresolved.push(t('excel.lessonNotFound', { row: question.row, lesson: lessonName }))
+            return []
+          }
+          return [lessonId]
+        })
+        return {
+          title: question.title,
+          hint: question.hint ?? '',
+          lessonIds: [...new Set(lessonIds)],
+          fileIds: [],
+          answers: question.answers,
+        }
+      })
+
+      if (unresolved.length) {
+        setExcelErrors(unresolved)
+        toast.error(t('excel.lessonErrors', { count: unresolved.length }))
+        return
+      }
+      if (!importedQuestions.length) {
+        setExcelErrors([t('excel.noQuestions')])
+        toast.error(t('excel.noQuestions'))
+        return
+      }
+
+      setPayload((current) => {
+        const shouldReplaceBlank =
+          current.questions.length === 1 && isBlankDefaultQuestion(current.questions[0])
+        return {
+          ...current,
+          questions: shouldReplaceBlank
+            ? importedQuestions
+            : [...current.questions, ...importedQuestions],
+        }
+      })
+      setExcelErrors([])
+      toast.success(t('excel.imported', { count: importedQuestions.length }))
+    } catch (error) {
+      const message = error instanceof Error && error.message ? error.message : t('excel.importFailed')
+      setExcelErrors([message])
+      toast.error(message)
+    } finally {
+      setIsImportingExcel(false)
+    }
   }
 
   const switchMode = (nextMode: BuilderMode) => {
@@ -491,6 +618,57 @@ function QuizBuilderEditor({
               </Button>
             </CardHeader>
             <CardContent className="space-y-5">
+              <div className="flex flex-col gap-3 rounded-xl border border-primary/15 bg-primary/[0.025] p-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <FileSpreadsheet className="size-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">{t('excel.title')}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{t('excel.description')}</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    icon={<Download className="size-4" />}
+                    onClick={downloadExcelTemplate}
+                  >
+                    {t('excel.downloadTemplate')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isImportingExcel}
+                    icon={isImportingExcel ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+                    onClick={() => excelInputRef.current?.click()}
+                  >
+                    {isImportingExcel ? t('excel.importing') : t('excel.uploadFile')}
+                  </Button>
+                  <input
+                    ref={excelInputRef}
+                    className="hidden"
+                    type="file"
+                    accept={QUIZ_EXCEL_ACCEPT}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0]
+                      event.target.value = ''
+                      if (file) void importExcelFile(file)
+                    }}
+                  />
+                </div>
+              </div>
+
+              {excelErrors.length ? (
+                <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+                  <p className="font-semibold">{t('excel.errorsTitle')}</p>
+                  <ul className="mt-2 list-disc space-y-1 ps-5">
+                    {excelErrors.map((error, index) => <li key={`${error}-${index}`}>{error}</li>)}
+                  </ul>
+                </div>
+              ) : null}
+
               {payload.questions.map((question, questionIndex) => (
                 <div key={question.id ?? `new-${questionIndex}`} className="space-y-4 rounded-3xl border border-border p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">

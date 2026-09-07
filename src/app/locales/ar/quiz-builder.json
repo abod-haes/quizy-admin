@@ -55,6 +55,22 @@
     "item": "الإجابة {{index}}",
     "default": "إجابة {{index}}"
   },
+  "excel": {
+    "title": "استيراد الأسئلة من Excel",
+    "description": "حمّل القالب، عبّئ الأسئلة وأسماء الدروس والخيارات، ثم ارفع ملف .xlsx لإضافتها إلى الاختبار.",
+    "downloadTemplate": "تحميل قالب Excel",
+    "uploadFile": "رفع ملف Excel",
+    "importing": "جارٍ قراءة الملف...",
+    "xlsxOnly": "اختر ملف Excel بصيغة .xlsx.",
+    "rowError": "الصف {{row}}: {{message}}",
+    "fixErrors": "يوجد {{count}} خطأ في ملف Excel. صححها ثم أعد الرفع.",
+    "lessonNotFound": "الصف {{row}}: الدرس «{{lesson}}» غير موجود. اكتب اسم الدرس كما يظهر في لوحة التحكم.",
+    "lessonErrors": "تعذر ربط {{count}} درس من ملف Excel.",
+    "noQuestions": "لم يتم العثور على أسئلة صالحة للاستيراد.",
+    "importFailed": "تعذر قراءة ملف Excel.",
+    "imported": "تم استيراد {{count}} سؤال من Excel.",
+    "errorsTitle": "راجع أخطاء ملف Excel"
+  },
   "validation": {
     "titleRequired": "أدخل عنوان الاختبار.",
     "subjectRequired": "اختر المادة.",
