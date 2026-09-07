@@ -21,7 +21,6 @@ import {
 } from '@/modules/content-crud/pages/academic-content-crud.page'
 import CourseContentPage from '@/modules/courses/pages/course-content.page'
 import CoursesManagementPage from '@/modules/courses/pages/courses-management.page'
-import CoursePurchasesPage from '@/modules/courses/pages/course-purchases.page'
 import CourseSessionsPage from '@/modules/courses/pages/course-sessions.page'
 import DashboardPage from '@/modules/dashboard/pages/dashboard.page'
 import EmployeesPage from '@/modules/employees/employees.page'
@@ -76,7 +75,6 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
   { routeKey: 'courses', element: createElement(CoursesManagementPage) },
   { routeKey: 'courseDetail', element: createElement(CourseSessionsPage) },
   { routeKey: 'courseSessions', element: createElement(CourseSessionsPage) },
-  { routeKey: 'coursePurchases', element: createElement(CoursePurchasesPage) },
   { routeKey: 'courseSessionDetail', element: createElement(CourseContentPage) },
   { routeKey: 'courseContent', element: createElement(CourseContentPage) },
   { routeKey: 'resources', element: createElement(ResourcesManagementPage) },
