@@ -20,7 +20,6 @@ const ROUTE_PRESENTATION: Record<string, RoutePresentation> = {
   },
   '/courses': { labelKey: 'sidebar.items.courses', fixedTable: true },
   '/courses/sessions': { labelKey: 'sidebar.items.courseSessions', fixedTable: true },
-  '/courses/purchases': { labelKey: 'sidebar.items.coursePurchases', fixedTable: true },
   '/courses/content': { labelKey: 'sidebar.items.courseContent' },
   '/resources': { labelKey: 'content-crud:modules.resources.title', fixedTable: true },
   '/ads': { labelKey: 'content-crud:modules.ads.title', fixedTable: true },
