@@ -55,6 +55,22 @@
     "item": "Answer {{index}}",
     "default": "Answer {{index}}"
   },
+  "excel": {
+    "title": "Import questions from Excel",
+    "description": "Download the template, fill in questions, lesson names and choices, then upload the .xlsx file to add them to the quiz.",
+    "downloadTemplate": "Download Excel template",
+    "uploadFile": "Upload Excel file",
+    "importing": "Reading file...",
+    "xlsxOnly": "Choose an Excel .xlsx file.",
+    "rowError": "Row {{row}}: {{message}}",
+    "fixErrors": "The Excel file has {{count}} error(s). Fix them and upload it again.",
+    "lessonNotFound": "Row {{row}}: lesson “{{lesson}}” was not found. Use the lesson name shown in the dashboard.",
+    "lessonErrors": "Could not match {{count}} lesson(s) from Excel.",
+    "noQuestions": "No valid questions were found to import.",
+    "importFailed": "Could not read the Excel file.",
+    "imported": "Imported {{count}} question(s) from Excel.",
+    "errorsTitle": "Review Excel errors"
+  },
   "validation": {
     "titleRequired": "Enter a quiz title.",
     "subjectRequired": "Select a subject.",
