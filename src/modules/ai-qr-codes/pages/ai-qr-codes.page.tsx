@@ -2,16 +2,20 @@ import {
   useMemo,
   useState,
   type Dispatch,
-  type SetStateAction } from 'react'
-import { useMutation,
+  type SetStateAction,
+} from 'react'
+import {
+  useMutation,
   useQuery,
-  useQueryClient } from '@tanstack/react-query'
-import { Download,
+  useQueryClient,
+} from '@tanstack/react-query'
+import {
+  Download,
   PackagePlus,
-  Printer,
   QrCode,
   RefreshCcw,
-  Trash2 } from 'lucide-react'
+  Trash2,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { aiQrCodesService } from '@/modules/ai-qr-codes/services/ai-qr-codes.service'
@@ -20,7 +24,7 @@ import type {
   CreateUnifiedQrRequest,
   QrGrantMode,
   UnifiedQrItem,
-  } from '@/modules/ai-qr-codes/types/ai-qr-codes.types'
+} from '@/modules/ai-qr-codes/types/ai-qr-codes.types'
 import {
   Alert,
   AlertTitle,
@@ -55,25 +59,47 @@ function svgDataUri(svg: string) {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
-function escapeHtml(value: string) {
+function escapeXml(value: string) {
   return value
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
+    .replaceAll("'", '&apos;')
 }
 
-function downloadQrSvg(item: UnifiedQrItem) {
-  if (!item.qrSvg) return
-  const blob = new Blob([item.qrSvg], { type: 'image/svg+xml;charset=utf-8' })
+function qrSvgWithCode(item: UnifiedQrItem) {
+  if (!item.qrSvg) return null
+  const openingEnd = item.qrSvg.indexOf('>')
+  const closingStart = item.qrSvg.lastIndexOf('</svg>')
+  if (openingEnd < 0 || closingStart < 0) return item.qrSvg
+
+  const qrBody = item.qrSvg.slice(openingEnd + 1, closingStart)
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="370" viewBox="0 0 320 370">
+  <rect width="320" height="370" fill="#ffffff"/>
+  <g transform="translate(20 20)">${qrBody}</g>
+  <text x="160" y="340" text-anchor="middle" direction="ltr" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="22" font-weight="700" fill="#171226">${escapeXml(item.code)}</text>
+</svg>`
+}
+
+function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
   anchor.href = url
-  anchor.download = `quizy-qr-${item.code}.svg`
+  anchor.download = filename
   document.body.appendChild(anchor)
   anchor.click()
   anchor.remove()
-  URL.revokeObjectURL(url)
+  window.setTimeout(() => URL.revokeObjectURL(url), 500)
+}
+
+function downloadQrSvg(item: UnifiedQrItem) {
+  const svg = qrSvgWithCode(item)
+  if (!svg) return
+  downloadBlob(
+    new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }),
+    `quizy-qr-${item.code}.svg`,
+  )
 }
 
 function OptionChecklist({
@@ -163,7 +189,7 @@ export default function AiQrCodesPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [generatedDialogOpen, setGeneratedDialogOpen] = useState(false)
   const [generatedItems, setGeneratedItems] = useState<UnifiedQrItem[]>([])
-  const [printingId, setPrintingId] = useState<string | null>(null)
+  const [downloadingQrId, setDownloadingQrId] = useState<string | null>(null)
   const [count, setCount] = useState(DEFAULT_COUNT)
   const [validDays, setValidDays] = useState(DEFAULT_VALID_DAYS)
   const [pointOfSaleId, setPointOfSaleId] = useState('')
@@ -210,9 +236,15 @@ export default function AiQrCodesPage() {
       await queryClient.invalidateQueries({ queryKey: ['unified-qr'] })
     },
   })
+
   const deleteMutation = useMutation({
     mutationFn: aiQrCodesService.remove,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['unified-qr'] }),
+  })
+
+  const pdfMutation = useMutation({
+    mutationFn: (ids: string[]) => aiQrCodesService.downloadPdf(ids),
+    onSuccess: (blob) => downloadBlob(blob, 'quizy-qr-codes.pdf'),
   })
 
   const toggle = (setter: Dispatch<SetStateAction<string[]>>, id: string) =>
@@ -252,7 +284,6 @@ export default function AiQrCodesPage() {
   const totalCount = qrQuery.data?.totalCount ?? 0
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
   const dateLocale = i18n.resolvedLanguage?.startsWith('ar') ? 'ar-SY' : 'en-US'
-  const isRtl = i18n.dir() === 'rtl'
 
   const grantSummary = (row: UnifiedQrItem) => {
     const labels = (row.grants ?? []).map((grant) => {
@@ -267,53 +298,17 @@ export default function AiQrCodesPage() {
     return labels.length ? labels.join(' + ') : t('summary.bundle')
   }
 
-  const printItems = (items: UnifiedQrItem[]) => {
-    const printable = items.filter((item) => item.qrSvg)
-    if (!printable.length) return
-    const popup = window.open('', '_blank', 'width=1100,height=820')
-    if (!popup) return
-    popup.opener = null
-    const cards = printable.map((item) => {
-      const expiry = item.validUntil ? new Intl.DateTimeFormat(dateLocale).format(new Date(item.validUntil)) : t('table.noExpiry')
-      return `
-        <article class="qr-card">
-          <img src="${escapeHtml(svgDataUri(item.qrSvg!))}" alt="QR ${escapeHtml(item.code)}" />
-          <strong>${escapeHtml(item.code)}</strong>
-          <span>${escapeHtml(grantSummary(item))}</span>
-          <small>${escapeHtml(t('table.validUntil'))}: ${escapeHtml(expiry)}</small>
-        </article>`
-    }).join('')
-    popup.document.open()
-    popup.document.write(`<!doctype html>
-<html lang="${isRtl ? 'ar' : 'en'}" dir="${isRtl ? 'rtl' : 'ltr'}">
-<head>
-<meta charset="utf-8" />
-<title>${escapeHtml(t('generated.title'))}</title>
-<style>
-  @page { size: A4; margin: 10mm; }
-  * { box-sizing: border-box; }
-  body { margin: 0; font-family: Arial, sans-serif; color: #171226; background: #fff; }
-  .sheet { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6mm; }
-  .qr-card { min-height: 82mm; break-inside: avoid; border: 1px solid #ded7ef; border-radius: 4mm; padding: 5mm; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.5mm; text-align: center; }
-  .qr-card img { width: 43mm; height: 43mm; display: block; }
-  .qr-card strong { font: 700 10pt ui-monospace, SFMono-Regular, Menlo, monospace; direction: ltr; }
-  .qr-card span { font-size: 9pt; line-height: 1.35; }
-  .qr-card small { font-size: 8pt; color: #6f6685; }
-  @media screen { body { padding: 20px; background: #f5f2fb; } .sheet { max-width: 1100px; margin: auto; } .qr-card { background: #fff; } }
-</style>
-</head>
-<body><main class="sheet">${cards}</main><script>window.onload=()=>{setTimeout(()=>window.print(),120)}</script></body>
-</html>`)
-    popup.document.close()
-  }
-
-  const reprint = async (row: UnifiedQrItem) => {
-    setPrintingId(row.id)
+  const downloadSingleQr = async (row: UnifiedQrItem) => {
+    if (row.qrSvg) {
+      downloadQrSvg(row)
+      return
+    }
+    setDownloadingQrId(row.id)
     try {
-      const printable = await aiQrCodesService.detail(row.id)
-      if (printable.qrSvg) printItems([printable])
+      const detailed = await aiQrCodesService.detail(row.id)
+      downloadQrSvg(detailed)
     } finally {
-      setPrintingId(null)
+      setDownloadingQrId(null)
     }
   }
 
@@ -321,6 +316,21 @@ export default function AiQrCodesPage() {
     resetCreateForm()
     setCreateDialogOpen(true)
   }
+
+  const deleteAction = (row: UnifiedQrItem) => (
+    <ConfirmDialog
+      title={t('actions.delete')}
+      confirmLabel={t('actions.delete')}
+      confirmingLabel={t('actions.delete')}
+      cancelLabel={t('actions.close')}
+      onConfirm={async () => { await deleteMutation.mutateAsync(row.id) }}
+      trigger={
+        <Button size="sm" variant="outline" disabled={Boolean(row.redeemed) || deleteMutation.isPending} icon={<Trash2 className="size-4" />}>
+          {t('actions.delete')}
+        </Button>
+      }
+    />
+  )
 
   return (
     <section className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
@@ -331,8 +341,51 @@ export default function AiQrCodesPage() {
         actions={<><Button variant="outline" icon={<RefreshCcw />} onClick={() => void qrQuery.refetch()}>{t('actions.refresh')}</Button><Button icon={<PackagePlus />} onClick={openCreateDialog}>{t('actions.create')}</Button></>}
       />
 
+      <div className="flex min-h-0 flex-1 flex-col gap-3 md:hidden">
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pb-1">
+          {!qrQuery.isLoading && !rows.length ? (
+            <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">{t('table.empty')}</div>
+          ) : null}
+          {rows.map((row) => (
+            <article key={row.id} className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-mono text-base font-bold text-foreground" dir="ltr">{row.code}</p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{grantSummary(row)}</p>
+                </div>
+                {row.redeemed ? <Badge color="emerald" variant="outline">{t('table.redeemed')}</Badge> : <Badge color="slate" variant="outline">{t('table.available')}</Badge>}
+              </div>
+              <div className="flex items-center justify-between gap-3 border-t border-border pt-3 text-xs text-muted-foreground">
+                <span>{t('table.validUntil')}</span>
+                <span>{row.validUntil ? new Intl.DateTimeFormat(dateLocale).format(new Date(row.validUntil)) : t('table.noExpiry')}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  loading={downloadingQrId === row.id}
+                  icon={<Download className="size-4" />}
+                  onClick={() => void downloadSingleQr(row)}
+                >
+                  {t('actions.downloadQr')}
+                </Button>
+                {deleteAction(row)}
+              </div>
+            </article>
+          ))}
+        </div>
+        <div className="flex shrink-0 items-center justify-between gap-2 rounded-xl border border-border bg-card p-3">
+          <span className="text-xs text-muted-foreground">{t('table.summary', { count: totalCount })}</span>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>{t('table.previous')}</Button>
+            <span className="min-w-8 text-center text-sm font-semibold">{page}/{totalPages}</span>
+            <Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => setPage((current) => Math.min(totalPages, current + 1))}>{t('table.next')}</Button>
+          </div>
+        </div>
+      </div>
+
       <PaginatedDataTable<UnifiedQrItem>
-        className="min-h-0 flex-1"
+        className="hidden min-h-0 flex-1 md:flex"
         rows={rows}
         loading={qrQuery.isLoading || qrQuery.isFetching}
         getRowId={(row) => row.id}
@@ -349,19 +402,8 @@ export default function AiQrCodesPage() {
             header: '',
             renderCell: (row) => (
               <div className="flex flex-wrap justify-end gap-2">
-                <Button size="sm" variant="outline" loading={printingId === row.id} icon={<Printer className="size-4" />} onClick={() => void reprint(row)}>{t('actions.reprint')}</Button>
-                <ConfirmDialog
-                  title={t('actions.delete')}
-                  confirmLabel={t('actions.delete')}
-                  confirmingLabel={t('actions.delete')}
-                  cancelLabel={t('actions.close')}
-                  onConfirm={async () => { await deleteMutation.mutateAsync(row.id) }}
-                  trigger={
-                    <Button size="sm" variant="outline" disabled={Boolean(row.redeemed) || deleteMutation.isPending} icon={<Trash2 className="size-4" />}>
-                      {t('actions.delete')}
-                    </Button>
-                  }
-                />
+                <Button size="sm" variant="outline" loading={downloadingQrId === row.id} icon={<Download className="size-4" />} onClick={() => void downloadSingleQr(row)}>{t('actions.downloadQr')}</Button>
+                {deleteAction(row)}
               </div>
             ),
           },
@@ -433,7 +475,7 @@ export default function AiQrCodesPage() {
       </Sheet>
 
       <Dialog open={generatedDialogOpen} onOpenChange={setGeneratedDialogOpen}>
-        <DialogContent className="max-w-6xl">
+        <DialogContent className="max-h-[90svh] max-w-6xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><QrCode className="size-5 text-primary" />{t('generated.title')}</DialogTitle>
             <DialogDescription>{t('generated.description')}</DialogDescription>
@@ -442,7 +484,7 @@ export default function AiQrCodesPage() {
           <div className="space-y-4">
             <Alert>
               <AlertTitle>{t('generated.count', { count: generatedItems.length })}</AlertTitle>
-              <p className="mt-1 text-sm text-muted-foreground">{t('generated.printHint')}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{t('generated.downloadHint')}</p>
             </Alert>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {generatedItems.slice(0, GENERATED_PREVIEW_LIMIT).map((item) => (
@@ -450,15 +492,24 @@ export default function AiQrCodesPage() {
                   {item.qrSvg ? <img className="size-40 max-w-full" src={svgDataUri(item.qrSvg)} alt={`${t('generated.singleTitle')} ${item.code}`} /> : <QrCode className="size-24 text-muted-foreground" />}
                   <strong className="mt-3 max-w-full break-all font-mono text-xs" dir="ltr">{item.code}</strong>
                   <span className="mt-1 text-xs leading-5 text-muted-foreground">{grantSummary(item)}</span>
-                  {item.qrSvg ? <Button className="mt-3 w-full" size="sm" variant="outline" icon={<Download className="size-4" />} onClick={() => downloadQrSvg(item)}>{t('actions.downloadSvg')}</Button> : null}
+                  {item.qrSvg ? <Button className="mt-3 w-full" size="sm" variant="outline" icon={<Download className="size-4" />} onClick={() => downloadQrSvg(item)}>{t('actions.downloadQr')}</Button> : null}
                 </article>
               ))}
             </div>
+            {pdfMutation.isError ? <Alert variant="destructive"><AlertTitle>{t('messages.pdfFailed')}</AlertTitle></Alert> : null}
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setGeneratedDialogOpen(false)}>{t('actions.close')}</Button>
-            <Button type="button" icon={<Printer className="size-4" />} disabled={!generatedItems.some((item) => item.qrSvg)} onClick={() => printItems(generatedItems)}>{t('actions.printPdf')}</Button>
+            <Button
+              type="button"
+              loading={pdfMutation.isPending}
+              icon={<Download className="size-4" />}
+              disabled={!generatedItems.length}
+              onClick={() => pdfMutation.mutate(generatedItems.map((item) => item.id))}
+            >
+              {t('actions.downloadPdf')}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -6,9 +6,8 @@
     "refresh": "Refresh",
     "create": "Create codes",
     "delete": "Delete",
-    "printPdf": "Print / Save PDF",
-    "downloadSvg": "Download SVG",
-    "reprint": "Print",
+    "downloadPdf": "Download all codes PDF",
+    "downloadQr": "Download QR with code",
     "close": "Close"
   },
   "create": {
@@ -17,9 +16,9 @@
   },
   "generated": {
     "title": "QR codes created",
-    "description": "The new codes were added to the list. Print them now or save the print sheet as a PDF.",
+    "description": "The new codes were added to the list. Download every generated code directly as a ready PDF file.",
     "count": "{{count}} codes created successfully.",
-    "printHint": "Choose “Save as PDF” in the browser print dialog to send a print-ready file.",
+    "downloadHint": "The PDF contains every QR code with its activation code underneath, without opening a print dialog.",
     "singleTitle": "QR code"
   },
   "fields": {
@@ -51,8 +50,8 @@
   },
   "messages": {
     "createFailed": "Could not create QR codes.",
-    "printFailed": "Could not prepare the print sheet.",
-    "detailFailed": "Could not prepare this code for printing."
+    "pdfFailed": "Could not prepare the PDF file. Please try again.",
+    "detailFailed": "Could not prepare this code for download."
   },
   "summary": {
     "allCourses": "All courses",

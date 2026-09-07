@@ -18,7 +18,13 @@ export const aiQrCodesService = {
     }),
   create: (payload: CreateUnifiedQrRequest) =>
     api.post<CreateUnifiedQrResponse, CreateUnifiedQrRequest>(API_ENDPOINTS.qrCodes.create, payload),
-  detail: (id: string) => api.get<UnifiedQrItem>(`${API_ENDPOINTS.qrCodes.list}/bundles/${id}`),
+  detail: (id: string) => api.get<UnifiedQrItem>(API_ENDPOINTS.qrCodes.detail(id)),
+  downloadPdf: (ids: string[]) =>
+    api.post<Blob, { ids: string[] }>(
+      `${API_ENDPOINTS.qrCodes.list}/pdf`,
+      { ids },
+      { responseType: 'blob' },
+    ),
   remove: (id: string) => api.delete<{ message: string }>(API_ENDPOINTS.qrCodes.remove(id)),
   pointsOfSale: () =>
     api.get<PagedResponse<PointOfSaleOption>>(API_ENDPOINTS.pointsOfSale.list, {
