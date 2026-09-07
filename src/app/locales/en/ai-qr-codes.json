@@ -6,8 +6,9 @@
     "refresh": "Refresh",
     "create": "Create codes",
     "delete": "Delete",
-    "downloadPdf": "Download all codes PDF",
+    "downloadPdf": "Download all PDF",
     "downloadQr": "Download QR with code",
+    "print": "Print",
     "close": "Close"
   },
   "create": {
@@ -16,9 +17,9 @@
   },
   "generated": {
     "title": "QR codes created",
-    "description": "The new codes were added to the list. Download every generated code directly as a ready PDF file.",
+    "description": "The codes were added to the list. You can print them now or download all of them in one PDF file.",
     "count": "{{count}} codes created successfully.",
-    "downloadHint": "The PDF contains every QR code with its activation code underneath, without opening a print dialog.",
+    "downloadHint": "Use Print to open the print dialog, or Download all PDF to save a ready file containing every code.",
     "singleTitle": "QR code"
   },
   "fields": {
