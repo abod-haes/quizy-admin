@@ -1,6 +1,5 @@
 import {
   MutationCache,
-  QueryCache,
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query'
@@ -11,18 +10,11 @@ import { toast } from '@/shared/lib/toast'
 
 const createQueryClient = () =>
   new QueryClient({
-    queryCache: new QueryCache({
-      onError: (error, query) => {
-        // A background refetch should not interrupt the user when usable cached data
-        // is already on screen. Initial-load failures still surface globally.
-        if (query.state.data !== undefined) return
-        toast.error(getApiErrorMessage(error))
-      },
-    }),
     mutationCache: new MutationCache({
       onError: (error, _variables, _context, mutation) => {
-        // Feature-specific handlers can show field-level or contextual feedback.
-        // Only provide the global fallback when the mutation has no own handler.
+        // Write actions may surface a global fallback when the feature does not
+        // already provide contextual feedback. Read/query failures stay inline
+        // and never interrupt the user with a toast.
         if (mutation.options.onError) return
         toast.error(getApiErrorMessage(error))
       },
