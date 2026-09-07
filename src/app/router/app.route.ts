@@ -95,6 +95,9 @@ const quizyModuleRoutes: Array<{ routeKey: AppRouteKey; element: ReturnType<type
 
 export const appRouter = createBrowserRouter([
   { path: APP_ROUTES.login.path, element: createElement(LoginPage) },
+  { path: '/register', element: createElement(LoginPage) },
+  { path: '/signup', element: createElement(LoginPage) },
+  { path: '/sign-up', element: createElement(LoginPage) },
   { path: '/accept-invitation', element: createElement(AcceptInvitationPage) },
   { path: '/recover', element: createElement(RecoverPage) },
   { path: '/reset-password', element: createElement(ResetPasswordPage) },
