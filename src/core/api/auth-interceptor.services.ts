@@ -22,6 +22,8 @@ type RefreshResponse = {
 }
 
 let refreshPromise: Promise<string> | null = null
+let lastSessionEndAt = 0
+const SESSION_END_DEDUPE_MS = 2500
 
 const authEndpoints = new Set<string>([
   API_ENDPOINTS.auth.login,
@@ -32,7 +34,11 @@ const authEndpoints = new Set<string>([
 ])
 
 function endSession() {
+  const now = Date.now()
   clearAuthSession()
+  if (now - lastSessionEndAt <= SESSION_END_DEDUPE_MS) return
+
+  lastSessionEndAt = now
   window.dispatchEvent(new CustomEvent('auth:unauthorized'))
 }
 
