@@ -25,28 +25,20 @@ export type AdminPermissionOption = {
   description: string | null
 }
 
-export type AdminInvitationResult = {
-  sent?: boolean
-  requestId?: string
-  expiresAt?: string
-  [key: string]: unknown
-}
-
-export type CreateAdminEmployeeResponse = AdminEmployee & {
-  invitation?: AdminInvitationResult | null
-}
+export type CreateAdminEmployeeResponse = AdminEmployee
 
 export type CreateAdminEmployeeInput = {
   firstName: string
   lastName?: string
   phoneNumber: string
   countryCallingCode: string
+  password: string
   permissions: AdminPermissionCode[]
-  sendInvitation?: boolean
 }
 
 export type UpdateAdminEmployeeInput = {
   firstName?: string
   lastName?: string
+  password?: string
   permissions?: AdminPermissionCode[]
 }
