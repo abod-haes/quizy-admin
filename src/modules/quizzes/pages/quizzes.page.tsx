@@ -59,10 +59,21 @@ function questionsCount(quiz: QuizRow) {
   return Array.isArray(quiz.questions) ? quiz.questions.length : 0
 }
 
+function nestedRecordId(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value) || !('id' in value)) return undefined
+  return (value as { id?: unknown }).id
+}
+
 function currentTeacherId(user: AuthUser | null) {
   if (!user) return null
 
-  const candidates = [user.teacherId, user.teacher_id, user.teacher?.id, user.id]
+  const candidates: unknown[] = [
+    user.teacherId,
+    user.teacher_id,
+    nestedRecordId(user.teacher),
+    user.id,
+  ]
+
   for (const candidate of candidates) {
     if (typeof candidate === 'string' && candidate.trim()) return candidate.trim()
     if (typeof candidate === 'number') return String(candidate)
