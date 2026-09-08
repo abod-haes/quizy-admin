@@ -91,6 +91,7 @@ type QuizExcelImportPreview = {
 }
 
 const RESOURCE_PAGE_SIZE = 100
+const TEACHER_PAGE_SIZE = 100
 const QUIZ_EXCEL_IMPORT_ENDPOINT = '/api/v1/admin/quizzes/import/preview'
 const QUIZ_EXCEL_TEMPLATE_PATH = '/quizy-quiz-template.xlsx'
 const QUIZ_EXCEL_ACCEPT = '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -220,14 +221,12 @@ function QuizBuilderEditor({
   quizId,
   initialPayload,
   subjectOptions,
-  teacherOptions,
   entityOptions,
   resourceOptions,
 }: {
   quizId: string
   initialPayload: QuizPayload
   subjectOptions: SelectOption[]
-  teacherOptions: SelectOption[]
   entityOptions: SelectOption[]
   resourceOptions: SelectOption[]
 }) {
@@ -239,10 +238,31 @@ function QuizBuilderEditor({
   const isRtl = i18n.dir() === 'rtl'
   const [mode, setMode] = useState<BuilderMode>('visual')
   const [payload, setPayload] = useState<QuizPayload>(initialPayload)
-  const [jsonValue, setJsonValue] = useState(() => JSON.stringify(payloadForRequest(initialPayload), null, 2))
+  const [jsonValue, setJsonValue] = useState(() =>
+    JSON.stringify(payloadForRequest(initialPayload), null, 2),
+  )
   const [jsonError, setJsonError] = useState('')
   const [isImportingExcel, setIsImportingExcel] = useState(false)
   const [excelErrors, setExcelErrors] = useState<string[]>([])
+
+  const teachersQuery = useQuery({
+    queryKey: ['quiz-builder', 'teachers', payload.subjectId],
+    queryFn: () =>
+      api.get<PagedResponse<OptionItem>>(API_ENDPOINTS.teachers.list, {
+        params: {
+          Page: 1,
+          PerPage: TEACHER_PAGE_SIZE,
+          SubjectId: payload.subjectId,
+        },
+      }),
+    enabled: Boolean(payload.subjectId),
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const teacherOptions = (teachersQuery.data?.items ?? []).map((item) => ({
+    value: item.id,
+    label: valueLabel(item),
+  }))
 
   const validate = (candidate: QuizPayload) => {
     if (!candidate.title?.trim()) return t('validation.titleRequired')
@@ -254,7 +274,9 @@ function QuizBuilderEditor({
     for (const question of candidate.questions) {
       if (!question.title.trim()) return t('validation.questionRequired')
       if (question.answers.length < 2) return t('validation.answersRequired')
-      if (question.answers.some((answer) => !answer.title.trim())) return t('validation.answerRequired')
+      if (question.answers.some((answer) => !answer.title.trim())) {
+        return t('validation.answerRequired')
+      }
       if (!question.answers.some((answer) => answer.isCorrect)) {
         return t('validation.correctAnswerRequired')
       }
@@ -304,7 +326,9 @@ function QuizBuilderEditor({
       })
     },
     onError: (error) => {
-      toast.error(error instanceof Error && error.message ? error.message : t('validation.saveFailed'))
+      toast.error(
+        error instanceof Error && error.message ? error.message : t('validation.saveFailed'),
+      )
     },
   })
 
@@ -360,7 +384,9 @@ function QuizBuilderEditor({
       formData.append('file', file)
       const preview = await api.upload<QuizExcelImportPreview>(QUIZ_EXCEL_IMPORT_ENDPOINT, formData)
       if (preview.errors.length) {
-        const errors = preview.errors.map((error) => t('excel.rowError', { row: error.row, message: error.message }))
+        const errors = preview.errors.map((error) =>
+          t('excel.rowError', { row: error.row, message: error.message }),
+        )
         setExcelErrors(errors)
         toast.error(t('excel.fixErrors', { count: preview.errors.length }))
         return
@@ -392,7 +418,8 @@ function QuizBuilderEditor({
       setExcelErrors([])
       toast.success(t('excel.imported', { count: importedQuestions.length }))
     } catch (error) {
-      const message = error instanceof Error && error.message ? error.message : t('excel.importFailed')
+      const message =
+        error instanceof Error && error.message ? error.message : t('excel.importFailed')
       setExcelErrors([message])
       toast.error(message)
     } finally {
@@ -411,8 +438,6 @@ function QuizBuilderEditor({
 
     const parsed = parseJson()
     if (parsed) setPayload(parsed)
-    // Returning to the visual editor must never be blocked by incomplete or malformed JSON.
-    // If parsing failed, keep the last valid visual state so the admin can recover there.
     setMode('visual')
   }
 
@@ -500,14 +525,18 @@ function QuizBuilderEditor({
       ) : (
         <>
           <Card className="rounded-3xl">
-            <CardHeader><CardTitle>{t('title')}</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle>{t('title')}</CardTitle>
+            </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
                 <Label>{t('fields.quizTitle')}</Label>
                 <Input
                   value={payload.title ?? ''}
                   placeholder={t('placeholders.quizTitle')}
-                  onChange={(event) => setPayload((current) => ({ ...current, title: event.target.value }))}
+                  onChange={(event) =>
+                    setPayload((current) => ({ ...current, title: event.target.value }))
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -516,7 +545,14 @@ function QuizBuilderEditor({
                   value={payload.subjectId || undefined}
                   options={subjectOptions}
                   placeholder={t('placeholders.subject')}
-                  onValueChange={(value) => setPayload((current) => ({ ...current, subjectId: String(value) }))}
+                  onValueChange={(value) => {
+                    const subjectId = String(value)
+                    setPayload((current) => ({
+                      ...current,
+                      subjectId,
+                      teacherId: current.subjectId === subjectId ? current.teacherId : '',
+                    }))
+                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -524,9 +560,23 @@ function QuizBuilderEditor({
                 <CustomSelect
                   value={payload.teacherId || undefined}
                   options={teacherOptions}
-                  placeholder={t('placeholders.teacher')}
-                  onValueChange={(value) => setPayload((current) => ({ ...current, teacherId: String(value) }))}
+                  disabled={!payload.subjectId || teachersQuery.isFetching}
+                  placeholder={
+                    !payload.subjectId
+                      ? 'اختر المادة أولاً'
+                      : teachersQuery.isFetching
+                        ? 'جاري تحميل المدرسين...'
+                        : t('placeholders.teacher')
+                  }
+                  onValueChange={(value) =>
+                    setPayload((current) => ({ ...current, teacherId: String(value) }))
+                  }
                 />
+                {payload.subjectId && !teachersQuery.isFetching && teacherOptions.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    لا يوجد مدرسون مرتبطون بالمادة المختارة.
+                  </p>
+                ) : null}
               </div>
               <div className="space-y-2">
                 <Label>{t('fields.timeExpiration')}</Label>
@@ -535,7 +585,12 @@ function QuizBuilderEditor({
                   min={1}
                   step={1}
                   value={payload.timeExpiration}
-                  onChange={(event) => setPayload((current) => ({ ...current, timeExpiration: Number(event.target.value) }))}
+                  onChange={(event) =>
+                    setPayload((current) => ({
+                      ...current,
+                      timeExpiration: Number(event.target.value),
+                    }))
+                  }
                 />
               </div>
               <div className="flex items-end">
@@ -543,7 +598,9 @@ function QuizBuilderEditor({
                   <Label>{t('fields.isFree')}</Label>
                   <ToggleSwitch
                     checked={payload.isFree}
-                    onCheckedChange={(checked) => setPayload((current) => ({ ...current, isFree: checked }))}
+                    onCheckedChange={(checked) =>
+                      setPayload((current) => ({ ...current, isFree: checked }))
+                    }
                   />
                 </div>
               </div>
@@ -553,7 +610,9 @@ function QuizBuilderEditor({
                   values={payload.entityIds ?? []}
                   options={entityOptions}
                   placeholder={t('placeholders.linkedContent')}
-                  onValuesChange={(values) => setPayload((current) => ({ ...current, entityIds: values }))}
+                  onValuesChange={(values) =>
+                    setPayload((current) => ({ ...current, entityIds: values }))
+                  }
                 />
               </div>
             </CardContent>
@@ -563,11 +622,18 @@ function QuizBuilderEditor({
             <CardHeader className="flex-row items-center justify-between gap-3">
               <div>
                 <CardTitle>{t('questions.title')}</CardTitle>
-                <CardDescription>{t('questions.count', { count: payload.questions.length })}</CardDescription>
+                <CardDescription>
+                  {t('questions.count', { count: payload.questions.length })}
+                </CardDescription>
               </div>
               <Button
                 icon={<Plus className="size-4" />}
-                onClick={() => setPayload((current) => ({ ...current, questions: [...current.questions, emptyQuestion()] }))}
+                onClick={() =>
+                  setPayload((current) => ({
+                    ...current,
+                    questions: [...current.questions, emptyQuestion()],
+                  }))
+                }
               >
                 {t('actions.addQuestion')}
               </Button>
@@ -596,7 +662,13 @@ function QuizBuilderEditor({
                     type="button"
                     variant="outline"
                     disabled={isImportingExcel}
-                    icon={isImportingExcel ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+                    icon={
+                      isImportingExcel ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Upload className="size-4" />
+                      )
+                    }
                     onClick={() => excelInputRef.current?.click()}
                   >
                     {isImportingExcel ? t('excel.importing') : t('excel.uploadFile')}
@@ -619,13 +691,18 @@ function QuizBuilderEditor({
                 <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
                   <p className="font-semibold">{t('excel.errorsTitle')}</p>
                   <ul className="mt-2 list-disc space-y-1 ps-5">
-                    {excelErrors.map((error, index) => <li key={`${error}-${index}`}>{error}</li>)}
+                    {excelErrors.map((error, index) => (
+                      <li key={`${error}-${index}`}>{error}</li>
+                    ))}
                   </ul>
                 </div>
               ) : null}
 
               {payload.questions.map((question, questionIndex) => (
-                <div key={question.id ?? `new-${questionIndex}`} className="space-y-4 rounded-3xl border border-border p-4">
+                <div
+                  key={question.id ?? `new-${questionIndex}`}
+                  className="space-y-4 rounded-3xl border border-border p-4"
+                >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <Badge variant="outline" color="primary">
                       {t('questions.item', { index: questionIndex + 1 })}
@@ -636,10 +713,14 @@ function QuizBuilderEditor({
                       className="text-destructive"
                       icon={<Trash2 className="size-4" />}
                       disabled={payload.questions.length <= 1}
-                      onClick={() => setPayload((current) => ({
-                        ...current,
-                        questions: current.questions.filter((_, index) => index !== questionIndex),
-                      }))}
+                      onClick={() =>
+                        setPayload((current) => ({
+                          ...current,
+                          questions: current.questions.filter(
+                            (_, index) => index !== questionIndex,
+                          ),
+                        }))
+                      }
                     >
                       {t('actions.removeQuestion')}
                     </Button>
@@ -651,7 +732,9 @@ function QuizBuilderEditor({
                       <Textarea
                         value={question.title}
                         placeholder={t('placeholders.question')}
-                        onChange={(event) => updateQuestion(questionIndex, { title: event.target.value })}
+                        onChange={(event) =>
+                          updateQuestion(questionIndex, { title: event.target.value })
+                        }
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">
@@ -659,7 +742,9 @@ function QuizBuilderEditor({
                       <Input
                         value={question.hint ?? ''}
                         placeholder={t('placeholders.hint')}
-                        onChange={(event) => updateQuestion(questionIndex, { hint: event.target.value })}
+                        onChange={(event) =>
+                          updateQuestion(questionIndex, { hint: event.target.value })
+                        }
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">
@@ -668,7 +753,9 @@ function QuizBuilderEditor({
                         values={question.fileIds ?? []}
                         options={resourceOptions}
                         placeholder={t('placeholders.files')}
-                        onValuesChange={(values) => updateQuestion(questionIndex, { fileIds: values })}
+                        onValuesChange={(values) =>
+                          updateQuestion(questionIndex, { fileIds: values })
+                        }
                       />
                     </div>
                   </div>
@@ -680,9 +767,14 @@ function QuizBuilderEditor({
                         size="sm"
                         variant="outline"
                         icon={<Plus className="size-4" />}
-                        onClick={() => updateQuestion(questionIndex, {
-                          answers: [...question.answers, { title: '', isCorrect: false }],
-                        })}
+                        onClick={() =>
+                          updateQuestion(questionIndex, {
+                            answers: [
+                              ...question.answers,
+                              { title: '', isCorrect: false },
+                            ],
+                          })
+                        }
                       >
                         {t('actions.addAnswer')}
                       </Button>
@@ -695,14 +787,22 @@ function QuizBuilderEditor({
                         <Input
                           value={answer.title}
                           placeholder={t('placeholders.answer')}
-                          onChange={(event) => updateAnswer(questionIndex, answerIndex, { title: event.target.value })}
+                          onChange={(event) =>
+                            updateAnswer(questionIndex, answerIndex, {
+                              title: event.target.value,
+                            })
+                          }
                         />
                         <label className="flex items-center gap-2 text-sm font-medium">
                           <input
                             className="size-4 accent-primary"
                             type="checkbox"
                             checked={answer.isCorrect}
-                            onChange={(event) => updateAnswer(questionIndex, answerIndex, { isCorrect: event.target.checked })}
+                            onChange={(event) =>
+                              updateAnswer(questionIndex, answerIndex, {
+                                isCorrect: event.target.checked,
+                              })
+                            }
                           />
                           {t('fields.correct')}
                         </label>
@@ -712,9 +812,13 @@ function QuizBuilderEditor({
                           className="text-destructive"
                           icon={<Trash2 className="size-4" />}
                           disabled={question.answers.length <= 2}
-                          onClick={() => updateQuestion(questionIndex, {
-                            answers: question.answers.filter((_, index) => index !== answerIndex),
-                          })}
+                          onClick={() =>
+                            updateQuestion(questionIndex, {
+                              answers: question.answers.filter(
+                                (_, index) => index !== answerIndex,
+                              ),
+                            })
+                          }
                         >
                           {t('actions.removeAnswer')}
                         </Button>
@@ -752,16 +856,12 @@ export default function QuizBuilderV2Page() {
     queryFn: () => api.get<OptionItem[]>(API_ENDPOINTS.lessons.brief),
     staleTime: 5 * 60 * 1000,
   })
-  const teachersQuery = useQuery({
-    queryKey: ['quiz-builder', 'teachers'],
-    queryFn: () => api.get<OptionItem[]>(API_ENDPOINTS.teachers.brief),
-    staleTime: 5 * 60 * 1000,
-  })
   const resourcesQuery = useQuery({
     queryKey: ['quiz-builder', 'resources'],
-    queryFn: () => api.get<PagedResponse<ResourceOption>>(API_ENDPOINTS.resources.list, {
-      params: { Page: 1, PerPage: RESOURCE_PAGE_SIZE },
-    }),
+    queryFn: () =>
+      api.get<PagedResponse<ResourceOption>>(API_ENDPOINTS.resources.list, {
+        params: { Page: 1, PerPage: RESOURCE_PAGE_SIZE },
+      }),
     staleTime: 5 * 60 * 1000,
   })
   const detailQuery = useQuery({
@@ -774,7 +874,6 @@ export default function QuizBuilderV2Page() {
     subjectsQuery.isLoading ||
     unitsQuery.isLoading ||
     lessonsQuery.isLoading ||
-    teachersQuery.isLoading ||
     resourcesQuery.isLoading ||
     (isEditing && detailQuery.isLoading)
 
@@ -790,23 +889,37 @@ export default function QuizBuilderV2Page() {
   if (isEditing && detailQuery.isError) {
     return (
       <Card className="rounded-3xl border-destructive/30">
-        <CardContent className="p-6 text-destructive">{t('validation.loadFailed')}</CardContent>
+        <CardContent className="p-6 text-destructive">
+          {t('validation.loadFailed')}
+        </CardContent>
       </Card>
     )
   }
 
-  const subjectOptions = (subjectsQuery.data ?? []).map((item) => ({ value: item.id, label: valueLabel(item) }))
-  const teacherOptions = (teachersQuery.data ?? []).map((item) => ({ value: item.id, label: valueLabel(item) }))
+  const subjectOptions = (subjectsQuery.data ?? []).map((item) => ({
+    value: item.id,
+    label: valueLabel(item),
+  }))
   const entityOptions = [
-    ...(subjectsQuery.data ?? []).map((item) => ({ value: item.id, label: `${t('entityTypes.subject')}: ${valueLabel(item)}` })),
-    ...(unitsQuery.data ?? []).map((item) => ({ value: item.id, label: `${t('entityTypes.unit')}: ${valueLabel(item)}` })),
-    ...(lessonsQuery.data ?? []).map((item) => ({ value: item.id, label: `${t('entityTypes.lesson')}: ${valueLabel(item)}` })),
+    ...(subjectsQuery.data ?? []).map((item) => ({
+      value: item.id,
+      label: `${t('entityTypes.subject')}: ${valueLabel(item)}`,
+    })),
+    ...(unitsQuery.data ?? []).map((item) => ({
+      value: item.id,
+      label: `${t('entityTypes.unit')}: ${valueLabel(item)}`,
+    })),
+    ...(lessonsQuery.data ?? []).map((item) => ({
+      value: item.id,
+      label: `${t('entityTypes.lesson')}: ${valueLabel(item)}`,
+    })),
   ]
   const resourceOptions = (resourcesQuery.data?.items ?? []).map((item) => ({
     value: item.id,
     label: item.originalName?.trim() || item.filePath?.split('/').pop() || item.id,
   }))
-  const initialPayload = isEditing && detailQuery.data ? normalizeQuizBody(detailQuery.data) : emptyQuiz()
+  const initialPayload =
+    isEditing && detailQuery.data ? normalizeQuizBody(detailQuery.data) : emptyQuiz()
 
   return (
     <QuizBuilderEditor
@@ -814,7 +927,6 @@ export default function QuizBuilderV2Page() {
       quizId={quizId}
       initialPayload={initialPayload}
       subjectOptions={subjectOptions}
-      teacherOptions={teacherOptions}
       entityOptions={entityOptions}
       resourceOptions={resourceOptions}
     />
