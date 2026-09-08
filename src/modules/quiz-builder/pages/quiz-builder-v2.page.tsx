@@ -95,6 +95,7 @@ const TEACHER_PAGE_SIZE = 100
 const QUIZ_EXCEL_IMPORT_ENDPOINT = '/api/v1/admin/quizzes/import/preview'
 const QUIZ_EXCEL_TEMPLATE_PATH = '/quizy-quiz-template.xlsx'
 const QUIZ_EXCEL_ACCEPT = '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+const QUIZ_EXCEL_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
 function valueLabel(item: OptionItem) {
   return (
@@ -217,6 +218,17 @@ function payloadForRequest(payload: QuizPayload): QuizPayload {
   }
 }
 
+function hasZipSignature(buffer: ArrayBuffer) {
+  const bytes = new Uint8Array(buffer)
+  if (bytes.length < 4 || bytes[0] !== 0x50 || bytes[1] !== 0x4b) return false
+
+  return (
+    (bytes[2] === 0x03 && bytes[3] === 0x04) ||
+    (bytes[2] === 0x05 && bytes[3] === 0x06) ||
+    (bytes[2] === 0x07 && bytes[3] === 0x08)
+  )
+}
+
 function QuizBuilderEditor({
   quizId,
   initialPayload,
@@ -242,6 +254,7 @@ function QuizBuilderEditor({
     JSON.stringify(payloadForRequest(initialPayload), null, 2),
   )
   const [jsonError, setJsonError] = useState('')
+  const [isDownloadingExcel, setIsDownloadingExcel] = useState(false)
   const [isImportingExcel, setIsImportingExcel] = useState(false)
   const [excelErrors, setExcelErrors] = useState<string[]>([])
 
@@ -361,13 +374,41 @@ function QuizBuilderEditor({
     }))
   }
 
-  const downloadExcelTemplate = () => {
-    const link = document.createElement('a')
-    link.href = QUIZ_EXCEL_TEMPLATE_PATH
-    link.download = 'Quizy-قالب-الاختبارات.xlsx'
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
+  const downloadExcelTemplate = async () => {
+    if (isDownloadingExcel) return
+
+    setIsDownloadingExcel(true)
+    try {
+      const cacheBustedPath = `${QUIZ_EXCEL_TEMPLATE_PATH}?v=${Date.now()}`
+      const response = await fetch(cacheBustedPath, {
+        cache: 'no-store',
+        headers: { Accept: QUIZ_EXCEL_MIME },
+      })
+
+      if (!response.ok) {
+        throw new Error(`Template request failed with status ${response.status}`)
+      }
+
+      const buffer = await response.arrayBuffer()
+      if (!hasZipSignature(buffer)) {
+        throw new Error('Downloaded template is not a valid XLSX archive')
+      }
+
+      const blob = new Blob([buffer], { type: QUIZ_EXCEL_MIME })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'Quizy-قالب-الاختبارات.xlsx'
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.setTimeout(() => URL.revokeObjectURL(url), 0)
+      toast.success('تم تحميل قالب Excel بنجاح')
+    } catch {
+      toast.error('تعذر تحميل قالب Excel صالح. حدّث الصفحة وحاول مرة ثانية.')
+    } finally {
+      setIsDownloadingExcel(false)
+    }
   }
 
   const importExcelFile = async (file: File) => {
@@ -653,8 +694,15 @@ function QuizBuilderEditor({
                   <Button
                     type="button"
                     variant="outline"
-                    icon={<Download className="size-4" />}
-                    onClick={downloadExcelTemplate}
+                    disabled={isDownloadingExcel}
+                    icon={
+                      isDownloadingExcel ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Download className="size-4" />
+                      )
+                    }
+                    onClick={() => void downloadExcelTemplate()}
                   >
                     {t('excel.downloadTemplate')}
                   </Button>
