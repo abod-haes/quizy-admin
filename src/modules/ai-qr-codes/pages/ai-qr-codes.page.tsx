@@ -409,6 +409,7 @@ export default function AiQrCodesPage() {
   const totalCount = qrQuery.data?.totalCount ?? 0
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
   const dateLocale = i18n.resolvedLanguage?.startsWith('ar') ? 'ar-SY' : 'en-US'
+  const compactDesktopTable = rows.length <= 8
 
   const grantSummary = (row: UnifiedQrItem) => {
     const labels = (row.grants ?? []).map((grant) => {
@@ -449,7 +450,7 @@ export default function AiQrCodesPage() {
     setCreateDialogOpen(true)
   }
 
-  const deleteAction = (row: UnifiedQrItem) => (
+  const deleteAction = (row: UnifiedQrItem, compact = false) => (
     <ConfirmDialog
       title={t('actions.delete')}
       confirmLabel={t('actions.delete')}
@@ -460,12 +461,14 @@ export default function AiQrCodesPage() {
       }}
       trigger={
         <Button
-          size="sm"
+          size={compact ? 'icon-sm' : 'sm'}
           variant="outline"
           disabled={Boolean(row.redeemed) || deleteMutation.isPending}
-          icon={<Trash2 className="size-4" />}
+          icon={compact ? <Trash2 className="size-4" /> : <Trash2 className="size-4" />}
+          aria-label={compact ? t('actions.delete') : undefined}
+          title={compact ? t('actions.delete') : undefined}
         >
-          {t('actions.delete')}
+          {compact ? null : t('actions.delete')}
         </Button>
       }
     />
@@ -583,7 +586,9 @@ export default function AiQrCodesPage() {
       </div>
 
       <PaginatedDataTable<UnifiedQrItem>
-        className="hidden min-h-0 flex-1 md:flex"
+        className={`hidden min-h-0 md:flex ${
+          compactDesktopTable ? 'md:h-[34rem] md:flex-none' : 'flex-1'
+        }`}
         rows={rows}
         loading={qrQuery.isLoading || qrQuery.isFetching}
         getRowId={(row) => row.id}
@@ -603,7 +608,10 @@ export default function AiQrCodesPage() {
             id: 'code',
             header: t('table.code'),
             renderCell: (row) => (
-              <span className="font-mono text-xs" dir="ltr">
+              <span
+                className="inline-flex max-w-full items-center rounded-md border border-border/70 bg-muted/35 px-2.5 py-1 font-mono text-[11px] font-semibold tracking-[0.02em] text-foreground"
+                dir="ltr"
+              >
                 {row.code}
               </span>
             ),
@@ -611,7 +619,9 @@ export default function AiQrCodesPage() {
           {
             id: 'content',
             header: t('table.content'),
-            renderCell: (row) => grantSummary(row),
+            renderCell: (row) => (
+              <span className="font-medium text-foreground">{grantSummary(row)}</span>
+            ),
           },
           {
             id: 'status',
@@ -630,26 +640,29 @@ export default function AiQrCodesPage() {
           {
             id: 'validUntil',
             header: t('table.validUntil'),
-            renderCell: (row) =>
-              row.validUntil
-                ? new Intl.DateTimeFormat(dateLocale).format(new Date(row.validUntil))
-                : t('table.noExpiry'),
+            renderCell: (row) => (
+              <span className="text-sm tabular-nums text-muted-foreground">
+                {row.validUntil
+                  ? new Intl.DateTimeFormat(dateLocale).format(new Date(row.validUntil))
+                  : t('table.noExpiry')}
+              </span>
+            ),
           },
           {
             id: 'actions',
             header: '',
             renderCell: (row) => (
-              <div className="flex flex-wrap justify-end gap-2">
+              <div className="flex w-full items-center justify-center gap-1.5">
                 <Button
-                  size="sm"
+                  size="icon-sm"
                   variant="outline"
                   loading={downloadingQrId === row.id}
                   icon={<Download className="size-4" />}
+                  aria-label={t('actions.downloadQr')}
+                  title={t('actions.downloadQr')}
                   onClick={() => void downloadSingleQr(row)}
-                >
-                  {t('actions.downloadQr')}
-                </Button>
-                {deleteAction(row)}
+                />
+                {deleteAction(row, true)}
               </div>
             ),
           },
