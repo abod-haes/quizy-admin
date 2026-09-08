@@ -166,6 +166,7 @@
   },
   "validation": {
     "required": "This field is required.",
+    "passwordMinLength": "Password must be at least 8 characters.",
     "fileRequired": "Select a file first.",
     "nonNegativeInt": "The number must be an integer that is zero or greater.",
     "titleLength": "The title must be between 2 and 200 characters.",
