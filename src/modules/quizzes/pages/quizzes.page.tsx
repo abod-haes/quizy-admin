@@ -5,6 +5,7 @@ import { Edit3, FileQuestion, Plus, RefreshCcw, Trash2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/auth.provider'
+import type { AuthUser } from '@/app/auth/auth-user.type'
 import { api } from '@/shared/api/api-client'
 import type { LegacyPaginationQuery, PagedResponse } from '@/shared/api/api.types'
 import { API_ENDPOINTS } from '@/shared/constants/api-endpoints'
@@ -58,10 +59,23 @@ function questionsCount(quiz: QuizRow) {
   return Array.isArray(quiz.questions) ? quiz.questions.length : 0
 }
 
+function currentTeacherId(user: AuthUser | null) {
+  if (!user) return null
+
+  const candidates = [user.teacherId, user.teacher_id, user.teacher?.id, user.id]
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string' && candidate.trim()) return candidate.trim()
+    if (typeof candidate === 'number') return String(candidate)
+  }
+
+  return null
+}
+
 export default function QuizzesPage() {
   const { t } = useTranslation('admin-pages')
-  const { hasRole } = useAuth()
+  const { hasRole, user } = useAuth()
   const isTeacher = hasRole('Teacher')
+  const authenticatedTeacherId = useMemo(() => currentTeacherId(user), [user])
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
@@ -76,16 +90,24 @@ export default function QuizzesPage() {
     enabled: !isTeacher,
   })
   const quizzesQuery = useQuery({
-    queryKey: ['quizzes-page', page, search, teacherId, isTeacher],
+    queryKey: ['quizzes-page', page, search, teacherId, isTeacher, authenticatedTeacherId],
     queryFn: () => {
+      const selectedTeacherId = isTeacher
+        ? authenticatedTeacherId
+        : teacherId !== ALL_VALUE
+          ? teacherId
+          : undefined
+
       const params: LegacyPaginationQuery & { search?: string; teacherId?: string } = {
         Page: page,
         PerPage: PAGE_SIZE,
         ...(search.trim() ? { search: search.trim() } : {}),
-        ...(!isTeacher && teacherId !== ALL_VALUE ? { teacherId } : {}),
+        ...(selectedTeacherId ? { teacherId: selectedTeacherId } : {}),
       }
       return api.get<PagedResponse<QuizRow>>(API_ENDPOINTS.quizzes.list, { params })
     },
+    // Never load an unscoped quiz list for a teacher if their identity is missing.
+    enabled: !isTeacher || Boolean(authenticatedTeacherId),
   })
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(API_ENDPOINTS.quizzes.remove(id)),
@@ -105,10 +127,16 @@ export default function QuizzesPage() {
     ],
     [teachers, t],
   )
-  const rows = quizzesQuery.data?.items ?? []
+  const rows = useMemo(() => {
+    const items = quizzesQuery.data?.items ?? []
+    if (!isTeacher || !authenticatedTeacherId) return items
+    return items.filter((quiz) => String(quiz.teacherId ?? '') === authenticatedTeacherId)
+  }, [authenticatedTeacherId, isTeacher, quizzesQuery.data?.items])
 
-  const totalCount = quizzesQuery.data?.totalCount ?? 0
-  const totalPages = Math.max(1, Math.ceil(totalCount / (quizzesQuery.data?.pageSize ?? PAGE_SIZE)))
+  const totalCount = isTeacher ? rows.length : (quizzesQuery.data?.totalCount ?? 0)
+  const totalPages = isTeacher
+    ? Math.max(1, Math.ceil(rows.length / (quizzesQuery.data?.pageSize ?? PAGE_SIZE)))
+    : Math.max(1, Math.ceil((quizzesQuery.data?.totalCount ?? 0) / (quizzesQuery.data?.pageSize ?? PAGE_SIZE)))
   const quizTitle = (quiz: QuizRow) => quiz.title?.trim() || t('quizzes.untitled')
   const hasFilters = Boolean(search.trim()) || (!isTeacher && teacherId !== ALL_VALUE)
 
@@ -138,7 +166,7 @@ export default function QuizzesPage() {
         title={t('quizzes.title')}
         search={{ value: search, placeholder: t('quizzes.searchPlaceholder'), onChange: (value) => { setSearch(value); setPage(1) } }}
         controls={isTeacher ? undefined : <><CustomSelect className="h-9 min-w-44" value={teacherId} variant="filter" options={teacherOptions} onValueChange={(value) => { setTeacherId(String(value)); setPage(1) }} />{hasFilters ? <Button variant="outline" icon={<X />} onClick={() => { setSearch(''); setTeacherId(ALL_VALUE); setPage(1) }}>{t('quizzes.clearFilters')}</Button> : null}</>}
-        actions={<><Button variant="outline" icon={<RefreshCcw />} onClick={() => void quizzesQuery.refetch()} disabled={quizzesQuery.isFetching}>{t('quizzes.refresh')}</Button>{!isTeacher ? <Button icon={<Plus />} onClick={() => navigate('/quiz-builder')}>{t('quizzes.add')}</Button> : null}</>}
+        actions={<><Button variant="outline" icon={<RefreshCcw />} onClick={() => void quizzesQuery.refetch()} disabled={quizzesQuery.isFetching || (isTeacher && !authenticatedTeacherId)}>{t('quizzes.refresh')}</Button>{!isTeacher ? <Button icon={<Plus />} onClick={() => navigate('/quiz-builder')}>{t('quizzes.add')}</Button> : null}</>}
       />
 
       <PaginatedDataTable<QuizRow>
