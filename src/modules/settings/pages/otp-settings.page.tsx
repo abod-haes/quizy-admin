@@ -47,8 +47,9 @@ export default function OtpSettingsPage() {
 
   const clientsQuery = useQuery({ queryKey: ['otp-settings', 'clients'], queryFn: otpSettingsService.clients })
   const apiKeysQuery = useQuery({ queryKey: ['otp-settings', 'api-keys'], queryFn: otpSettingsService.apiKeys })
+  // The OTP settings page only needs a small "latest requests" snapshot.
+  // The API itself is paginated, but there is intentionally no pagination UI here.
   const requestsQuery = useQuery({ queryKey: ['otp-settings', 'requests'], queryFn: () => otpSettingsService.requests(1, 10) })
-  const summaryQuery = useQuery({ queryKey: ['otp-settings', 'summary'], queryFn: otpSettingsService.summary })
 
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ['otp-settings'] })
@@ -114,7 +115,7 @@ export default function OtpSettingsPage() {
 
   const apiKeyColumns: DataTableColumn<(typeof apiKeys)[number]>[] = [
     { id: 'name', header: t('keys.name'), renderCell: (key) => key.name },
-    { id: 'client', header: t('keys.client'), renderCell: (key) => key.client.name },
+    { id: 'client', header: t('keys.client'), renderCell: (key) => key.client?.name ?? '-' },
     { id: 'prefix', header: t('keys.prefix'), renderCell: (key) => <span dir="ltr">{key.prefix}</span> },
     { id: 'status', header: t('keys.status'), renderCell: (key) => key.status },
     { id: 'lastUsed', header: t('keys.lastUsed'), renderCell: (key) => key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleString() : '-' },
@@ -126,7 +127,7 @@ export default function OtpSettingsPage() {
     { id: 'client', header: t('requests.client'), renderCell: (request) => request.client?.name ?? '-' },
     { id: 'purpose', header: t('requests.purpose'), renderCell: (request) => request.purpose },
     { id: 'status', header: t('requests.status'), renderCell: (request) => request.status },
-    { id: 'createdAt', header: t('requests.createdAt'), renderCell: (request) => new Date(request.createdAt).toLocaleString() },
+    { id: 'createdAt', header: t('requests.createdAt'), renderCell: (request) => request.createdAt ? new Date(request.createdAt).toLocaleString() : '-' },
   ]
 
   return (
@@ -139,13 +140,6 @@ export default function OtpSettingsPage() {
         <Button variant="outline" icon={<RefreshCcw className="size-4" />} onClick={() => void refresh()}>
           {t('actions.refresh')}
         </Button>
-      </div>
-
-      <div className="grid gap-3 md:grid-cols-4">
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">{t('summary.clients')}</p><p className="mt-1 text-2xl font-bold">{clients.length}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">{t('summary.sent')}</p><p className="mt-1 text-2xl font-bold">{summaryQuery.data?.today.sent ?? 0}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">{t('summary.verified')}</p><p className="mt-1 text-2xl font-bold">{summaryQuery.data?.today.verified ?? 0}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">{t('summary.worker')}</p><p className="mt-1 text-lg font-bold">{summaryQuery.data?.worker.status ?? '-'}</p></CardContent></Card>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
