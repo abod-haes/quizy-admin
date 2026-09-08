@@ -1,4 +1,4 @@
-import { BookOpenCheck, BookText, BellRing, BrainCircuit, CalendarDays, FileQuestion, FileText, FolderKanban, Gauge, GraduationCap, HardDrive, KeyRound, Layers3, LibraryBig, MapPin, Megaphone, MessageCircle, QrCode, School, Settings, UploadCloud, UsersRound } from 'lucide-react'
+import { BookOpenCheck, BookText, BellRing, BrainCircuit, CalendarDays, FileQuestion, FileText, FolderKanban, Gauge, GraduationCap, HardDrive, Layers3, LibraryBig, MapPin, Megaphone, MessageCircle, QrCode, School, Settings, UploadCloud, UsersRound } from 'lucide-react'
 
 import type { SidebarItem } from '@/app/layout/sidebar/sidebar.types'
 import { APP_ROUTES } from '@/app/router/route-object.type'
@@ -42,7 +42,6 @@ export const primarySidebarItems: SidebarItem[] = [
   ] },
   { id: 'settings', labelKey: 'sidebar.items.settings', icon: Settings, children: [
     { id: 'whatsappSettings', labelKey: 'sidebar.items.whatsappSettings', to: APP_ROUTES.whatsapp.path, icon: MessageCircle, roles: ['SuperAdmin'], end: true },
-    { id: 'otpSettings', labelKey: 'sidebar.items.otpSettings', to: APP_ROUTES.otpSettings.path, icon: KeyRound, roles: ['SuperAdmin'], end: true },
     { id: 'aiChatSettings', labelKey: 'sidebar.items.aiChatSettings', to: APP_ROUTES.aiChatSettings.path, icon: BrainCircuit, permissions: ['ai.manage'], end: true },
   ] },
 ]
